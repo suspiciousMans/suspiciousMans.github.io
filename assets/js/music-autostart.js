@@ -16,19 +16,18 @@
         if (!widget || !widget.engine) return;
         var engine = widget.engine;
 
-        // engine.play() swallows the promise rejection itself and emits it
-        // as a public "error" event instead, which the widget renders as
-        // raw browser error text ("NotAllowedError: play() failed...") in
-        // its hint area — expected and harmless every time an autoplay
-        // attempt gets blocked, but ugly to actually show a visitor. Only
-        // that specific, autoplay-policy failure gets swallowed here;
-        // anything else (e.g. a genuinely broken track) still shows.
-        engine.on("error", function (payload) {
-            if (/notallowederror/i.test(payload.message || "")) {
-                var hint = widget.shadowRoot && widget.shadowRoot.querySelector("#hint");
-                if (hint) hint.textContent = "";
-            }
-        });
+        // The widget writes raw browser/loading error text into its #hint
+        // element from more than one code path (an engine "error" event on
+        // a rejected play() — e.g. every blocked autoplay attempt — and
+        // separately, directly, if the playlist fetch itself fails), so
+        // matching specific error strings from just one of those paths was
+        // unreliable. Unconditionally hidden instead: nothing ever written
+        // there gets shown, regardless of cause or wording.
+        if (widget.shadowRoot) {
+            var hideHint = document.createElement("style");
+            hideHint.textContent = "#hint { display: none !important; }";
+            widget.shadowRoot.appendChild(hideHint);
+        }
 
         var attempted = false;
         function attemptPlay() {
