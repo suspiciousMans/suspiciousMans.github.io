@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Projects — suspiciousMans</title>
+    <meta name="description" content="Rust projects by suspiciousMans, including Hex Colony and the jame-engine game engine.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,3 93,26 93,74 50,97 7,74 7,26' fill='%23060f11' stroke='%2301c887' stroke-width='6'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="index.html">
+                <svg class="brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="50,3 93,26 93,74 50,97 7,74 7,26" fill="#060f11" stroke="#01c887" stroke-width="6" />
+                </svg>
+                suspiciousMans
+            </a>
+            <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+            <nav class="main-nav">
+                <a href="index.html">Home</a>
+                <a href="projects.html">Projects</a>
+                <a href="hex-colony.html">Hex Colony</a>
+                <a href="about.html">About</a>
+                <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" style="padding-bottom:24px;">
+            <div class="wrap">
+                <span class="eyebrow">Projects</span>
+                <h1>Things I've <span>built</span></h1>
+                <p class="lede">Mostly Rust, mostly from scratch. Here's what I've been working on.</p>
+            </div>
+        </section>
+
+        <section>
+            <div class="wrap">
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-media">
+                            <img src="assets/img/hex-colony-preview.png" alt="Hex Colony gameplay screenshot" loading="lazy">
+                        </div>
+                        <h3>Hex Colony</h3>
+                        <div class="tags">
+                            <span class="tag tag-accent">Rust</span>
+                            <span class="tag">WebAssembly</span>
+                            <span class="tag">SDL2</span>
+                        </div>
+                        <p>A turn-based, pixel-art hex colony builder. Place buildings on a hex
+                            grid, manage resources, and race to a score target. Runs natively via
+                            SDL2 or in the browser via WebAssembly.</p>
+                        <div class="card-links">
+                            <a href="hex-colony.html">Play in browser</a>
+                            <a href="https://github.com/suspiciousMans/Hex-Colony" target="_blank" rel="noopener">Source</a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>jame-engine</h3>
+                        <div class="tags">
+                            <span class="tag tag-accent">Rust</span>
+                            <span class="tag">Engine</span>
+                        </div>
+                        <p>A lightweight, PS2-style game engine written in Rust. The foundation
+                            for Hex Colony's rendering and platform layer.</p>
+                        <div class="card-links">
+                            <a href="https://github.com/suspiciousMans/jame-engine" target="_blank" rel="noopener">Source</a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>This site</h3>
+                        <div class="tags">
+                            <span class="tag">HTML/CSS</span>
+                            <span class="tag">Static</span>
+                        </div>
+                        <p>Hand-built, no framework, hosted on GitHub Pages. Same color palette
+                            since the beginning, redesigned to actually look clean.</p>
+                        <div class="card-links">
+                            <a href="https://github.com/suspiciousMans/suspiciousMans.github.io" target="_blank" rel="noopener">Source</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <span>&copy; 2026 suspiciousMans</span>
+            <div class="footer-links">
+                <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener">GitHub</a>
+                <a href="projects.html">Projects</a>
+                <a href="about.html">About</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>
