@@ -14,6 +14,11 @@
 </head>
 
 <body>
+    <div class="audio-bg" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
     <header class="site-header">
         <div class="wrap">
             <a class="brand" href="index.html">
@@ -107,6 +112,7 @@
 
     <script src="assets/js/main.js"></script>
     <script src="assets/music/music-widget.js" data-playlist="assets/music/playlist.json" data-position="bottom-right" data-accent="#01c887"></script>
+    <script src="assets/js/audio-reactive.js"></script>
     <script type="module">
         const loadingEl = document.getElementById("game-loading");
         const errorEl = document.getElementById("game-error");

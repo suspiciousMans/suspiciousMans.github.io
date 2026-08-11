@@ -48,6 +48,50 @@ a {
     text-decoration: none;
 }
 
+/* ---------- audio-reactive background ---------- */
+/* Sits behind everything (fixed, negative z-index — the body's own
+   background paints as the true bottom layer regardless, so this never
+   hides it). Driven by assets/js/audio-reactive.js: idles as a slow, barely-
+   there ambient drift, and swells with the music when the player is active
+   — from real frequency data where available, or a synthetic pulse where
+   the audio's cross-origin source blocks analyser access. */
+.audio-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.audio-bg .blob {
+    position: absolute;
+    width: 46vmax;
+    height: 46vmax;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.14;
+    transform: scale(0.55);
+    transition: opacity 0.6s ease;
+}
+
+.audio-bg .blob-1 {
+    background: var(--accent);
+    top: -12%;
+    left: -10%;
+}
+
+.audio-bg .blob-2 {
+    background: var(--accent-2);
+    bottom: -18%;
+    right: -12%;
+}
+
+.audio-bg .blob-3 {
+    background: var(--accent-3);
+    top: 28%;
+    right: 15%;
+}
+
 img {
     max-width: 100%;
     display: block;
