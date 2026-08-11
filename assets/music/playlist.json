@@ -1,0 +1,20 @@
+[
+  {
+    "id": "soundhelix-1",
+    "title": "SoundHelix Song 1",
+    "artist": "SoundHelix",
+    "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+  },
+  {
+    "id": "soundhelix-2",
+    "title": "SoundHelix Song 2",
+    "artist": "SoundHelix",
+    "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+  },
+  {
+    "id": "soundhelix-3",
+    "title": "SoundHelix Song 3",
+    "artist": "SoundHelix",
+    "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+  }
+]
