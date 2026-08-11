@@ -393,16 +393,34 @@ section {
     width: 100%;
     aspect-ratio: 1280 / 800;
     background: #08080c;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
 }
 
+.game-canvas-wrap:fullscreen,
+.game-canvas-wrap:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: unset;
+}
+
+/* The compiled game sets an inline style="width:...px;height:...px" on the
+   canvas once at boot (its native/native-desktop sizing). !important is
+   required here so the canvas always fills this wrapper regardless of that
+   inline style — the actual pixel-buffer size (and therefore the game's
+   internal letterboxing + mouse-coordinate mapping) is kept in sync with
+   this rendered box separately, in hex-colony.html's script. */
 .game-canvas-wrap canvas {
-    width: 100%;
-    height: 100%;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
     outline: none;
     image-rendering: pixelated;
+}
+
+.game-toolbar .btn {
+    padding: 9px 16px;
+    font-size: 14px;
 }
 
 .game-loading {
