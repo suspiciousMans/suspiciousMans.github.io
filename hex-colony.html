@@ -65,7 +65,10 @@
                     </div>
                     <div class="game-toolbar">
                         <span class="status" id="game-status">Loading&hellip;</span>
-                        <a class="btn btn-outline" href="https://github.com/suspiciousMans/Hex-Colony-Builds/raw/master/hex-colony.exe">Download Windows build</a>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button type="button" class="btn btn-outline" id="fullscreen-btn">&#9974; Fullscreen</button>
+                            <a class="btn btn-outline" href="https://github.com/suspiciousMans/Hex-Colony-Builds/raw/master/hex-colony.exe">Download Windows build</a>
+                        </div>
                     </div>
                 </div>
 
@@ -108,14 +111,67 @@
         const errorEl = document.getElementById("game-error");
         const statusEl = document.getElementById("game-status");
         const canvas = document.getElementById("canvas");
+        const canvasWrap = document.querySelector(".game-canvas-wrap");
+        const fsBtn = document.getElementById("fullscreen-btn");
 
         canvas.addEventListener("click", () => canvas.focus());
+
+        // The compiled game sets its own inline width/height (in CSS pixels
+        // and as the canvas's pixel-buffer attributes) once at boot, sized
+        // for a fixed desktop window. CSS (with !important) forces the
+        // element to visually fill this wrapper regardless of that; this
+        // keeps the underlying pixel-buffer size (canvas.width/height, which
+        // the game reads every frame to letterbox itself and to map mouse
+        // coordinates) in sync with however big the canvas actually is on
+        // screen, so clicks land on the right tile and rendering stays crisp
+        // at any size — including fullscreen, where the aspect ratio differs
+        // from the game's native 1280x800.
+        function syncCanvasBuffer() {
+            const rect = canvas.getBoundingClientRect();
+            const w = Math.max(1, Math.round(rect.width));
+            const h = Math.max(1, Math.round(rect.height));
+            if (canvas.width !== w) canvas.width = w;
+            if (canvas.height !== h) canvas.height = h;
+        }
+
+        function isFullscreen() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement);
+        }
+
+        function updateFsButton() {
+            fsBtn.innerHTML = isFullscreen() ? "&#9974; Exit Fullscreen" : "&#9974; Fullscreen";
+        }
+
+        function onFullscreenChange() {
+            updateFsButton();
+            syncCanvasBuffer();
+            canvas.focus();
+        }
+
+        const canRequestFullscreen = canvasWrap.requestFullscreen || canvasWrap.webkitRequestFullscreen;
+        if (canRequestFullscreen) {
+            fsBtn.addEventListener("click", () => {
+                if (isFullscreen()) {
+                    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                } else {
+                    canRequestFullscreen.call(canvasWrap);
+                }
+            });
+            document.addEventListener("fullscreenchange", onFullscreenChange);
+            document.addEventListener("webkitfullscreenchange", onFullscreenChange);
+        } else {
+            fsBtn.style.display = "none";
+        }
 
         import("./assets/game/hex-colony.js")
             .then((mod) => mod.default())
             .then(() => {
                 loadingEl.classList.add("hidden");
                 statusEl.textContent = "Running locally in your browser via WebAssembly.";
+                syncCanvasBuffer();
+                const resizeObserver = new ResizeObserver(() => syncCanvasBuffer());
+                resizeObserver.observe(canvasWrap);
+                window.addEventListener("resize", syncCanvasBuffer);
             })
             .catch((err) => {
                 console.error("Failed to start Hex Colony:", err);
