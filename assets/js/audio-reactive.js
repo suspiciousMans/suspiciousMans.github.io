@@ -19,76 +19,30 @@
     whenReady(function () {
         var blobs = Array.prototype.slice.call(document.querySelectorAll(".audio-bg .blob"));
         var widget = document.querySelector("music-widget");
-        if (!blobs.length || !widget) return;
+        if (!blobs.length || !widget || !widget.engine) return;
 
-        var audioCtx = null;
-        var analyser = null;
-        var freqData = null;
+        // Deliberately does NOT use the Web Audio API (AnalyserNode etc.).
+        // Getting real frequency data requires routing the widget's <audio>
+        // element through an AudioContext via createMediaElementSource,
+        // which permanently replaces the element's normal audio output with
+        // whatever that graph produces — any mistake or edge case in wiring
+        // it (autoplay-policy timing, a thrown error mid-setup, browser
+        // quirks) risks silencing playback outright. It also wouldn't have
+        // produced real data anyway: the bundled placeholder tracks are
+        // cross-origin without CORS headers, so browsers zero out analyser
+        // reads from them regardless. Driven purely off the widget's public
+        // play/pause/timeupdate events instead — can't affect playback.
         var isPlaying = false;
         var t = 0;
 
-        // The widget's PlayerEngine keeps a single reusable HTMLAudioElement
-        // (never inserted into the DOM) and marks it `private` in
-        // TypeScript — which doesn't survive compilation to a real runtime
-        // access modifier, so it's reachable here as a plain property. This
-        // is an internal implementation detail of the Music-Player repo's
-        // build, not a public API, so it could break on a future rebuild of
-        // that widget.
-        function ensureAnalyser() {
-            if (analyser || !widget.engine || !widget.engine.audio) return;
-            try {
-                var Ctx = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new Ctx();
-                var source = audioCtx.createMediaElementSource(widget.engine.audio);
-                analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 256;
-                analyser.smoothingTimeConstant = 0.8;
-                source.connect(analyser);
-                // Routing through an AnalyserNode replaces the element's
-                // default output, so this connection is what keeps the
-                // music audible.
-                analyser.connect(audioCtx.destination);
-                freqData = new Uint8Array(analyser.frequencyBinCount);
-            } catch (err) {
-                console.warn("Audio-reactive background disabled:", err);
-            }
-        }
-
-        // AudioContext creation/resume needs a user gesture. The widget's
-        // own controls already provide one, but hooking the first click
-        // anywhere on the page (capture, once) keeps this from depending on
-        // which control a visitor happens to use first.
-        document.addEventListener(
-            "click",
-            function () {
-                ensureAnalyser();
-                if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-            },
-            { once: true, capture: true }
-        );
-
-        if (widget.engine) {
-            widget.engine.on("play", function () {
-                isPlaying = true;
-            });
-            widget.engine.on("pause", function () {
-                isPlaying = false;
-            });
-        }
+        widget.engine.on("play", function () {
+            isPlaying = true;
+        });
+        widget.engine.on("pause", function () {
+            isPlaying = false;
+        });
 
         function level() {
-            if (analyser && freqData) {
-                analyser.getByteFrequencyData(freqData);
-                var sum = 0;
-                for (var i = 0; i < freqData.length; i++) sum += freqData[i];
-                var avg = sum / freqData.length / 255;
-                // A real signal almost never sits at exactly 0 across a
-                // whole frame; treat that as "no data" (cross-origin
-                // without CORS) rather than "silent track" and fall through
-                // to the synthetic pulse below so the background still
-                // feels alive.
-                if (avg > 0.01) return avg;
-            }
             return isPlaying ? 0.35 + 0.25 * Math.sin(t * 2.2) : 0;
         }
 
