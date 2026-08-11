@@ -1,111 +1,111 @@
-﻿<!--Color Pallete 
-    Maybe{
-    22577A : Lapis Lazuli
-    38A3A5 : Verdigris
-    57CC99 : Emerald
-    80ED99 : Light Green
-    C7F9CC : Tea green
-     }
-    Oxide{
-    #01c887 : Neon Oxide
-    #060f11 : Dark !for background
-    #3c444c : Grey !for gradient with dark
-    #f7b117 : Bright Yellow !for accents 
-    #9d4157 : Dark Maroonish !for accents 
-    }
--->
-
-
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8"> 
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>suspiciousMans — home</title>
+    <meta name="description" content="Personal site of suspiciousMans: Rust projects, a homemade game engine, and the playable web build of Hex Colony.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,3 93,26 93,74 50,97 7,74 7,26' fill='%23060f11' stroke='%2301c887' stroke-width='6'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-        rel="stylesheet">
-    <title>suspicious.github.io</title>
-    <style>
-        * {
-            font-family: Roboto;
-        }
-
-        main {}
-
-        body {
-            background: rgb(6, 15, 17);
-            background: linear-gradient(90deg, rgba(6, 15, 17, 1) 41%, rgba(60, 68, 76, 1) 100%);
-
-        }
-
-        .block1 {
-
-            color: #01c887;
-            font-size: 35px;
-            justify-content: center;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-            width: 25%;
-        }
-
-
-        nav {
-            float: center;
-            width: auto;
-            height: auto;
-            border-left: 20%;
-            position: sticky;
-            display: flex;
-            justify-content: center;
-            padding-bottom: 1%;
-            
-        }
-
-        nav a {
-            color: #01c887;
-            text-decoration: none;
-            
-            font-size: 30px;
-            letter-spacing: 1.5px;
-        }
-
-        nav a:hover {
-            color: #f7b117;
-            transition: 1s;
-            font-size: 40px;
-
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<main>
 
-    <body>
-        <header>
-            <center style="color: #01c887; font-size: 60px;padding-bottom: 1%;">I Am Suspicious</center>
-        </header>
-        <nav>
-            <ul><a href="index.html">Home</a></ul>
-            <ul><a href="https://github.com/suspiciousMans">My github</a></ul>
-            <ul><a href="#">Contact</a></ul>
-
-            <ul><a href="#">Projects</a></ul>
-            <ul><a src="About Meh.html">About Me</a></ul>
-
-        </nav>
-
-
-
-        <div class="block1">
-            <p>I am somewhat web designer. I enjoy many things computer related, as of many of
-                my projects will reflect on. You can contact me on discord and a few other platforms. I am working on a
-                blog because im bored and need a motivation to do work.</p>
-
+<body>
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="index.html">
+                <svg class="brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="50,3 93,26 93,74 50,97 7,74 7,26" fill="#060f11" stroke="#01c887" stroke-width="6" />
+                </svg>
+                suspiciousMans
+            </a>
+            <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+            <nav class="main-nav">
+                <a href="index.html">Home</a>
+                <a href="projects.html">Projects</a>
+                <a href="hex-colony.html">Hex Colony</a>
+                <a href="about.html">About</a>
+                <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener">GitHub</a>
+            </nav>
         </div>
-    </body>
-</main>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="wrap">
+                <span class="eyebrow">Rust · Game Dev · Web</span>
+                <h1>I Am <span>Suspicious</span></h1>
+                <p class="lede">
+                    I build things in Rust — a hex-grid colony builder, a PS2-style game engine,
+                    and whatever else keeps me off the grass. Most of it ends up here eventually.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="hex-colony.html">Play Hex Colony</a>
+                    <a class="btn btn-outline" href="projects.html">See Projects</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="featured">
+            <div class="wrap">
+                <div class="section-head">
+                    <span class="eyebrow">Featured</span>
+                    <h2>Hex Colony</h2>
+                    <p>A turn-based, pixel-art hex colony builder written in Rust — now playable straight in the browser.</p>
+                </div>
+                <div class="card" style="max-width:820px;margin:0 auto;">
+                    <div class="card-media">
+                        <img src="assets/img/hex-colony-preview.png" alt="Hex Colony gameplay screenshot showing the hex grid board and hotbar" loading="lazy">
+                    </div>
+                    <div class="tags">
+                        <span class="tag tag-accent">Rust</span>
+                        <span class="tag">WebAssembly</span>
+                        <span class="tag">Pixel Art</span>
+                    </div>
+                    <p>
+                        Place buildings on a hex grid, manage resources, and race to a score target —
+                        compiled to WebAssembly so it runs entirely client-side, no download required.
+                    </p>
+                    <div class="card-links">
+                        <a href="hex-colony.html">Play in browser</a>
+                        <a href="https://github.com/suspiciousMans/Hex-Colony" target="_blank" rel="noopener">Source</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about-teaser">
+            <div class="wrap">
+                <div class="section-head">
+                    <span class="eyebrow">Who's this</span>
+                    <h2>A bit about me</h2>
+                    <p>
+                        I'm somewhat of a web designer and mostly a Rust enthusiast. I enjoy building
+                        small engines and games from scratch more than using existing ones.
+                    </p>
+                </div>
+                <div style="text-align:center;">
+                    <a class="btn btn-outline" href="about.html">Read more</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <span>&copy; 2026 suspiciousMans</span>
+            <div class="footer-links">
+                <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener">GitHub</a>
+                <a href="projects.html">Projects</a>
+                <a href="about.html">About</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
 
 </html>

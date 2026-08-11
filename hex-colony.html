@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hex Colony — suspiciousMans</title>
+    <meta name="description" content="Play Hex Colony, a turn-based pixel-art hex colony builder written in Rust, straight in your browser via WebAssembly.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,3 93,26 93,74 50,97 7,74 7,26' fill='%23060f11' stroke='%2301c887' stroke-width='6'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="index.html">
+                <svg class="brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="50,3 93,26 93,74 50,97 7,74 7,26" fill="#060f11" stroke="#01c887" stroke-width="6" />
+                </svg>
+                suspiciousMans
+            </a>
+            <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+            <nav class="main-nav">
+                <a href="index.html">Home</a>
+                <a href="projects.html">Projects</a>
+                <a href="hex-colony.html">Hex Colony</a>
+                <a href="about.html">About</a>
+                <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" style="padding-bottom:20px;">
+            <div class="wrap">
+                <span class="eyebrow">Play in browser</span>
+                <h1>Hex <span>Colony</span></h1>
+                <p class="lede">
+                    A turn-based, pixel-art hex colony builder — written in Rust, compiled to
+                    WebAssembly, running entirely on your machine. No install, no account.
+                </p>
+            </div>
+        </section>
+
+        <section style="padding-top:0;">
+            <div class="wrap">
+                <div class="game-shell">
+                    <div class="game-canvas-wrap">
+                        <canvas id="canvas" width="1280" height="800" tabindex="0"></canvas>
+                        <div class="game-loading" id="game-loading">
+                            <div class="spinner"></div>
+                            <span>Loading Hex Colony&hellip;</span>
+                        </div>
+                        <div class="game-error" id="game-error">
+                            <strong style="color:#e8a7b6;">Couldn't load the game.</strong>
+                            <p style="max-width:420px;">
+                                Your browser may not support WebAssembly, or the build files
+                                failed to load. Try a recent Chrome, Firefox, or Safari, or grab
+                                the native build below.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="game-toolbar">
+                        <span class="status" id="game-status">Loading&hellip;</span>
+                        <a class="btn btn-outline" href="https://github.com/suspiciousMans/Hex-Colony-Builds/raw/master/hex-colony.exe">Download Windows build</a>
+                    </div>
+                </div>
+
+                <div class="controls-list">
+                    <div class="control">
+                        <p><kbd>Click</kbd> a hex tile to place the selected building</p>
+                    </div>
+                    <div class="control">
+                        <p><kbd>1</kbd>–<kbd>9</kbd> <kbd>0</kbd> <kbd>-</kbd> or click the hotbar to select a building</p>
+                    </div>
+                    <div class="control">
+                        <p><kbd>Enter</kbd> to end your turn</p>
+                    </div>
+                    <div class="control">
+                        <p><kbd>H</kbd> in-game for the full how-to-play</p>
+                    </div>
+                </div>
+
+                <p style="text-align:center;color:var(--text-dim);font-size:14px;margin-top:26px;">
+                    Source on <a href="https://github.com/suspiciousMans/Hex-Colony" target="_blank" rel="noopener">GitHub</a>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <span>&copy; 2026 suspiciousMans</span>
+            <div class="footer-links">
+                <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener">GitHub</a>
+                <a href="projects.html">Projects</a>
+                <a href="about.html">About</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+    <script type="module">
+        const loadingEl = document.getElementById("game-loading");
+        const errorEl = document.getElementById("game-error");
+        const statusEl = document.getElementById("game-status");
+        const canvas = document.getElementById("canvas");
+
+        canvas.addEventListener("click", () => canvas.focus());
+
+        import("./assets/game/hex-colony.js")
+            .then((mod) => mod.default())
+            .then(() => {
+                loadingEl.classList.add("hidden");
+                statusEl.textContent = "Running locally in your browser via WebAssembly.";
+            })
+            .catch((err) => {
+                console.error("Failed to start Hex Colony:", err);
+                loadingEl.classList.add("hidden");
+                errorEl.classList.add("visible");
+                statusEl.textContent = "Failed to load — try the Windows build instead.";
+            });
+    </script>
+</body>
+
+</html>
