@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoCode — Full Game</title>
+    <script type="module" crossorigin src="/autocode/assets/game-C__zUv2c.js"></script>
+    <link rel="modulepreload" crossorigin href="/autocode/assets/modulepreload-polyfill-B5Qt9EMX.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Warehouse-Dkg0kq08.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/CrewSupply-vxflKXea.js">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/game-BFoZQQhZ.css">
+  </head>
+  <body>
+    <div id="hub">
+      <header id="hub-topbar">
+        <span class="brand">AUTOCODE</span>
+        <nav id="world-tabs">
+          <button class="world-tab active" data-world="farm">🌾 Farm</button>
+          <button class="world-tab" data-world="space">🚀 Space</button>
+          <button class="world-tab" data-world="store">🏪 Store</button>
+          <button class="world-tab" data-world="factory">🏭 Factory</button>
+        </nav>
+        <span class="spacer"></span>
+        <span id="hub-stats" title="Shared across all worlds — credits, crew food, warehouse stock">
+          <span id="hub-credits">$0.00</span>
+          <span id="hub-food">🍞 0</span>
+          <span id="hub-warehouse">📦 0</span>
+        </span>
+        <a id="hub-standalone-link" class="hub-standalone-link" href="index.html" target="_blank" rel="noopener"
+          >Open standalone ↗</a
+        >
+      </header>
+      <div id="hub-frame-wrap">
+        <iframe id="hub-frame" src="index.html" title="AutoCode world"></iframe>
+      </div>
+    </div>
+  </body>
+</html>
