@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>About — suspiciousMans</title>
-    <meta name="description" content="About suspiciousMans: Rust developer, game builder, occasional web designer.">
+    <title>Chat — suspiciousMans</title>
+    <meta name="description" content="A live public chatroom on suspiciousMans' site — say hi.">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,3 93,26 93,74 50,97 7,74 7,26' fill='%23060f11' stroke='%2301c887' stroke-width='6'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +32,6 @@
                 <a href="index.html">Home</a>
                 <a href="projects.html">Projects</a>
                 <a href="hex-colony.html">Hex Colony</a>
-                <a href="autocode.html">AutoCode</a>
                 <a href="about.html">About</a>
                 <a href="chat.html">Chat</a>
                 <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener">GitHub</a>
@@ -41,32 +40,34 @@
     </header>
 
     <main>
-        <section style="padding-top:72px;">
+        <section class="hero" style="padding-bottom:20px;">
             <div class="wrap">
-                <div class="prose">
-                    <span class="eyebrow">About</span>
-                    <h1>I'm a very suspicious person.</h1>
-                    <p>
-                        As you may know. I enjoy a lot of suspicious things — touching grass
-                        (occasionally), Assembly, and Rust. I dream in JavaScript and exist in binary.
-                        Send help.
-                    </p>
-                    <p>
-                        I'm somewhat of a web designer, but mostly I like building things from the
-                        ground up: game engines, hex-grid colony builders, and whatever project
-                        currently has my attention. Most of it ends up written in Rust, because I
-                        enjoy fighting the borrow checker more than is probably healthy.
-                    </p>
-                    <p>
-                        Right now most of my time goes into <a href="hex-colony.html">Hex Colony</a>,
-                        a turn-based pixel-art colony builder, and the little engine underneath it.
-                        Everything I ship publicly is linked from the
-                        <a href="projects.html">projects page</a>.
-                    </p>
-                    <p>
-                        Best way to find me is on <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener">GitHub</a>.
-                    </p>
+                <span class="eyebrow">Live</span>
+                <h1>Say <span>Hi</span></h1>
+                <p class="lede">
+                    A public chatroom, live for anyone on this site right now. No account
+                    needed — pick a name and talk.
+                </p>
+            </div>
+        </section>
+
+        <section style="padding-top:0;">
+            <div class="wrap">
+                <div class="chat-shell">
+                    <div class="chat-messages" id="chat-messages">
+                        <p class="chat-empty" id="chat-empty">No messages yet — be the first to say something.</p>
+                    </div>
+                    <form class="chat-form" id="chat-form" autocomplete="off">
+                        <input type="text" id="chat-name" placeholder="Name" maxlength="30" required>
+                        <input type="text" id="chat-text" placeholder="Say something…" maxlength="500" required>
+                        <button type="submit" class="btn btn-primary" id="chat-send">Send</button>
+                    </form>
                 </div>
+                <p class="chat-status" id="chat-status"></p>
+                <p style="text-align:center;color:var(--text-dim);font-size:13px;max-width:520px;margin:10px auto 0;">
+                    This room is open to anyone visiting the site — please keep it civil.
+                    Messages aren't moderated in real time.
+                </p>
             </div>
         </section>
     </main>
@@ -86,6 +87,7 @@
     <script src="assets/music/music-widget.js" data-playlist="assets/music/playlist.json" data-position="bottom-right" data-accent="#01c887"></script>
     <script src="assets/js/music-autostart.js"></script>
     <script src="assets/js/audio-reactive.js"></script>
+    <script type="module" src="assets/js/chat.js"></script>
 </body>
 
 </html>
