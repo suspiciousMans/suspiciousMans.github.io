@@ -4,11 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AutoCode — Full Game</title>
-    <script type="module" crossorigin src="/autocode/assets/game-DhhgZsdv.js"></script>
-    <link rel="modulepreload" crossorigin href="/autocode/assets/PlayerProfile-BhU5pp6a.js">
+    <script type="module" crossorigin src="/autocode/assets/game-B3V1dhlq.js"></script>
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Dock-DQToxM1Z.js">
     <link rel="modulepreload" crossorigin href="/autocode/assets/CrewSupply-vxflKXea.js">
     <link rel="modulepreload" crossorigin href="/autocode/assets/Warehouse-Bn_cejO5.js">
-    <link rel="stylesheet" crossorigin href="/autocode/assets/game-8MSaEtLA.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Dock-CCknoWvH.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/game-CioKfxS7.css">
   </head>
   <body>
     <div id="hub-splash">
@@ -18,28 +19,27 @@
     <div id="hub">
       <header id="hub-topbar">
         <span class="brand">AUTOCODE</span>
-        <nav id="world-tabs">
-          <button class="world-tab active" data-world="farm">🌾 Farm</button>
-          <button class="world-tab" data-world="space">🚀 Space</button>
-          <button class="world-tab" data-world="store">🏪 Store</button>
-          <button class="world-tab" data-world="factory">🏭 Factory</button>
-        </nav>
         <span class="spacer"></span>
         <span id="hub-stats" title="Shared across all worlds — credits, crew food, warehouse stock">
           <span id="hub-credits">$0.00</span>
           <span id="hub-food">🍞 0</span>
           <span id="hub-warehouse">📦 0</span>
         </span>
+        <span id="layout-picker-host"></span>
         <a id="hub-standalone-link" class="hub-standalone-link" href="index.html" target="_blank" rel="noopener"
           >Open standalone ↗</a
         >
       </header>
-      <div id="hub-frame-wrap">
-        <iframe class="hub-frame active" data-world="farm" src="index.html" title="AutoCode — Farm"></iframe>
-        <iframe class="hub-frame" data-world="space" src="space.html" title="AutoCode — Space"></iframe>
-        <iframe class="hub-frame" data-world="store" src="store.html" title="AutoCode — Store"></iframe>
-        <iframe class="hub-frame" data-world="factory" src="factory.html" title="AutoCode — Factory"></iframe>
-      </div>
+      <div id="dock-root" class="dock-root"></div>
+
+      <!-- Each world's real iframe — dockview re-parents these into dock-root at runtime, it
+           never recreates them, so a running script/console/editor never gets reloaded by a
+           layout change. Drag a tab out to view two worlds side by side, or use the layout
+           picker above for a one-click arrangement. -->
+      <iframe id="world-farm" class="dock-panel-host" style="display: none" src="index.html" title="AutoCode — Farm"></iframe>
+      <iframe id="world-space" class="dock-panel-host" style="display: none" src="space.html" title="AutoCode — Space"></iframe>
+      <iframe id="world-store" class="dock-panel-host" style="display: none" src="store.html" title="AutoCode — Store"></iframe>
+      <iframe id="world-factory" class="dock-panel-host" style="display: none" src="factory.html" title="AutoCode — Factory"></iframe>
     </div>
   </body>
 </html>

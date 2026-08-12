@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AutoCode — Factory</title>
-    <script type="module" crossorigin src="/autocode/assets/factory-SDrXXt1V.js"></script>
-    <link rel="modulepreload" crossorigin href="/autocode/assets/PlayerProfile-BhU5pp6a.js">
+    <script type="module" crossorigin src="/autocode/assets/factory-d00qfUza.js"></script>
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Dock-DQToxM1Z.js">
     <link rel="modulepreload" crossorigin href="/autocode/assets/Sound-CXK0kihV.js">
     <link rel="modulepreload" crossorigin href="/autocode/assets/CanvasPool-8td293LM.js">
     <link rel="modulepreload" crossorigin href="/autocode/assets/canvasUtils-C8_brHhr.js">
@@ -13,8 +13,9 @@
     <link rel="modulepreload" crossorigin href="/autocode/assets/getPo2TextureFromSource-CzhtZTC9.js">
     <link rel="modulepreload" crossorigin href="/autocode/assets/Text-CMg41cYS.js">
     <link rel="modulepreload" crossorigin href="/autocode/assets/Warehouse-Bn_cejO5.js">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Dock-CCknoWvH.css">
     <link rel="stylesheet" crossorigin href="/autocode/assets/Sound-cO2QGFYv.css">
-    <link rel="stylesheet" crossorigin href="/autocode/assets/factory-DzTQbFKl.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/factory-dGmz8tnb.css">
   </head>
   <body>
     <div id="app">
@@ -29,42 +30,36 @@
         <select id="challenge-select"></select>
         <span id="tick-display">TICK <b>0</b></span>
         <span class="spacer"></span>
-        <span id="credits-display" title="Shared credits — spend them in Space">$0.00</span>
+        <span id="layout-picker-host"></span>
         <button id="docs-btn">Docs</button>
         <button id="mute-btn" title="Toggle sound">🔊</button>
       </header>
-      <div id="main">
-        <div id="world-panel"></div>
-        <div id="dashboard">
-          <section class="card" id="factory-card">
-            <div class="card-header">
-              FACTORY STATUS
-              <span class="badge" id="stats-badge">0 sold</span>
-            </div>
-            <div class="stat-row"><span>Output store</span><span id="stat-output">0</span></div>
-            <div class="stat-row"><span>Parts sold</span><span id="stat-sold">0</span></div>
 
-            <div class="scripts-header">SCRIPT</div>
-            <div class="scripts-row">
-              <span class="script-dot" id="script-dot"></span>
-              <span id="script-name">idle</span>
-              <span class="spacer"></span>
-              <button id="run-btn">Run ▶</button>
-              <button id="stop-btn">Stop ■</button>
-            </div>
-          </section>
+      <div id="dock-root" class="dock-root"></div>
 
-          <section class="card" id="editor-card">
-            <div class="card-header">CODE</div>
-            <div id="editor-host"></div>
-          </section>
+      <!-- Each panel's real content host — dockview re-parents these into dock-root at runtime,
+           it never recreates them, so Pixi/Monaco/the console mount into these exact elements. -->
+      <div id="world-panel" class="dock-panel-host" style="display: none"></div>
+      <div id="status-panel" class="dock-panel-host" style="display: none">
+        <div class="card-header">
+          FACTORY STATUS
+          <span class="badge" id="stats-badge">0 sold</span>
+        </div>
+        <span id="credits-display" title="Shared credits — spend them in Space">$0.00</span>
+        <div class="stat-row"><span>Output store</span><span id="stat-output">0</span></div>
+        <div class="stat-row"><span>Parts sold</span><span id="stat-sold">0</span></div>
 
-          <section class="card" id="console-card">
-            <div class="card-header">CONSOLE</div>
-            <div id="console-host"></div>
-          </section>
+        <div class="scripts-header">SCRIPT</div>
+        <div class="scripts-row">
+          <span class="script-dot" id="script-dot"></span>
+          <span id="script-name">idle</span>
+          <span class="spacer"></span>
+          <button id="run-btn">Run ▶</button>
+          <button id="stop-btn">Stop ■</button>
         </div>
       </div>
+      <div id="editor-host" class="dock-panel-host" style="display: none"></div>
+      <div id="console-host" class="dock-panel-host" style="display: none"></div>
     </div>
   </body>
 </html>

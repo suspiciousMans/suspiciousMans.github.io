@@ -4,40 +4,53 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AutoCode — Farm World</title>
-    <script type="module" crossorigin src="/autocode/assets/main-B7bVfZnk.js"></script>
-    <link rel="modulepreload" crossorigin href="/autocode/assets/PlayerProfile-BhU5pp6a.js">
+    <script type="module" crossorigin src="/autocode/assets/main-kxpt1xv-.js"></script>
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Dock-DQToxM1Z.js">
     <link rel="modulepreload" crossorigin href="/autocode/assets/Sound-CXK0kihV.js">
     <link rel="modulepreload" crossorigin href="/autocode/assets/CrewSupply-vxflKXea.js">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Dock-CCknoWvH.css">
     <link rel="stylesheet" crossorigin href="/autocode/assets/Sound-cO2QGFYv.css">
-    <link rel="stylesheet" crossorigin href="/autocode/assets/main-CjTg9--2.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/main-BYe0rFmd.css">
   </head>
   <body>
     <div id="app">
-      <div id="stage-panel"></div>
-      <div id="editor-panel">
-        <div id="editor-toolbar">
-          <a id="hub-link" class="hub-link" href="game.html" title="Play the full merged game — all four worlds">🎮 Hub</a>
-          <script>
-            // Already inside the hub's iframe — a link back to game.html here would nest
-            // a second hub inside the first, so it only makes sense on this page standalone.
-            if (window.self !== window.top) document.getElementById("hub-link").remove();
-          </script>
-          <select id="challenge-select"></select>
-          <span id="challenge-title">Loading…</span>
+      <header id="topbar">
+        <a id="hub-link" class="hub-link" href="game.html" title="Play the full merged game — all four worlds">🎮 Hub</a>
+        <script>
+          // Already inside the hub's iframe — a link back to game.html here would nest
+          // a second hub inside the first, so it only makes sense on this page standalone.
+          if (window.self !== window.top) document.getElementById("hub-link").remove();
+        </script>
+        <select id="challenge-select"></select>
+        <span id="challenge-title">Loading…</span>
+        <span class="spacer"></span>
+        <span id="layout-picker-host"></span>
+        <button id="docs-btn">Docs</button>
+        <button id="mute-btn" title="Toggle sound">🔊</button>
+      </header>
+
+      <div id="dock-root" class="dock-root"></div>
+
+      <!-- Each panel's real content host — dockview re-parents these into dock-root at runtime,
+           it never recreates them, so Pixi/Monaco/the console mount into the exact same elements
+           they always have. Initial position here doesn't matter. -->
+      <div id="stage-panel" class="dock-panel-host" style="display: none"></div>
+      <div id="status-panel" class="dock-panel-host" style="display: none">
+        <div class="status-stats">
           <span id="stats-display" title="Capstone profit · Wilted · Crew food (shared with Space)"></span>
           <span id="credits-display" title="Shared credits — earned here at the capstone, spendable in Space, Store, and Factory">$0.00</span>
+        </div>
+        <div class="status-controls">
           <span id="lang-toggle" title="Only a few challenges have a Python path built so far">
             <button id="lang-js-btn" class="lang-btn active">JS</button>
             <button id="lang-python-btn" class="lang-btn" disabled>Python</button>
           </span>
           <button id="run-btn">Run ▶</button>
           <button id="stop-btn">Stop ■</button>
-          <button id="docs-btn">Docs</button>
-          <button id="mute-btn" title="Toggle sound">🔊</button>
         </div>
-        <div id="editor-host"></div>
-        <div id="console-host"></div>
       </div>
+      <div id="editor-host" class="dock-panel-host" style="display: none"></div>
+      <div id="console-host" class="dock-panel-host" style="display: none"></div>
     </div>
   </body>
 </html>
