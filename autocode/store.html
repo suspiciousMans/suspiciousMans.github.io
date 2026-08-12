@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoCode — Store</title>
+    <script type="module" crossorigin src="/autocode/assets/store-CBQ-vdNc.js"></script>
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Sound-1ZCFHTlT.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/CanvasPool-z1d4ZaRK.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/canvasUtils-BFYuYPir.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/BatchableSprite-qOYjpB38.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/getPo2TextureFromSource-DVSq3K-w.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Warehouse-C8N54AHc.js">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Sound-cO2QGFYv.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/store-D2ku_MpU.css">
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <span class="brand">AUTOCODE · STORE</span>
+        <select id="challenge-select"></select>
+        <span id="tick-display">TICK <b>0</b></span>
+        <span class="spacer"></span>
+        <span id="credits-display" title="Shared credits — spend them in Space">$0.00</span>
+        <button id="market-btn">Market</button>
+        <button id="docs-btn">Docs</button>
+        <button id="mute-btn" title="Toggle sound">🔊</button>
+      </header>
+      <div id="main">
+        <div id="world-panel"></div>
+        <div id="dashboard">
+          <section class="card" id="store-card">
+            <div class="card-header">
+              STORE STATUS
+              <span class="badge" id="stats-badge">0 served</span>
+            </div>
+            <div class="stat-row"><span>Balance</span><span id="stat-balance">$0.00</span></div>
+            <div class="stat-row"><span>Served</span><span id="stat-served">0</span></div>
+            <div class="stat-row"><span>Missed</span><span id="stat-missed">0</span></div>
+            <div class="stat-row"><span>Wasted</span><span id="stat-wasted">0</span></div>
+            <div class="stat-row"><span>Warehouse</span><span id="stat-warehouse">—</span></div>
+
+            <div class="scripts-header">SCRIPT</div>
+            <div class="scripts-row">
+              <span class="script-dot" id="script-dot"></span>
+              <span id="script-name">idle</span>
+              <span class="spacer"></span>
+              <button id="run-btn">Run ▶</button>
+              <button id="stop-btn">Stop ■</button>
+            </div>
+          </section>
+
+          <section class="card" id="editor-card">
+            <div class="card-header">CODE</div>
+            <div id="editor-host"></div>
+          </section>
+
+          <section class="card" id="console-card">
+            <div class="card-header">CONSOLE</div>
+            <div id="console-host"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

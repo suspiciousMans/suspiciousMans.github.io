@@ -1,0 +1,1 @@
+const e="autocode-crew-v1";function r(){return{food:20}}function n(){try{const o=localStorage.getItem(e);if(!o)return r();const t=JSON.parse(o);return{food:typeof t.food=="number"?t.food:20}}catch{return r()}}function c(o){try{localStorage.setItem(e,JSON.stringify(o))}catch{}}function s(o){const t=n();return t.food+=o,c(t),t.food}export{s as d,n as l,c as s};

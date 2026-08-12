@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoCode — Space</title>
+    <script type="module" crossorigin src="/autocode/assets/space-Dk83Pbhb.js"></script>
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Sound-1ZCFHTlT.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/CanvasPool-z1d4ZaRK.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/canvasUtils-BFYuYPir.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/BatchableSprite-qOYjpB38.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/getPo2TextureFromSource-DVSq3K-w.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Warehouse-C8N54AHc.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/CrewSupply-vxflKXea.js">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Sound-cO2QGFYv.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/space-dZrXLybV.css">
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <span class="brand">AUTOCODE · SPACE</span>
+        <select id="challenge-select"></select>
+        <span id="tick-display">TICK <b>0</b></span>
+        <span class="spacer"></span>
+        <span id="credits-display" title="Shared credits — earned by selling at the Store">$0.00</span>
+        <button id="shipyard-btn">Shipyard</button>
+        <button id="docs-btn">Docs</button>
+        <button id="mute-btn" title="Toggle sound">🔊</button>
+        <span id="mode-note">prototype</span>
+      </header>
+      <div id="main">
+        <div id="world-panel"></div>
+        <div id="dashboard">
+          <section class="card" id="ship-card">
+            <div class="card-header">
+              SHIP STATUS
+              <span class="badge" id="ship-status-badge">idle</span>
+            </div>
+            <div class="stat-row"><span>Location</span><span id="stat-location">base</span></div>
+            <div class="stat-row"><span>Fuel</span><span id="stat-fuel">100 / 100</span></div>
+            <div class="bar"><div class="bar-fill" id="fuel-bar"></div></div>
+            <div class="stat-row"><span>Cargo</span><span id="stat-cargo">0 / 20</span></div>
+            <div class="bar"><div class="bar-fill" id="cargo-bar"></div></div>
+            <div class="stat-row" id="cargo-breakdown"></div>
+            <div class="stat-row"><span>Warehouse</span><span id="stat-warehouse">—</span></div>
+            <div class="stat-row"><span>Crew</span><span id="stat-crew">—</span></div>
+
+            <div class="scripts-header">SCRIPT</div>
+            <div class="scripts-row">
+              <span class="script-dot" id="script-dot"></span>
+              <span id="script-name">pilot.js</span>
+              <span class="spacer"></span>
+              <button id="run-btn">Run ▶</button>
+              <button id="stop-btn">Stop ■</button>
+            </div>
+          </section>
+
+          <section class="card" id="editor-card">
+            <div class="card-header">CODE</div>
+            <div id="editor-host"></div>
+          </section>
+
+          <section class="card" id="console-card">
+            <div class="card-header">
+              CONSOLE
+              <span class="spacer"></span>
+              <button id="fallback-btn" title="Toggle the rule-based fallback pilot">Auto-Pilot: On</button>
+            </div>
+            <div id="console-host"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

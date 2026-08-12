@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoCode — Farm World</title>
+    <script type="module" crossorigin src="/autocode/assets/main-B0LYuinu.js"></script>
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Sound-1ZCFHTlT.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/CrewSupply-vxflKXea.js">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Sound-cO2QGFYv.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/main-o255lr2b.css">
+  </head>
+  <body>
+    <div id="app">
+      <div id="stage-panel"></div>
+      <div id="editor-panel">
+        <div id="editor-toolbar">
+          <select id="challenge-select"></select>
+          <span id="challenge-title">Loading…</span>
+          <span id="stats-display" title="Profit · Wilted · Crew food (shared with Space)"></span>
+          <span id="lang-toggle" title="Only a few challenges have a Python path built so far">
+            <button id="lang-js-btn" class="lang-btn active">JS</button>
+            <button id="lang-python-btn" class="lang-btn" disabled>Python</button>
+          </span>
+          <button id="run-btn">Run ▶</button>
+          <button id="stop-btn">Stop ■</button>
+          <button id="docs-btn">Docs</button>
+          <button id="mute-btn" title="Toggle sound">🔊</button>
+        </div>
+        <div id="editor-host"></div>
+        <div id="console-host"></div>
+      </div>
+    </div>
+  </body>
+</html>
