@@ -17,6 +17,11 @@
       <div id="editor-panel">
         <div id="editor-toolbar">
           <a id="hub-link" class="hub-link" href="game.html" title="Play the full merged game — all four worlds">🎮 Hub</a>
+          <script>
+            // Already inside the hub's iframe — a link back to game.html here would nest
+            // a second hub inside the first, so it only makes sense on this page standalone.
+            if (window.self !== window.top) document.getElementById("hub-link").remove();
+          </script>
           <select id="challenge-select"></select>
           <span id="challenge-title">Loading…</span>
           <span id="stats-display" title="Profit · Wilted · Crew food (shared with Space)"></span>
