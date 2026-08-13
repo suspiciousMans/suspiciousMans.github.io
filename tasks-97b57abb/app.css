@@ -268,6 +268,8 @@ h2 {
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .tag-chip-remove {
@@ -429,6 +431,8 @@ h2 {
   border-radius: 999px;
   border: 1px solid var(--border);
   color: var(--text-dim);
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .badge.priority-high { color: var(--danger); border-color: rgba(239,100,97,0.4); }
