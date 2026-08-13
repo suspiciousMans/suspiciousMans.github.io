@@ -66,7 +66,7 @@
         <section style="padding-top:0;">
             <div class="wrap">
                 <div class="tool-shell">
-                    <iframe class="tool-frame" src="gooba/index.html" title="Gooba — retro image dithering studio" loading="lazy"></iframe>
+                    <iframe class="tool-frame" id="gooba-frame" src="gooba/index.html" title="Gooba — retro image dithering studio"></iframe>
                 </div>
                 <p style="text-align:center;color:var(--text-dim);font-size:14px;margin-top:26px;">
                     Source on <a href="https://github.com/suspiciousMans/Dithering-Retroslop" target="_blank" rel="noopener">GitHub</a>
@@ -90,6 +90,45 @@
     <script src="assets/music/music-widget.js" data-playlist="assets/music/playlist.json" data-position="bottom-right" data-accent="#01c887"></script>
     <script src="assets/js/music-autostart.js"></script>
     <script src="assets/js/audio-reactive.js"></script>
+    <script>
+        (function () {
+            var frame = document.getElementById("gooba-frame");
+
+            function resize() {
+                try {
+                    var doc = frame.contentDocument;
+                    if (!doc || !doc.documentElement) return;
+                    frame.style.height = doc.documentElement.scrollHeight + "px";
+                } catch (err) {
+                    // Same-origin, so this shouldn't throw — leave the CSS
+                    // min-height fallback in place if it somehow does.
+                }
+            }
+
+            function attachObserver() {
+                resize();
+                try {
+                    // The tool's own layout changes height as the user
+                    // interacts (uploading an image reveals action buttons,
+                    // etc.), so keep tracking it rather than sizing once.
+                    new ResizeObserver(resize).observe(frame.contentDocument.documentElement);
+                } catch (err) {
+                    window.addEventListener("resize", resize);
+                }
+            }
+
+            // This script tag runs near the end of <body>, well after the
+            // iframe element was parsed and its (same-origin, local, tiny)
+            // content started loading — often finishing before this code
+            // even runs, in which case a "load" listener attached now would
+            // never fire. Check for that already-complete case directly.
+            if (frame.contentDocument && frame.contentDocument.readyState === "complete") {
+                attachObserver();
+            } else {
+                frame.addEventListener("load", attachObserver);
+            }
+        })();
+    </script>
     <!-- Cloudflare Web Analytics -->
     <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "25a6bfa71d5a4f94a7ab89ab553a5e88"}'></script>
     <!-- End Cloudflare Web Analytics -->

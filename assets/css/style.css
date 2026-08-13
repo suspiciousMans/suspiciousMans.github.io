@@ -665,14 +665,8 @@ section {
 .tool-frame {
     display: block;
     width: 100%;
-    height: 900px;
+    min-height: 900px;
     border: 0;
-}
-
-@media (max-width: 720px) {
-    .tool-frame {
-        height: 1500px;
-    }
 }
 
 /* ---------- chat ---------- */
