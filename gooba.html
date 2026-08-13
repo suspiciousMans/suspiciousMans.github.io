@@ -117,12 +117,29 @@
                 }
             }
 
-            // This script tag runs near the end of <body>, well after the
-            // iframe element was parsed and its (same-origin, local, tiny)
-            // content started loading — often finishing before this code
-            // even runs, in which case a "load" listener attached now would
-            // never fire. Check for that already-complete case directly.
-            if (frame.contentDocument && frame.contentDocument.readyState === "complete") {
+            // Browsers give a freshly-created iframe an instant "about:blank"
+            // placeholder document — which itself reports readyState
+            // "complete" almost immediately — before the real src finishes
+            // loading. A naive readyState check matches that empty
+            // placeholder (near-zero height) rather than the real page, and
+            // since it looks "already loaded" the load listener below never
+            // gets attached, so it's never re-measured once the actual
+            // content replaces it. Guard against that by also requiring the
+            // frame to have actually navigated away from about:blank.
+            function realPageAlreadyLoaded() {
+                try {
+                    return (
+                        frame.contentWindow &&
+                        frame.contentWindow.location.href !== "about:blank" &&
+                        frame.contentDocument &&
+                        frame.contentDocument.readyState === "complete"
+                    );
+                } catch (err) {
+                    return false;
+                }
+            }
+
+            if (realPageAlreadyLoaded()) {
                 attachObserver();
             } else {
                 frame.addEventListener("load", attachObserver);
