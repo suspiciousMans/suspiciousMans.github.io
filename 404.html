@@ -4,17 +4,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Chat — suspiciousMans</title>
-    <meta name="description" content="A live public chatroom on suspiciousMans' site — say hi.">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Chat — suspiciousMans">
-    <meta property="og:description" content="A live public chatroom on suspiciousMans' site — say hi.">
-    <meta property="og:url" content="https://suspiciousmans.github.io/chat.html">
-    <meta property="og:image" content="https://suspiciousmans.github.io/assets/img/og-default.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Chat — suspiciousMans">
-    <meta name="twitter:description" content="A live public chatroom on suspiciousMans' site — say hi.">
-    <meta name="twitter:image" content="https://suspiciousmans.github.io/assets/img/og-default.png">
+    <title>404 — suspiciousMans</title>
+    <meta name="description" content="This page doesn't exist. Suspicious.">
+    <meta name="robots" content="noindex">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,3 93,26 93,74 50,97 7,74 7,26' fill='%23060f11' stroke='%2301c887' stroke-width='6'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,6 +33,7 @@
                 <a href="index.html">Home</a>
                 <a href="projects.html">Projects</a>
                 <a href="hex-colony.html">Hex Colony</a>
+                <a href="autocode.html">AutoCode</a>
                 <a href="about.html">About</a>
                 <a href="chat.html">Chat</a>
                 <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener">GitHub</a>
@@ -49,34 +42,18 @@
     </header>
 
     <main>
-        <section class="hero" style="padding-bottom:20px;">
+        <section class="hero">
             <div class="wrap">
-                <span class="eyebrow">Live</span>
-                <h1>Say <span>Hi</span></h1>
+                <span class="eyebrow">404</span>
+                <h1>Nothing <span>Suspicious</span> Here</h1>
                 <p class="lede">
-                    A public chatroom, live for anyone on this site right now. No account
-                    needed — pick a name and talk.
+                    Whatever you were looking for isn't at this address. Maybe it moved,
+                    maybe you mistyped it, maybe it never existed and you're just testing me.
                 </p>
-            </div>
-        </section>
-
-        <section style="padding-top:0;">
-            <div class="wrap">
-                <div class="chat-shell">
-                    <div class="chat-messages" id="chat-messages">
-                        <p class="chat-empty" id="chat-empty">No messages yet — be the first to say something.</p>
-                    </div>
-                    <form class="chat-form" id="chat-form" autocomplete="off">
-                        <input type="text" id="chat-name" placeholder="Name" maxlength="30" required>
-                        <input type="text" id="chat-text" placeholder="Say something…" maxlength="500" required>
-                        <button type="submit" class="btn btn-primary" id="chat-send">Send</button>
-                    </form>
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="index.html">Back to Home</a>
+                    <a class="btn btn-outline" href="projects.html">See Projects</a>
                 </div>
-                <p class="chat-status" id="chat-status"></p>
-                <p style="text-align:center;color:var(--text-dim);font-size:13px;max-width:520px;margin:10px auto 0;">
-                    This room is open to anyone visiting the site — please keep it civil.
-                    Messages aren't moderated in real time.
-                </p>
             </div>
         </section>
     </main>
@@ -96,7 +73,6 @@
     <script src="assets/music/music-widget.js" data-playlist="assets/music/playlist.json" data-position="bottom-right" data-accent="#01c887"></script>
     <script src="assets/js/music-autostart.js"></script>
     <script src="assets/js/audio-reactive.js"></script>
-    <script type="module" src="assets/js/chat.js"></script>
 </body>
 
 </html>
