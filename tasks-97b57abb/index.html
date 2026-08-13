@@ -220,6 +220,28 @@
             <input type="file" id="import-file" accept="application/json" hidden>
           </div>
         </div>
+
+        <div class="sync">
+          <h2>Sync across devices</h2>
+          <div id="sync-disconnected">
+            <label>
+              Sync code
+              <input type="text" id="sync-code-input" placeholder="Enter or generate a code" autocomplete="off" maxlength="12">
+            </label>
+            <div class="sync-actions">
+              <button type="button" class="btn" id="sync-generate-btn">Generate</button>
+              <button type="button" class="btn btn-primary" id="sync-connect-btn">Connect</button>
+            </div>
+          </div>
+          <div id="sync-connected" hidden>
+            <div class="sync-code-display">
+              Code: <code id="sync-code-shown"></code>
+              <button type="button" class="btn-icon" id="sync-copy-btn" title="Copy code">&#128203;</button>
+            </div>
+            <button type="button" class="btn btn-ghost" id="sync-disconnect-btn">Disconnect</button>
+          </div>
+          <p class="sync-status" id="sync-status"></p>
+        </div>
       </aside>
 
       <main class="content">

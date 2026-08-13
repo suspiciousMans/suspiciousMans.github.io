@@ -354,6 +354,52 @@ h2 {
 
 .backup-actions .btn { flex: 1; }
 
+/* ---------- sync ---------- */
+
+.sync {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.sync-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sync-actions .btn { flex: 1; }
+
+.sync-code-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.sync-code-display code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.sync-status {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 10px 0 0;
+  min-height: 14px;
+}
+
+.sync-status.error { color: var(--danger); }
+.sync-status.ok { color: var(--accent); }
+
 /* ---------- list view ---------- */
 
 .task-group { margin-bottom: 22px; }
