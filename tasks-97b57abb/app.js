@@ -21,6 +21,7 @@
     fTime: document.getElementById("f-time"),
     fPriority: document.getElementById("f-priority"),
     fCategory: document.getElementById("f-category"),
+    fRepeat: document.getElementById("f-repeat"),
     categoryList: document.getElementById("category-list"),
     fSearch: document.getElementById("f-search"),
     fStatus: document.getElementById("f-status"),
@@ -70,6 +71,18 @@
     return new Date(y, m - 1, d);
   }
 
+  const REPEAT_LABELS = { daily: "Daily", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" };
+
+  function nextOccurrence(dateStr, repeat) {
+    const d = parseDateStr(dateStr);
+    if (repeat === "daily") d.setDate(d.getDate() + 1);
+    else if (repeat === "weekly") d.setDate(d.getDate() + 7);
+    else if (repeat === "monthly") d.setMonth(d.getMonth() + 1);
+    else if (repeat === "yearly") d.setFullYear(d.getFullYear() + 1);
+    else return dateStr;
+    return toDateStr(d);
+  }
+
   function isOverdue(task) {
     if (!task.dueDate || task.completed) return false;
     return task.dueDate < todayStr();
@@ -102,6 +115,7 @@
     els.form.reset();
     els.taskId.value = "";
     els.fPriority.value = "medium";
+    els.fRepeat.value = "none";
     els.formHeading.textContent = "Add task";
     els.formSubmit.textContent = "Add task";
     els.formCancel.hidden = true;
@@ -115,6 +129,7 @@
     els.fTime.value = task.dueTime || "";
     els.fPriority.value = task.priority || "medium";
     els.fCategory.value = task.category || "";
+    els.fRepeat.value = task.repeat || "none";
     els.formHeading.textContent = "Edit task";
     els.formSubmit.textContent = "Save changes";
     els.formCancel.hidden = false;
@@ -136,6 +151,7 @@
         task.dueTime = els.fTime.value;
         task.priority = els.fPriority.value;
         task.category = els.fCategory.value.trim();
+        task.repeat = els.fRepeat.value;
       }
     } else {
       tasks.push({
@@ -146,6 +162,7 @@
         dueTime: els.fTime.value,
         priority: els.fPriority.value,
         category: els.fCategory.value.trim(),
+        repeat: els.fRepeat.value,
         completed: false,
         createdAt: new Date().toISOString(),
       });
@@ -197,7 +214,13 @@
     if (action === "toggle") {
       const task = taskById(id);
       if (task) {
-        task.completed = actionEl.checked;
+        const checked = actionEl.checked;
+        if (checked && task.repeat && task.repeat !== "none" && task.dueDate) {
+          task.dueDate = nextOccurrence(task.dueDate, task.repeat);
+          task.completed = false;
+        } else {
+          task.completed = checked;
+        }
         saveTasks();
         renderAll();
       }
@@ -254,15 +277,19 @@
       ? `<span class="badge due-date ${isOverdue(task) ? "overdue" : ""}">${formatDateHuman(task.dueDate)}${task.dueTime ? " · " + task.dueTime : ""}</span>`
       : "";
     const catBadge = task.category ? `<span class="badge category">${escapeHtml(task.category)}</span>` : "";
+    const repeatBadge = task.repeat && task.repeat !== "none"
+      ? `<span class="badge repeat" title="Repeats ${REPEAT_LABELS[task.repeat]}">&#8635; ${REPEAT_LABELS[task.repeat]}</span>`
+      : "";
     return `
       <li class="task-item ${task.completed ? "completed" : ""}" data-task-id="${task.id}">
-        <input type="checkbox" class="task-checkbox" data-action="toggle" ${task.completed ? "checked" : ""} aria-label="Mark complete">
+        <input type="checkbox" class="task-checkbox" data-action="toggle" ${task.completed ? "checked" : ""} aria-label="${task.repeat && task.repeat !== "none" ? "Mark complete and reschedule" : "Mark complete"}">
         <div class="task-main">
           <div class="task-title">${escapeHtml(task.title)}</div>
           ${task.notes ? `<div class="task-notes">${escapeHtml(task.notes)}</div>` : ""}
           <div class="task-meta">
             <span class="badge priority-${task.priority}">${task.priority}</span>
             ${catBadge}
+            ${repeatBadge}
             ${dueBadge}
           </div>
         </div>

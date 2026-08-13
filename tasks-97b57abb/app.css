@@ -298,6 +298,7 @@ h2 {
 .badge.priority-medium { color: var(--warn); border-color: rgba(242,184,75,0.4); }
 .badge.priority-low { color: var(--text-dim); }
 .badge.category { color: var(--accent); border-color: rgba(62,207,142,0.35); background: var(--accent-soft); }
+.badge.repeat { color: var(--text-dim); }
 .badge.due-date { color: var(--text-dim); }
 .badge.due-date.overdue { color: var(--danger); }
 
