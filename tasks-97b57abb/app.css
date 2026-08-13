@@ -487,6 +487,7 @@ h2 {
 
 .calendar-cell {
   min-height: 92px;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -501,7 +502,8 @@ h2 {
 
 .calendar-cell.outside { opacity: 0.35; }
 .calendar-cell.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.calendar-cell.selected { background: var(--surface-2); border-color: var(--accent); }
+.calendar-cell.selected { background: var(--surface-2); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
+.calendar-cell.selected.today { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
 
 .calendar-date {
   font-size: 12px;
@@ -520,6 +522,7 @@ h2 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .calendar-chip.priority-high { background: rgba(239,100,97,0.16); color: var(--danger); }
