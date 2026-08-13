@@ -179,6 +179,13 @@
               <option value="yearly">Yearly</option>
             </select>
           </label>
+          <label id="repeat-interval-row" hidden>
+            Every
+            <div class="repeat-interval-wrap">
+              <input type="number" id="f-repeat-interval" min="1" max="99" value="1" inputmode="numeric">
+              <span id="f-repeat-interval-unit">day(s)</span>
+            </div>
+          </label>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary" id="form-submit">Add task</button>
             <button type="button" class="btn btn-ghost" id="form-cancel" hidden>Cancel edit</button>

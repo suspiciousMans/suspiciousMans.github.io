@@ -15,6 +15,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 html, body {
   height: 100%;
@@ -155,6 +156,24 @@ h2 {
   gap: 6px;
   margin: -4px 0 10px;
   flex-wrap: wrap;
+}
+
+.repeat-interval-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.repeat-interval-wrap input[type="number"] {
+  width: 64px;
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.repeat-interval-wrap span {
+  font-size: 13px;
+  color: var(--text-dim);
 }
 
 .btn-chip {

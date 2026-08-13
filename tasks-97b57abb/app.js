@@ -37,6 +37,9 @@
     fTime: document.getElementById("f-time"),
     fPriority: document.getElementById("f-priority"),
     fRepeat: document.getElementById("f-repeat"),
+    repeatIntervalRow: document.getElementById("repeat-interval-row"),
+    fRepeatInterval: document.getElementById("f-repeat-interval"),
+    fRepeatIntervalUnit: document.getElementById("f-repeat-interval-unit"),
     tagChips: document.getElementById("tag-chips"),
     fTagInput: document.getElementById("f-tag-input"),
     tagList: document.getElementById("tag-list"),
@@ -89,6 +92,7 @@
       dueDate: raw.dueDate || "",
       dueTime: raw.dueTime || "",
       repeat: raw.repeat || "none",
+      repeatInterval: clampRepeatInterval(raw.repeatInterval),
       completed: !!raw.completed,
       createdAt: raw.createdAt || new Date().toISOString(),
     };
@@ -133,14 +137,29 @@
     return new Date(y, m - 1, d);
   }
 
+  const REPEAT_UNITS = { daily: "day", weekly: "week", monthly: "month", yearly: "year" };
   const REPEAT_LABELS = { daily: "Daily", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" };
 
-  function nextOccurrence(dateStr, repeat) {
+  function clampRepeatInterval(value) {
+    const n = Math.round(Number(value));
+    if (!Number.isFinite(n) || n < 1) return 1;
+    return Math.min(n, 99);
+  }
+
+  function repeatLabel(repeat, interval) {
+    const unit = REPEAT_UNITS[repeat];
+    if (!unit) return "";
+    const n = clampRepeatInterval(interval);
+    return n === 1 ? REPEAT_LABELS[repeat] : `Every ${n} ${unit}s`;
+  }
+
+  function nextOccurrence(dateStr, repeat, interval) {
     const d = parseDateStr(dateStr);
-    if (repeat === "daily") d.setDate(d.getDate() + 1);
-    else if (repeat === "weekly") d.setDate(d.getDate() + 7);
-    else if (repeat === "monthly") d.setMonth(d.getMonth() + 1);
-    else if (repeat === "yearly") d.setFullYear(d.getFullYear() + 1);
+    const n = clampRepeatInterval(interval);
+    if (repeat === "daily") d.setDate(d.getDate() + n);
+    else if (repeat === "weekly") d.setDate(d.getDate() + 7 * n);
+    else if (repeat === "monthly") d.setMonth(d.getMonth() + n);
+    else if (repeat === "yearly") d.setFullYear(d.getFullYear() + n);
     else return dateStr;
     return toDateStr(d);
   }
@@ -254,11 +273,25 @@
 
   // ---------- form ----------
 
+  function updateRepeatIntervalUI() {
+    const unit = REPEAT_UNITS[els.fRepeat.value];
+    els.repeatIntervalRow.hidden = !unit;
+    if (unit) {
+      const n = clampRepeatInterval(els.fRepeatInterval.value);
+      els.fRepeatIntervalUnit.textContent = `${unit}${n === 1 ? "" : "s"}`;
+    }
+  }
+
+  els.fRepeat.addEventListener("change", updateRepeatIntervalUI);
+  els.fRepeatInterval.addEventListener("input", updateRepeatIntervalUI);
+
   function resetForm() {
     els.form.reset();
     els.taskId.value = "";
     els.fPriority.value = "medium";
     els.fRepeat.value = "none";
+    els.fRepeatInterval.value = "1";
+    updateRepeatIntervalUI();
     formTags = [];
     renderTagChips();
     els.formHeading.textContent = "Add task";
@@ -274,6 +307,8 @@
     els.fTime.value = task.dueTime || "";
     els.fPriority.value = task.priority || "medium";
     els.fRepeat.value = task.repeat || "none";
+    els.fRepeatInterval.value = String(task.repeatInterval || 1);
+    updateRepeatIntervalUI();
     formTags = (task.tags || []).slice();
     renderTagChips();
     els.formHeading.textContent = "Edit task";
@@ -299,6 +334,7 @@
         task.dueTime = els.fTime.value;
         task.priority = els.fPriority.value;
         task.repeat = els.fRepeat.value;
+        task.repeatInterval = clampRepeatInterval(els.fRepeatInterval.value);
         task.tags = tags;
       }
     } else {
@@ -310,6 +346,7 @@
         dueTime: els.fTime.value,
         priority: els.fPriority.value,
         repeat: els.fRepeat.value,
+        repeatInterval: clampRepeatInterval(els.fRepeatInterval.value),
         tags,
         completed: false,
         createdAt: new Date().toISOString(),
@@ -364,7 +401,7 @@
       if (task) {
         const checked = actionEl.checked;
         if (checked && task.repeat && task.repeat !== "none" && task.dueDate) {
-          task.dueDate = nextOccurrence(task.dueDate, task.repeat);
+          task.dueDate = nextOccurrence(task.dueDate, task.repeat, task.repeatInterval);
           task.completed = false;
         } else {
           task.completed = checked;
@@ -708,7 +745,7 @@
       : "";
     const tagBadges = (task.tags || []).map((tag) => `<span class="badge tag">${escapeHtml(tag)}</span>`).join("");
     const repeatBadge = task.repeat && task.repeat !== "none"
-      ? `<span class="badge repeat" title="Repeats ${REPEAT_LABELS[task.repeat]}">&#8635; ${REPEAT_LABELS[task.repeat]}</span>`
+      ? `<span class="badge repeat" title="Repeats ${repeatLabel(task.repeat, task.repeatInterval)}">&#8635; ${repeatLabel(task.repeat, task.repeatInterval)}</span>`
       : "";
     return `
       <li class="task-item ${task.completed ? "completed" : ""}" data-task-id="${task.id}">
