@@ -600,13 +600,15 @@ h2 {
 
 .calendar-more { font-size: 11px; color: var(--text-dim); }
 
-.day-detail {
+.day-detail,
+.month-summary {
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
 
-.day-detail h3 {
+.day-detail h3,
+.month-summary h3 {
   margin: 0 0 10px;
   font-size: 14px;
   color: var(--text);

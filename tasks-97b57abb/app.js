@@ -94,6 +94,7 @@
       repeat: raw.repeat || "none",
       repeatInterval: clampRepeatInterval(raw.repeatInterval),
       completed: !!raw.completed,
+      completedAt: raw.completed ? raw.completedAt || null : null,
       createdAt: raw.createdAt || new Date().toISOString(),
     };
   }
@@ -403,8 +404,10 @@
         if (checked && task.repeat && task.repeat !== "none" && task.dueDate) {
           task.dueDate = nextOccurrence(task.dueDate, task.repeat, task.repeatInterval);
           task.completed = false;
+          task.completedAt = null;
         } else {
           task.completed = checked;
+          task.completedAt = checked ? new Date().toISOString() : null;
         }
         saveTasks();
         renderAll();
@@ -822,6 +825,16 @@
     return map;
   }
 
+  function completedInMonth(year, month) {
+    return tasks
+      .filter((t) => {
+        if (!t.completed || !t.completedAt) return false;
+        const d = new Date(t.completedAt);
+        return d.getFullYear() === year && d.getMonth() === month;
+      })
+      .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  }
+
   function renderCalendarView() {
     const year = calDate.getFullYear();
     const month = calDate.getMonth();
@@ -858,6 +871,16 @@
 
     const dowHtml = DOW.map((d) => `<div class="calendar-dow">${d}</div>`).join("");
 
+    const monthCompleted = completedInMonth(year, month);
+    const monthSummaryHtml = `
+      <div class="month-summary">
+        <h3>Completed in ${monthLabel} (${monthCompleted.length})</h3>
+        ${monthCompleted.length
+          ? `<ul class="task-list">${monthCompleted.map(taskItemHtml).join("")}</ul>`
+          : `<div class="empty-state">Nothing completed yet this month.</div>`}
+      </div>
+    `;
+
     let dayDetailHtml = "";
     if (selectedDay) {
       const dayTasks = (byDate.get(selectedDay) || []);
@@ -881,6 +904,7 @@
         </div>
       </div>
       <div class="calendar-grid">${dowHtml}${cellsHtml}</div>
+      ${monthSummaryHtml}
       ${dayDetailHtml}
     `;
 
