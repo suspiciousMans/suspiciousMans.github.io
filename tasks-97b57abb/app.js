@@ -3,7 +3,7 @@
 
   const STORAGE_KEY = "taskmanager.tasks.v1";
 
-  /** @typedef {{id:string,title:string,notes:string,category:string,priority:'low'|'medium'|'high',dueDate:string,dueTime:string,completed:boolean,createdAt:string}} Task */
+  /** @typedef {{id:string,title:string,notes:string,tags:string[],priority:'low'|'medium'|'high',dueDate:string,dueTime:string,repeat:string,completed:boolean,createdAt:string}} Task */
 
   const els = {
     stats: document.getElementById("stats"),
@@ -20,25 +20,51 @@
     fDate: document.getElementById("f-date"),
     fTime: document.getElementById("f-time"),
     fPriority: document.getElementById("f-priority"),
-    fCategory: document.getElementById("f-category"),
     fRepeat: document.getElementById("f-repeat"),
-    categoryList: document.getElementById("category-list"),
+    tagChips: document.getElementById("tag-chips"),
+    fTagInput: document.getElementById("f-tag-input"),
+    tagList: document.getElementById("tag-list"),
     fSearch: document.getElementById("f-search"),
     fStatus: document.getElementById("f-status"),
-    fCategoryFilter: document.getElementById("f-category-filter"),
+    fTagFilter: document.getElementById("f-tag-filter"),
+    tagManager: document.getElementById("tag-manager"),
+    exportBtn: document.getElementById("export-btn"),
+    importBtn: document.getElementById("import-btn"),
+    importFile: document.getElementById("import-file"),
   };
 
   let tasks = loadTasks();
   let view = "list";
   let calDate = new Date();
   let selectedDay = null;
+  let formTags = [];
 
   // ---------- storage ----------
+
+  function normalizeTask(raw) {
+    let tags = Array.isArray(raw.tags) ? raw.tags.slice() : [];
+    if (!tags.length && raw.category) tags = [raw.category];
+    tags = dedupeTags(tags.map((t) => String(t).trim()).filter(Boolean));
+    return {
+      id: raw.id || uid(),
+      title: String(raw.title || "").trim(),
+      notes: raw.notes || "",
+      tags,
+      priority: ["low", "medium", "high"].includes(raw.priority) ? raw.priority : "medium",
+      dueDate: raw.dueDate || "",
+      dueTime: raw.dueTime || "",
+      repeat: raw.repeat || "none",
+      completed: !!raw.completed,
+      createdAt: raw.createdAt || new Date().toISOString(),
+    };
+  }
 
   function loadTasks() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter((t) => t && t.title).map(normalizeTask);
     } catch (e) {
       console.error("Failed to load tasks", e);
       return [];
@@ -104,10 +130,91 @@
     }[c]));
   }
 
-  function categories() {
-    const set = new Set(tasks.map((t) => t.category).filter(Boolean));
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  function dedupeTags(tagArr) {
+    const seen = new Map();
+    for (const t of tagArr) {
+      const key = t.toLowerCase();
+      if (!seen.has(key)) seen.set(key, t);
+    }
+    return Array.from(seen.values());
   }
+
+  function allTags() {
+    const seen = new Map();
+    for (const t of tasks) {
+      for (const tag of t.tags || []) {
+        const key = tag.toLowerCase();
+        if (!seen.has(key)) seen.set(key, tag);
+      }
+    }
+    return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
+  }
+
+  // ---------- tag input (form) ----------
+
+  function renderTagChips() {
+    els.tagChips.innerHTML = formTags
+      .map(
+        (tag, i) => `
+          <span class="tag-chip">
+            ${escapeHtml(tag)}
+            <button type="button" class="tag-chip-remove" data-remove-tag="${i}" aria-label="Remove tag ${escapeHtml(tag)}">&times;</button>
+          </span>
+        `
+      )
+      .join("");
+  }
+
+  function addFormTag(raw) {
+    const tag = raw.trim().replace(/,$/, "").trim();
+    if (!tag) return;
+    if (formTags.some((t) => t.toLowerCase() === tag.toLowerCase())) return;
+    formTags.push(tag);
+    renderTagChips();
+  }
+
+  function commitPendingTag() {
+    if (els.fTagInput.value.trim()) {
+      addFormTag(els.fTagInput.value);
+      els.fTagInput.value = "";
+    }
+  }
+
+  els.fTagInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      addFormTag(els.fTagInput.value);
+      els.fTagInput.value = "";
+    } else if (e.key === "Backspace" && !els.fTagInput.value && formTags.length) {
+      formTags.pop();
+      renderTagChips();
+    }
+  });
+
+  els.fTagInput.addEventListener("blur", commitPendingTag);
+
+  els.tagChips.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-remove-tag]");
+    if (!btn) return;
+    formTags.splice(Number(btn.dataset.removeTag), 1);
+    renderTagChips();
+  });
+
+  // ---------- quick due-date buttons ----------
+
+  document.querySelectorAll("[data-quick-date]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const kind = btn.dataset.quickDate;
+      if (kind === "clear") {
+        els.fDate.value = "";
+        return;
+      }
+      const d = new Date();
+      if (kind === "tomorrow") d.setDate(d.getDate() + 1);
+      if (kind === "week") d.setDate(d.getDate() + 7);
+      els.fDate.value = toDateStr(d);
+    });
+  });
 
   // ---------- form ----------
 
@@ -116,6 +223,8 @@
     els.taskId.value = "";
     els.fPriority.value = "medium";
     els.fRepeat.value = "none";
+    formTags = [];
+    renderTagChips();
     els.formHeading.textContent = "Add task";
     els.formSubmit.textContent = "Add task";
     els.formCancel.hidden = true;
@@ -128,8 +237,9 @@
     els.fDate.value = task.dueDate || "";
     els.fTime.value = task.dueTime || "";
     els.fPriority.value = task.priority || "medium";
-    els.fCategory.value = task.category || "";
     els.fRepeat.value = task.repeat || "none";
+    formTags = (task.tags || []).slice();
+    renderTagChips();
     els.formHeading.textContent = "Edit task";
     els.formSubmit.textContent = "Save changes";
     els.formCancel.hidden = false;
@@ -140,6 +250,8 @@
     e.preventDefault();
     const title = els.fTitle.value.trim();
     if (!title) return;
+    commitPendingTag();
+    const tags = dedupeTags(formTags);
 
     const id = els.taskId.value;
     if (id) {
@@ -150,8 +262,8 @@
         task.dueDate = els.fDate.value;
         task.dueTime = els.fTime.value;
         task.priority = els.fPriority.value;
-        task.category = els.fCategory.value.trim();
         task.repeat = els.fRepeat.value;
+        task.tags = tags;
       }
     } else {
       tasks.push({
@@ -161,8 +273,8 @@
         dueDate: els.fDate.value,
         dueTime: els.fTime.value,
         priority: els.fPriority.value,
-        category: els.fCategory.value.trim(),
         repeat: els.fRepeat.value,
+        tags,
         completed: false,
         createdAt: new Date().toISOString(),
       });
@@ -177,7 +289,7 @@
 
   // ---------- filters ----------
 
-  [els.fSearch, els.fStatus, els.fCategoryFilter].forEach((el) => {
+  [els.fSearch, els.fStatus, els.fTagFilter].forEach((el) => {
     el.addEventListener("input", renderAll);
     el.addEventListener("change", renderAll);
   });
@@ -185,14 +297,14 @@
   function filteredTasks() {
     const q = els.fSearch.value.trim().toLowerCase();
     const status = els.fStatus.value;
-    const cat = els.fCategoryFilter.value;
+    const tag = els.fTagFilter.value;
 
     return tasks.filter((t) => {
       if (status === "active" && t.completed) return false;
       if (status === "completed" && !t.completed) return false;
-      if (cat && t.category !== cat) return false;
+      if (tag && !(t.tags || []).some((x) => x.toLowerCase() === tag.toLowerCase())) return false;
       if (q) {
-        const hay = `${t.title} ${t.notes} ${t.category}`.toLowerCase();
+        const hay = `${t.title} ${t.notes} ${(t.tags || []).join(" ")}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -245,6 +357,115 @@
   els.calendarView.addEventListener("click", handleTaskAction);
   els.calendarView.addEventListener("change", handleTaskAction);
 
+  // ---------- tag management ----------
+
+  function renameTagGlobally(oldTag, newTagRaw) {
+    const newTag = newTagRaw.trim();
+    if (!newTag || newTag.toLowerCase() === oldTag.toLowerCase()) return;
+    for (const t of tasks) {
+      if (!t.tags) continue;
+      const idx = t.tags.findIndex((x) => x.toLowerCase() === oldTag.toLowerCase());
+      if (idx !== -1) {
+        t.tags[idx] = newTag;
+        t.tags = dedupeTags(t.tags);
+      }
+    }
+    saveTasks();
+    renderAll();
+  }
+
+  function deleteTagGlobally(tag) {
+    for (const t of tasks) {
+      if (!t.tags) continue;
+      t.tags = t.tags.filter((x) => x.toLowerCase() !== tag.toLowerCase());
+    }
+    saveTasks();
+    renderAll();
+  }
+
+  els.tagManager.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    const tag = btn.closest("[data-tag]")?.dataset.tag;
+    if (!tag) return;
+    if (btn.dataset.action === "rename-tag") {
+      const next = prompt(`Rename tag "${tag}" to:`, tag);
+      if (next !== null) renameTagGlobally(tag, next);
+    } else if (btn.dataset.action === "delete-tag") {
+      const count = tasks.filter((t) => (t.tags || []).some((x) => x.toLowerCase() === tag.toLowerCase())).length;
+      if (confirm(`Delete tag "${tag}" from ${count} task(s)? This can't be undone.`)) {
+        deleteTagGlobally(tag);
+      }
+    }
+  });
+
+  function renderTagManager() {
+    const tags = allTags();
+    if (!tags.length) {
+      els.tagManager.innerHTML = `<div class="empty-state small">No tags yet.</div>`;
+      return;
+    }
+    els.tagManager.innerHTML = tags
+      .map((tag) => {
+        const count = tasks.filter((t) => (t.tags || []).some((x) => x.toLowerCase() === tag.toLowerCase())).length;
+        return `
+          <div class="tag-manage-item" data-tag="${escapeHtml(tag)}">
+            <span class="tag-manage-name">${escapeHtml(tag)}</span>
+            <span class="tag-manage-count">${count}</span>
+            <button type="button" class="btn-icon" data-action="rename-tag" title="Rename">&#9998;</button>
+            <button type="button" class="btn-icon" data-action="delete-tag" title="Delete">&#10005;</button>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // ---------- export / import ----------
+
+  els.exportBtn.addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tasks-${todayStr()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  els.importBtn.addEventListener("click", () => els.importFile.click());
+
+  els.importFile.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed)) throw new Error("File does not contain a task list.");
+      const incoming = parsed.filter((t) => t && t.title).map(normalizeTask);
+      if (!confirm(`Import ${incoming.length} task(s)? This replaces your current ${tasks.length} task(s).`)) return;
+      tasks = incoming;
+      saveTasks();
+      resetForm();
+      renderAll();
+    } catch (err) {
+      alert("Could not import file: " + err.message);
+    } finally {
+      e.target.value = "";
+    }
+  });
+
+  // ---------- keyboard shortcuts ----------
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "/") return;
+    const tag = document.activeElement?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    e.preventDefault();
+    els.fSearch.focus();
+  });
+
   // ---------- rendering: stats ----------
 
   function renderStats() {
@@ -258,16 +479,16 @@
     `;
   }
 
-  // ---------- rendering: category options ----------
+  // ---------- rendering: tag options ----------
 
-  function renderCategoryOptions() {
-    const cats = categories();
-    els.categoryList.innerHTML = cats.map((c) => `<option value="${escapeHtml(c)}">`).join("");
-    const current = els.fCategoryFilter.value;
-    els.fCategoryFilter.innerHTML =
-      `<option value="">All categories</option>` +
-      cats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-    if (cats.includes(current)) els.fCategoryFilter.value = current;
+  function renderTagOptions() {
+    const tags = allTags();
+    els.tagList.innerHTML = tags.map((t) => `<option value="${escapeHtml(t)}">`).join("");
+    const current = els.fTagFilter.value;
+    els.fTagFilter.innerHTML =
+      `<option value="">All tags</option>` +
+      tags.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+    if (tags.some((t) => t.toLowerCase() === current.toLowerCase())) els.fTagFilter.value = current;
   }
 
   // ---------- rendering: task item ----------
@@ -276,7 +497,7 @@
     const dueBadge = task.dueDate
       ? `<span class="badge due-date ${isOverdue(task) ? "overdue" : ""}">${formatDateHuman(task.dueDate)}${task.dueTime ? " · " + task.dueTime : ""}</span>`
       : "";
-    const catBadge = task.category ? `<span class="badge category">${escapeHtml(task.category)}</span>` : "";
+    const tagBadges = (task.tags || []).map((tag) => `<span class="badge tag">${escapeHtml(tag)}</span>`).join("");
     const repeatBadge = task.repeat && task.repeat !== "none"
       ? `<span class="badge repeat" title="Repeats ${REPEAT_LABELS[task.repeat]}">&#8635; ${REPEAT_LABELS[task.repeat]}</span>`
       : "";
@@ -288,7 +509,7 @@
           ${task.notes ? `<div class="task-notes">${escapeHtml(task.notes)}</div>` : ""}
           <div class="task-meta">
             <span class="badge priority-${task.priority}">${task.priority}</span>
-            ${catBadge}
+            ${tagBadges}
             ${repeatBadge}
             ${dueBadge}
           </div>
@@ -460,7 +681,8 @@
 
   function renderAll() {
     renderStats();
-    renderCategoryOptions();
+    renderTagOptions();
+    renderTagManager();
     if (view === "list") renderListView();
     else renderCalendarView();
   }

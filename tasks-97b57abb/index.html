@@ -137,17 +137,21 @@
             Notes
             <textarea id="f-notes" rows="2" placeholder="Optional details"></textarea>
           </label>
+          <label>
+            Due date
+            <input type="date" id="f-date">
+          </label>
+          <div class="quick-dates">
+            <button type="button" class="btn-chip" data-quick-date="today">Today</button>
+            <button type="button" class="btn-chip" data-quick-date="tomorrow">Tomorrow</button>
+            <button type="button" class="btn-chip" data-quick-date="week">+1 week</button>
+            <button type="button" class="btn-chip" data-quick-date="clear">Clear</button>
+          </div>
           <div class="row">
-            <label>
-              Due date
-              <input type="date" id="f-date">
-            </label>
             <label>
               Time
               <input type="time" id="f-time">
             </label>
-          </div>
-          <div class="row">
             <label>
               Priority
               <select id="f-priority">
@@ -156,12 +160,15 @@
                 <option value="high">High</option>
               </select>
             </label>
-            <label>
-              Category
-              <input type="text" id="f-category" list="category-list" placeholder="e.g. Work" autocomplete="off">
-              <datalist id="category-list"></datalist>
-            </label>
           </div>
+          <label>
+            Tags
+            <div class="tag-input-wrap">
+              <div class="tag-chips" id="tag-chips"></div>
+              <input type="text" id="f-tag-input" list="tag-list" placeholder="Add a tag, press Enter" autocomplete="off">
+              <datalist id="tag-list"></datalist>
+            </div>
+          </label>
           <label>
             Repeat
             <select id="f-repeat">
@@ -181,7 +188,7 @@
         <div class="filters">
           <h2>Filters</h2>
           <label>
-            Search
+            Search <span class="hint">(press /)</span>
             <input type="search" id="f-search" placeholder="Search tasks">
           </label>
           <label>
@@ -193,11 +200,25 @@
             </select>
           </label>
           <label>
-            Category
-            <select id="f-category-filter">
-              <option value="">All categories</option>
+            Tag
+            <select id="f-tag-filter">
+              <option value="">All tags</option>
             </select>
           </label>
+        </div>
+
+        <div class="tag-manager-section">
+          <h2>Manage tags</h2>
+          <div id="tag-manager" class="tag-manager"></div>
+        </div>
+
+        <div class="backup">
+          <h2>Backup</h2>
+          <div class="backup-actions">
+            <button type="button" class="btn" id="export-btn">Export JSON</button>
+            <button type="button" class="btn" id="import-btn">Import JSON</button>
+            <input type="file" id="import-file" accept="application/json" hidden>
+          </div>
         </div>
       </aside>
 

@@ -145,6 +145,30 @@ h2 {
   margin-bottom: 10px;
 }
 
+.hint {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.quick-dates {
+  display: flex;
+  gap: 6px;
+  margin: -4px 0 10px;
+  flex-wrap: wrap;
+}
+
+.btn-chip {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.btn-chip:hover { border-color: var(--accent); color: var(--text); }
+
 .task-form input, .task-form textarea, .task-form select,
 .filters input, .filters select {
   width: 100%;
@@ -214,6 +238,119 @@ h2 {
 .btn-icon:hover { color: var(--text); background: var(--surface-2); }
 
 .filters { border-top: 1px solid var(--border); padding-top: 16px; }
+
+/* ---------- tag input (form) ---------- */
+
+.tag-input-wrap {
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.tag-input-wrap:focus-within { border-color: var(--accent); }
+
+.tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-chips:not(:empty) { margin-bottom: 6px; }
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 3px 4px 3px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.tag-chip-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 50%;
+}
+
+.tag-chip-remove:hover { background: rgba(62, 207, 142, 0.25); }
+
+#f-tag-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 4px 2px;
+  margin: 0;
+}
+
+#f-tag-input:focus { outline: none; }
+
+/* ---------- tag manager ---------- */
+
+.tag-manager-section {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.tag-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tag-manage-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px;
+  border-radius: 6px;
+}
+
+.tag-manage-item:hover { background: var(--surface); }
+
+.tag-manage-name {
+  flex: 1;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-manage-count {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.empty-state.small {
+  padding: 4px 0;
+  font-size: 12px;
+  text-align: left;
+}
+
+/* ---------- backup ---------- */
+
+.backup {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.backup-actions .btn { flex: 1; }
 
 /* ---------- list view ---------- */
 
@@ -297,7 +434,7 @@ h2 {
 .badge.priority-high { color: var(--danger); border-color: rgba(239,100,97,0.4); }
 .badge.priority-medium { color: var(--warn); border-color: rgba(242,184,75,0.4); }
 .badge.priority-low { color: var(--text-dim); }
-.badge.category { color: var(--accent); border-color: rgba(62,207,142,0.35); background: var(--accent-soft); }
+.badge.tag { color: var(--accent); border-color: rgba(62,207,142,0.35); background: var(--accent-soft); }
 .badge.repeat { color: var(--text-dim); }
 .badge.due-date { color: var(--text-dim); }
 .badge.due-date.overdue { color: var(--danger); }
