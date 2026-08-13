@@ -4,9 +4,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>404 — suspiciousMans</title>
-    <meta name="description" content="This page doesn't exist. Suspicious.">
-    <meta name="robots" content="noindex">
+    <title>Gooba — suspiciousMans</title>
+    <meta name="description" content="Gooba: a retro image dithering studio. Drop in a photo and turn it into crunchy pixel art, entirely in your browser.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Gooba — suspiciousMans">
+    <meta property="og:description" content="Gooba: a retro image dithering studio. Drop in a photo and turn it into crunchy pixel art, entirely in your browser.">
+    <meta property="og:url" content="https://suspiciousmans.github.io/gooba.html">
+    <meta property="og:image" content="https://suspiciousmans.github.io/assets/img/og-default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Gooba — suspiciousMans">
+    <meta name="twitter:description" content="Gooba: a retro image dithering studio. Drop in a photo and turn it into crunchy pixel art, entirely in your browser.">
+    <meta name="twitter:image" content="https://suspiciousmans.github.io/assets/img/og-default.png">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,3 93,26 93,74 50,97 7,74 7,26' fill='%23060f11' stroke='%2301c887' stroke-width='6'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,18 +51,26 @@
     </header>
 
     <main>
-        <section class="hero">
+        <section class="hero" style="padding-bottom:20px;">
             <div class="wrap">
-                <span class="eyebrow">404</span>
-                <h1>Nothing <span>Suspicious</span> Here</h1>
+                <span class="eyebrow">Use it in browser</span>
+                <h1>Goo<span>ba</span></h1>
                 <p class="lede">
-                    Whatever you were looking for isn't at this address. Maybe it moved,
-                    maybe you mistyped it, maybe it never existed and you're just testing me.
+                    A retro image dithering studio. Drop in a photo and turn it into crunchy
+                    pixel art — Game Boy, CGA, duotone, or full color — entirely client-side.
+                    Nothing you upload ever leaves your browser.
                 </p>
-                <div class="hero-actions">
-                    <a class="btn btn-primary" href="index.html">Back to Home</a>
-                    <a class="btn btn-outline" href="projects.html">See Projects</a>
+            </div>
+        </section>
+
+        <section style="padding-top:0;">
+            <div class="wrap">
+                <div class="tool-shell">
+                    <iframe class="tool-frame" src="gooba/index.html" title="Gooba — retro image dithering studio" loading="lazy"></iframe>
                 </div>
+                <p style="text-align:center;color:var(--text-dim);font-size:14px;margin-top:26px;">
+                    Source on <a href="https://github.com/suspiciousMans/Dithering-Retroslop" target="_blank" rel="noopener">GitHub</a>
+                </p>
             </div>
         </section>
     </main>
