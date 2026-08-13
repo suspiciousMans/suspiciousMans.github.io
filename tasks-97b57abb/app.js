@@ -2,6 +2,22 @@
   "use strict";
 
   const STORAGE_KEY = "taskmanager.tasks.v1";
+  const SYNC_CODE_KEY = "taskmanager.syncCode.v1";
+
+  // Public-safe: identifies the Firebase project only. Access is enforced
+  // by the Realtime Database security rules (see README), not by keeping
+  // this config secret. Same project the site's chat page uses, under a
+  // separate "taskSync" path.
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyB5T6k3KWKFldgob5vRwzX2a2rTht_4Obw",
+    authDomain: "chat-d4d38.firebaseapp.com",
+    databaseURL: "https://chat-d4d38-default-rtdb.firebaseio.com",
+    projectId: "chat-d4d38",
+    storageBucket: "chat-d4d38.firebasestorage.app",
+    messagingSenderId: "184896105986",
+    appId: "1:184896105986:web:61d27c21a0c2f32a5f011b",
+    measurementId: "G-3QS7ZZQ4DP",
+  };
 
   /** @typedef {{id:string,title:string,notes:string,tags:string[],priority:'low'|'medium'|'high',dueDate:string,dueTime:string,repeat:string,completed:boolean,createdAt:string}} Task */
 
@@ -31,6 +47,15 @@
     exportBtn: document.getElementById("export-btn"),
     importBtn: document.getElementById("import-btn"),
     importFile: document.getElementById("import-file"),
+    syncDisconnected: document.getElementById("sync-disconnected"),
+    syncConnected: document.getElementById("sync-connected"),
+    syncCodeInput: document.getElementById("sync-code-input"),
+    syncCodeShown: document.getElementById("sync-code-shown"),
+    syncGenerateBtn: document.getElementById("sync-generate-btn"),
+    syncConnectBtn: document.getElementById("sync-connect-btn"),
+    syncDisconnectBtn: document.getElementById("sync-disconnect-btn"),
+    syncCopyBtn: document.getElementById("sync-copy-btn"),
+    syncStatus: document.getElementById("sync-status"),
   };
 
   let tasks = loadTasks();
@@ -38,6 +63,16 @@
   let calDate = new Date();
   let selectedDay = null;
   let formTags = [];
+
+  const sync = {
+    clientId: uid(),
+    code: "",
+    db: null,
+    ref: null,
+    unsubscribe: null,
+    applyingRemote: false,
+    pushTimer: null,
+  };
 
   // ---------- storage ----------
 
@@ -73,6 +108,7 @@
 
   function saveTasks() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    if (sync.ref && !sync.applyingRemote) scheduleSyncPush();
   }
 
   // ---------- helpers ----------
@@ -456,6 +492,179 @@
     }
   });
 
+  // ---------- cloud sync ----------
+
+  let fb = null;
+
+  async function loadFirebaseModules() {
+    if (fb) return fb;
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timed out reaching sync server.")), 8000));
+    const [{ initializeApp }, dbModule] = await Promise.race([
+      Promise.all([
+        import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"),
+      ]),
+      timeout,
+    ]);
+    fb = { initializeApp, ...dbModule };
+    return fb;
+  }
+
+  function sanitizeSyncCode(raw) {
+    return String(raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+  }
+
+  function randomSyncCode() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let s = "";
+    for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+  }
+
+  function setSyncStatus(kind, text) {
+    els.syncStatus.textContent = text;
+    els.syncStatus.className = "sync-status" + (kind ? " " + kind : "");
+  }
+
+  function showSyncConnected(code) {
+    els.syncDisconnected.hidden = true;
+    els.syncConnected.hidden = false;
+    els.syncCodeShown.textContent = code;
+  }
+
+  function showSyncDisconnected() {
+    els.syncConnected.hidden = true;
+    els.syncDisconnected.hidden = false;
+  }
+
+  function describeFirebaseError(err) {
+    const code = err && err.code;
+    const msg = (err && err.message) || String(err);
+    if (code === "PERMISSION_DENIED" || /permission_denied/i.test(msg)) {
+      return "Sync isn't enabled on the server yet (permission denied) — see README for the one-time setup.";
+    }
+    return "Sync error: " + msg;
+  }
+
+  function applyRemoteTasks(data) {
+    sync.applyingRemote = true;
+    tasks = Object.values(data.tasks || {}).map(normalizeTask);
+    saveTasks();
+    sync.applyingRemote = false;
+    resetForm();
+    renderAll();
+  }
+
+  function handleRemoteSnapshot(data) {
+    if (!data) return;
+    if (data.updatedBy === sync.clientId) return;
+    applyRemoteTasks(data);
+    setSyncStatus("ok", "Synced — updated from another device.");
+  }
+
+  function pushToCloud() {
+    if (!sync.ref || !fb) return;
+    const tasksObj = {};
+    for (const t of tasks) tasksObj[t.id] = t;
+    const payload = { tasks: tasksObj, updatedAt: Date.now(), updatedBy: sync.clientId };
+    fb.set(sync.ref, payload)
+      .then(() => {
+        setSyncStatus("ok", `Synced ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+      })
+      .catch((err) => setSyncStatus("error", describeFirebaseError(err)));
+  }
+
+  function scheduleSyncPush() {
+    clearTimeout(sync.pushTimer);
+    sync.pushTimer = setTimeout(pushToCloud, 500);
+  }
+
+  async function connectSync(rawCode) {
+    const code = sanitizeSyncCode(rawCode);
+    if (!code) {
+      setSyncStatus("error", "Enter a code first.");
+      return;
+    }
+    els.syncConnectBtn.disabled = true;
+    setSyncStatus("", "Connecting…");
+    try {
+      const mod = await loadFirebaseModules();
+      if (!sync.db) {
+        const app = mod.initializeApp(FIREBASE_CONFIG);
+        sync.db = mod.getDatabase(app);
+      }
+      const dbRef = mod.ref(sync.db, `taskSync/${code}`);
+      const snapshot = await mod.get(dbRef);
+      const remote = snapshot.val();
+
+      if (remote && remote.tasks) {
+        const remoteCount = Object.keys(remote.tasks).length;
+        if (
+          tasks.length &&
+          !confirm(`This sync code already has ${remoteCount} task(s) saved. Replace your ${tasks.length} local task(s) with the synced ones?`)
+        ) {
+          setSyncStatus("", "Not connected.");
+          return;
+        }
+        applyRemoteTasks(remote);
+      }
+
+      sync.ref = dbRef;
+      sync.code = code;
+      sync.unsubscribe = mod.onValue(
+        dbRef,
+        (snap) => handleRemoteSnapshot(snap.val()),
+        (err) => setSyncStatus("error", describeFirebaseError(err))
+      );
+
+      if (!remote || !remote.tasks) pushToCloud();
+
+      localStorage.setItem(SYNC_CODE_KEY, code);
+      showSyncConnected(code);
+      setSyncStatus("ok", "Connected.");
+    } catch (err) {
+      setSyncStatus("error", describeFirebaseError(err));
+    } finally {
+      els.syncConnectBtn.disabled = false;
+    }
+  }
+
+  function disconnectSync() {
+    if (sync.unsubscribe) sync.unsubscribe();
+    sync.ref = null;
+    sync.code = "";
+    localStorage.removeItem(SYNC_CODE_KEY);
+    showSyncDisconnected();
+    setSyncStatus("", "Disconnected.");
+  }
+
+  els.syncGenerateBtn.addEventListener("click", () => {
+    els.syncCodeInput.value = randomSyncCode();
+    els.syncCodeInput.focus();
+  });
+
+  els.syncConnectBtn.addEventListener("click", () => connectSync(els.syncCodeInput.value));
+
+  els.syncCodeInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      connectSync(els.syncCodeInput.value);
+    }
+  });
+
+  els.syncDisconnectBtn.addEventListener("click", () => {
+    if (confirm("Disconnect this device from sync? Your tasks stay as they are locally.")) disconnectSync();
+  });
+
+  els.syncCopyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(sync.code);
+      setSyncStatus("ok", "Code copied.");
+    } catch {
+      setSyncStatus("error", "Could not copy — copy it manually.");
+    }
+  });
+
   // ---------- keyboard shortcuts ----------
 
   document.addEventListener("keydown", (e) => {
@@ -688,4 +897,10 @@
   }
 
   renderAll();
+
+  const savedSyncCode = localStorage.getItem(SYNC_CODE_KEY);
+  if (savedSyncCode) {
+    els.syncCodeInput.value = savedSyncCode;
+    connectSync(savedSyncCode);
+  }
 })();
