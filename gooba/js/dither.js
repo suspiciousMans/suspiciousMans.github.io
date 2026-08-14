@@ -1,4 +1,4 @@
-import { getBayerMatrix } from './bayer.js';
+import { getMatrix } from './matrices.js';
 import { nearestColorIndex } from './palettes.js';
 
 export const KERNELS = {
@@ -56,6 +56,9 @@ export function applyDither(imageData, opts) {
     palette = [[0, 0, 0], [255, 255, 255]],
     levels = 2,
     bayerSize = 4,
+    matrixType = 'bayer',
+    haltoneCellSize = 6,
+    phase = { x: 0, y: 0 },
     amount = 1,
     invert = false,
   } = opts;
@@ -73,15 +76,22 @@ export function applyDither(imageData, opts) {
       const [qr, qg, qb] = quantize(r, g, b);
       out[i] = qr; out[i + 1] = qg; out[i + 2] = qb; out[i + 3] = src[i + 3];
     }
-  } else if (algorithm === 'ordered' || algorithm === 'random') {
-    const matrix = getBayerMatrix(bayerSize);
+  } else if (algorithm === 'ordered' || algorithm === 'random' || algorithm === 'halftone') {
+    const matrix = algorithm === 'halftone'
+      ? getMatrix('halftone', haltoneCellSize)
+      : getMatrix(matrixType, bayerSize);
     const step = mode === 'palette' ? estimatePaletteStep(palette) : 255 / (Math.max(2, levels) - 1);
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const i = (y * width + x) * 4;
-        const threshold = algorithm === 'ordered'
-          ? matrix.data[(y % matrix.size) * matrix.size + (x % matrix.size)] - 0.5
-          : Math.random() - 0.5;
+        let threshold;
+        if (algorithm === 'random') {
+          threshold = Math.random() - 0.5;
+        } else {
+          const my = ((y + phase.y) % matrix.size + matrix.size) % matrix.size;
+          const mx = ((x + phase.x) % matrix.size + matrix.size) % matrix.size;
+          threshold = matrix.data[my * matrix.size + mx] - 0.5;
+        }
         const offset = threshold * step * amount;
         let r = src[i] + offset, g = src[i + 1] + offset, b = src[i + 2] + offset;
         if (invert) { r = 255 - r; g = 255 - g; b = 255 - b; }

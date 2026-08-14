@@ -13,6 +13,12 @@
 
 * { box-sizing: border-box; }
 
+/* The `hidden` attribute must always win over any `display` set elsewhere —
+   without this, an author rule like `.foo { display: flex }` silently
+   overrides the UA's `[hidden] { display: none }` and the element stays
+   visible (and clickable) even while "hidden". */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -111,8 +117,178 @@ body {
 
 .stage-actions {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.75rem;
+}
+
+.media-info {
+  margin-right: auto;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 20, 28, 0.75);
+  color: var(--accent-strong);
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+}
+
+.loading-overlay.error {
+  color: var(--danger);
+}
+
+.playback-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--panel);
+  border: 2px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+.playback-bar input[type="range"] {
+  flex: 1;
+}
+
+.frame-counter {
+  font-size: 0.78rem;
+  color: var(--muted);
+  min-width: 4.5rem;
+  text-align: right;
+}
+
+.batch-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-height: 360px;
+}
+
+.batch-toolbar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.batch-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  align-content: start;
+  border: 2px dashed var(--panel-border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.batch-empty {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.batch-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: #14141c;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.batch-item canvas {
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  border-radius: 4px;
+}
+
+.batch-item .batch-name {
+  font-size: 0.7rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-item .batch-remove {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.effects-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.effect-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: #14141c;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+}
+
+.effect-row-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.effect-row-head label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  cursor: pointer;
+}
+
+.effect-reorder {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.effect-reorder button {
+  background: none;
+  border: 1px solid var(--panel-border);
+  color: var(--muted);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.effect-reorder button:hover {
+  color: var(--accent-strong);
+  border-color: var(--accent);
+}
+
+.effect-row input[type="range"] {
+  width: 100%;
 }
 
 .btn {
