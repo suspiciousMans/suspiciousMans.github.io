@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { handleCardMouseMove } from "../utils/cardSpotlight.js";
 
 function isInternal(href) {
     return href.startsWith("/");
@@ -8,7 +9,7 @@ export default function ProjectCard({ project }) {
     const { name, image, imageAlt, tags, description, descriptionParts, links } = project;
 
     return (
-        <div className="card">
+        <div className="card" onMouseMove={handleCardMouseMove}>
             {image && (
                 <div className="card-media">
                     <img src={`/assets/img/${image}`} alt={imageAlt} loading="lazy" />

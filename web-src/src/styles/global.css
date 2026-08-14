@@ -366,6 +366,7 @@ section {
 }
 
 .card {
+    position: relative;
     background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -379,10 +380,37 @@ section {
     box-shadow: 0 16px 40px -20px rgba(1, 200, 135, 0.4);
 }
 
+/* A soft glow that tracks the cursor (--mx/--my set on mousemove in
+   ProjectCard.jsx / Home.jsx via cardSpotlight.js). Negative z-index within
+   the card's own stacking context keeps it behind the actual content while
+   staying above the card's own background gradient. Falls back to a
+   centered glow if a card never receives a mousemove (e.g. touch/keyboard
+   focus), which is a harmless bonus rather than a broken state. */
+.card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: var(--radius);
+    background: radial-gradient(circle 220px at var(--mx, 50%) var(--my, 50%), rgba(1, 200, 135, 0.16), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
 .card h3 {
     margin: 0 0 10px;
     font-size: 1.2rem;
     color: var(--text);
+    transition: color 0.25s ease;
+}
+
+.card:hover h3 {
+    color: var(--accent);
 }
 
 .card p {
@@ -408,6 +436,7 @@ section {
 }
 
 .tag {
+    display: inline-block;
     font-size: 12px;
     font-weight: 600;
     padding: 4px 10px;
@@ -415,11 +444,30 @@ section {
     background: rgba(157, 65, 87, 0.18);
     color: #e8a7b6;
     letter-spacing: 0.3px;
+    transition: transform 0.25s var(--ease);
 }
 
 .tag.tag-accent {
     background: var(--accent-soft);
     color: var(--accent);
+}
+
+/* A small staggered "hop" through the tag pills on card hover, instead of
+   them all moving in lockstep. */
+.card:hover .tag:nth-child(1) {
+    transition-delay: 0s;
+}
+.card:hover .tag:nth-child(2) {
+    transition-delay: 0.04s;
+}
+.card:hover .tag:nth-child(3) {
+    transition-delay: 0.08s;
+}
+.card:hover .tag:nth-child(4) {
+    transition-delay: 0.12s;
+}
+.card:hover .tag {
+    transform: translateY(-3px);
 }
 
 .card-links {
@@ -878,9 +926,21 @@ section {
     .chat-message,
     .brand-mark,
     .nav-pill,
-    nav.main-nav a {
+    nav.main-nav a,
+    .card,
+    .card-media img,
+    .tag {
         animation: none !important;
         transition: none !important;
+    }
+
+    .card:hover {
+        transform: none;
+    }
+
+    .card:hover .card-media img,
+    .card:hover .tag {
+        transform: none;
     }
 
     .typewriter-cursor {

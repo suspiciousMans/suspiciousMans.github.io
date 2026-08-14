@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import TypewriterTitle from "../components/TypewriterTitle.jsx";
+import { handleCardMouseMove } from "../utils/cardSpotlight.js";
 
 export default function Home() {
     return (
@@ -30,7 +31,7 @@ export default function Home() {
                         <h2>Hex Colony</h2>
                         <p>A turn-based, pixel-art hex colony builder written in Rust — now playable straight in the browser.</p>
                     </div>
-                    <div className="card" style={{ maxWidth: "820px", margin: "0 auto" }}>
+                    <div className="card" style={{ maxWidth: "820px", margin: "0 auto" }} onMouseMove={handleCardMouseMove}>
                         <div className="card-media">
                             <img
                                 src="/assets/img/hex-colony-preview.png"
@@ -64,7 +65,7 @@ export default function Home() {
                         <h2>AutoCode</h2>
                         <p>Write JavaScript or Python and automate a farm, a spaceship, a store, and a factory — runs entirely in the browser.</p>
                     </div>
-                    <div className="card" style={{ maxWidth: "820px", margin: "0 auto" }}>
+                    <div className="card" style={{ maxWidth: "820px", margin: "0 auto" }} onMouseMove={handleCardMouseMove}>
                         <div className="card-media">
                             <img
                                 src="/assets/img/autocode-preview.png"
