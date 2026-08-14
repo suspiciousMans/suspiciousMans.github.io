@@ -1,3 +1,5 @@
+import { useState, useLayoutEffect } from "react";
+import { flushSync } from "react-dom";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import Home from "./routes/Home.jsx";
@@ -11,15 +13,36 @@ import NotFound from "./routes/NotFound.jsx";
 import PageMeta from "./components/PageMeta.jsx";
 
 // key={pathname} forces each route's content to remount on navigation, which
-// is what lets the CSS .page-enter animation replay per page — everything
+// is what lets the route-transition animation replay per page — everything
 // *outside* this Routes tree (nav, background, music player) stays mounted
 // the whole time, which is the actual "seamless" part.
+//
+// Route changes render through `displayLocation`, one tick behind the real
+// router `location`, so the DOM swap can be wrapped in
+// document.startViewTransition() (browsers that support it get a real
+// cross-fade/slide between old and new page content, scoped to just the
+// .page-content element via its view-transition-name in global.css —
+// see main.jsx for the unsupported-browser fallback flag).
 export default function App() {
   const location = useLocation();
+  const [displayLocation, setDisplayLocation] = useState(location);
+
+  useLayoutEffect(() => {
+    if (location.pathname === displayLocation.pathname) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (typeof document.startViewTransition === "function" && !reducedMotion) {
+      document.startViewTransition(() => {
+        flushSync(() => setDisplayLocation(location));
+      });
+    } else {
+      setDisplayLocation(location);
+    }
+  }, [location, displayLocation]);
+
   return (
     <Layout>
-      <div className="page-enter" key={location.pathname}>
-        <Routes location={location}>
+      <div className="page-content" key={displayLocation.pathname}>
+        <Routes location={displayLocation}>
           <Route
             path="/"
             element={
@@ -122,7 +145,7 @@ export default function App() {
             path="*"
             element={
               <>
-                <PageMeta title="404 — suspiciousMans" description="This page doesn't exist. Suspicious." path={location.pathname} noindex />
+                <PageMeta title="404 — suspiciousMans" description="This page doesn't exist. Suspicious." path={displayLocation.pathname} noindex />
                 <NotFound />
               </>
             }

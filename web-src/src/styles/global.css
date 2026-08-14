@@ -146,6 +146,7 @@ img {
 }
 
 nav.main-nav {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -153,12 +154,13 @@ nav.main-nav {
 
 nav.main-nav a {
     position: relative;
+    z-index: 1;
     color: var(--text-dim);
     font-size: 15px;
     font-weight: 500;
     padding: 8px 14px;
     border-radius: 999px;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, transform 0.15s var(--ease);
     white-space: nowrap;
 }
 
@@ -166,19 +168,26 @@ nav.main-nav a:hover {
     color: var(--accent-2);
 }
 
+nav.main-nav a:active {
+    transform: scale(0.94);
+}
+
 nav.main-nav a.active {
     color: var(--accent);
 }
 
-/* Shared layout id so the active pill glides between links instead of
-   popping — the one bit of "seamless" polish that's purely visual. */
+/* A single shared pill, measured in JS (Nav.jsx) and glided into place
+   behind whichever link is active, instead of a color change just popping
+   between links. */
 .nav-pill {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
     border-radius: 999px;
     background: var(--accent-soft);
-    z-index: -1;
-    transition: opacity 0.2s ease;
+    z-index: 0;
+    transition: transform 0.35s var(--ease), width 0.35s var(--ease), height 0.35s var(--ease), opacity 0.2s ease;
+    pointer-events: none;
 }
 
 nav.main-nav a:hover:not(.active) {
@@ -764,9 +773,22 @@ section {
 /* ---------- route transitions ---------- */
 /* The persisted app shell (nav/background/player) never remounts, so this
    only ever animates the routed page content — the concrete payoff of the
-   SPA conversion actually being visible as "seamless" motion. */
+   SPA conversion actually being visible as "seamless" motion.
 
-.page-enter {
+   Where the View Transitions API is available (see main.jsx), the browser
+   itself snapshots old/new .page-content and crossfades/slides between them
+   — real interactive motion driven by the actual navigation, not just a
+   canned mount animation. Naming only this element (not the page root)
+   keeps the persistent nav/background/player out of the snapshot entirely,
+   so they never flicker on navigation. Browsers without support (Firefox,
+   older Safari) get the .no-view-transitions fallback below instead, which
+   is the original fade-and-rise-in mount animation. */
+
+.page-content {
+    view-transition-name: page-content;
+}
+
+.no-view-transitions .page-content {
     animation: page-in 0.32s var(--ease);
 }
 
@@ -781,12 +803,57 @@ section {
     }
 }
 
+/* The implicit root snapshot covers everything *not* separately named —
+   i.e. the persistent shell. It gets its own default crossfade unless
+   disabled, which would flicker nav/background/player on every route
+   change even though they never actually change; turn it off so only the
+   explicitly-named page-content group animates. */
+::view-transition-group(root) {
+    animation-duration: 0s;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+::view-transition-old(page-content) {
+    animation: page-out 0.28s var(--ease) both;
+}
+
+::view-transition-new(page-content) {
+    animation: page-in-vt 0.32s var(--ease) both;
+}
+
+@keyframes page-out {
+    to {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes page-in-vt {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .page-enter,
+    .page-content,
     .chat-message,
-    .brand-mark {
+    .brand-mark,
+    .nav-pill,
+    nav.main-nav a {
         animation: none !important;
         transition: none !important;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
     }
 }
 
@@ -813,6 +880,10 @@ section {
 
     nav.main-nav a {
         padding: 12px 10px;
+        border-radius: 8px;
+    }
+
+    .nav-pill {
         border-radius: 8px;
     }
 
