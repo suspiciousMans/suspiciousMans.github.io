@@ -1,3 +1,5 @@
+import TypewriterTitle from "../components/TypewriterTitle.jsx";
+
 // The world cards below link out with plain <a> tags, not <Link> — a full
 // navigation, exiting the SPA. That's intentional and matches the existing
 // (non-React) behavior: autocode/ is a separate, enormous (~23MB) prebuilt
@@ -10,9 +12,7 @@ export default function AutoCode() {
             <section className="hero" style={{ paddingBottom: "24px" }}>
                 <div className="wrap">
                     <span className="eyebrow">Play in browser</span>
-                    <h1>
-                        Auto<span>Code</span>
-                    </h1>
+                    <TypewriterTitle segments={[{ text: "Auto" }, { text: "Code", accent: true }]} />
                     <p className="lede">
                         Write real JavaScript or Python and watch it run — plant and harvest crops, pilot a mining ship,
                         run a shop, and automate a factory. Every script runs live in your browser, no install, no

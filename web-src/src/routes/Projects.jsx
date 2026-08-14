@@ -1,5 +1,6 @@
 import projects from "../data/projects.js";
 import ProjectCard from "../components/ProjectCard.jsx";
+import TypewriterTitle from "../components/TypewriterTitle.jsx";
 
 export default function Projects() {
     return (
@@ -7,9 +8,7 @@ export default function Projects() {
             <section className="hero" style={{ paddingBottom: "24px" }}>
                 <div className="wrap">
                     <span className="eyebrow">Projects</span>
-                    <h1>
-                        Things I've <span>built</span>
-                    </h1>
+                    <TypewriterTitle segments={[{ text: "Things I've " }, { text: "built", accent: true }]} />
                     <p className="lede">Mostly Rust, mostly from scratch. Here's what I've been working on.</p>
                 </div>
             </section>

@@ -234,6 +234,39 @@ nav.main-nav a:hover:not(.active) {
     color: var(--accent);
 }
 
+/* ---------- typewriter title ---------- */
+
+.typewriter-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 0.85em;
+    margin-left: 3px;
+    vertical-align: -0.08em;
+    background: var(--accent);
+    animation: cursor-blink 0.9s steps(1) infinite;
+}
+
+.typewriter-cursor-done {
+    animation: cursor-blink 0.9s steps(1) infinite, cursor-fade 0.5s ease 1s forwards;
+}
+
+@keyframes cursor-blink {
+    0%,
+    49% {
+        opacity: 1;
+    }
+    50%,
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes cursor-fade {
+    to {
+        opacity: 0;
+    }
+}
+
 .hero p.lede {
     max-width: 620px;
     margin: 0 auto 34px;
@@ -848,6 +881,10 @@ section {
     nav.main-nav a {
         animation: none !important;
         transition: none !important;
+    }
+
+    .typewriter-cursor {
+        display: none;
     }
 
     ::view-transition-group(*),

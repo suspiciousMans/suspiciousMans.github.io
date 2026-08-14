@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import TypewriterTitle from "../components/TypewriterTitle.jsx";
 
 // Unlike Hex Colony, this is a normal per-route mount: it's an iframe, and
 // browsers fully tear down an iframe's entire JS realm — all its listeners,
@@ -71,9 +72,7 @@ export default function Gooba() {
             <section className="hero" style={{ paddingBottom: "20px" }}>
                 <div className="wrap">
                     <span className="eyebrow">Use it in browser</span>
-                    <h1>
-                        Goo<span>ba</span>
-                    </h1>
+                    <TypewriterTitle segments={[{ text: "Goo" }, { text: "ba", accent: true }]} />
                     <p className="lede">
                         A retro dithering studio. Drop in a photo, GIF, or video and turn it into crunchy pixel art —
                         animated or still, with a stackable effects chain and batch export — entirely client-side.

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import TypewriterTitle from "../components/TypewriterTitle.jsx";
 
 const MAX_NAME_LEN = 30;
 const MAX_MSG_LEN = 500;
@@ -140,9 +141,7 @@ export default function Chat() {
             <section className="hero" style={{ paddingBottom: "20px" }}>
                 <div className="wrap">
                     <span className="eyebrow">Live</span>
-                    <h1>
-                        Say <span>Hi</span>
-                    </h1>
+                    <TypewriterTitle segments={[{ text: "Say " }, { text: "Hi", accent: true }]} />
                     <p className="lede">A public chatroom, live for anyone on this site right now. No account needed — pick a name and talk.</p>
                 </div>
             </section>

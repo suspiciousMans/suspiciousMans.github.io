@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import TypewriterTitle from "./TypewriterTitle.jsx";
 
 const ROUTE = "/hex-colony.html";
 
@@ -27,6 +28,17 @@ export default function HexColonyPersistent() {
     const [status, setStatus] = useState("Loading…");
     const [fsLabel, setFsLabel] = useState("⛶ Fullscreen");
     const [fsSupported, setFsSupported] = useState(true);
+
+    // This component mounts once for the app's whole lifetime (see the
+    // file-level comment), so TypewriterTitle would only ever type its
+    // intro once, on first load, and just sit there statically on every
+    // later visit. Bumping a key on it each time the route becomes active
+    // forces it to remount and retype, the same "fresh visit" effect the
+    // other (normally-mounted) routes get for free.
+    const [titleKey, setTitleKey] = useState(0);
+    useEffect(() => {
+        if (active) setTitleKey((k) => k + 1);
+    }, [active]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -108,9 +120,7 @@ export default function HexColonyPersistent() {
             <section className="hero" style={{ paddingBottom: "20px" }}>
                 <div className="wrap">
                     <span className="eyebrow">Play in browser</span>
-                    <h1>
-                        Hex <span>Colony</span>
-                    </h1>
+                    <TypewriterTitle key={titleKey} segments={[{ text: "Hex " }, { text: "Colony", accent: true }]} />
                     <p className="lede">
                         A turn-based, pixel-art hex colony builder — written in Rust, compiled to WebAssembly, running
                         entirely on your machine. No install, no account.

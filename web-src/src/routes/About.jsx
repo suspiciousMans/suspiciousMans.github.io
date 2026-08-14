@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import TypewriterTitle from "../components/TypewriterTitle.jsx";
 
 export default function About() {
     return (
@@ -6,7 +7,7 @@ export default function About() {
             <div className="wrap">
                 <div className="prose">
                     <span className="eyebrow">About</span>
-                    <h1>I'm a very suspicious person.</h1>
+                    <TypewriterTitle segments={[{ text: "I'm a very suspicious person." }]} />
                     <p>
                         As you may know. I enjoy a lot of suspicious things — touching grass (occasionally), Assembly, and
                         Rust. I dream in JavaScript and exist in binary. Send help.

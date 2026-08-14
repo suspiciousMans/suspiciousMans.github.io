@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import TypewriterTitle from "../components/TypewriterTitle.jsx";
 
 export default function Home() {
     return (
@@ -6,9 +7,7 @@ export default function Home() {
             <section className="hero">
                 <div className="wrap">
                     <span className="eyebrow">Rust · Game Dev · Web</span>
-                    <h1>
-                        I Am <span>Suspicious</span>
-                    </h1>
+                    <TypewriterTitle segments={[{ text: "I Am " }, { text: "Suspicious", accent: true }]} />
                     <p className="lede">
                         I build things in Rust — a hex-grid colony builder, a PS2-style game engine, and whatever else
                         keeps me off the grass. Most of it ends up here eventually.
