@@ -1,0 +1,134 @@
+import { Routes, Route, useLocation } from "react-router-dom";
+import Layout from "./components/Layout.jsx";
+import Home from "./routes/Home.jsx";
+import Projects from "./routes/Projects.jsx";
+import About from "./routes/About.jsx";
+import HexColony from "./routes/HexColony.jsx";
+import AutoCode from "./routes/AutoCode.jsx";
+import Gooba from "./routes/Gooba.jsx";
+import Chat from "./routes/Chat.jsx";
+import NotFound from "./routes/NotFound.jsx";
+import PageMeta from "./components/PageMeta.jsx";
+
+// key={pathname} forces each route's content to remount on navigation, which
+// is what lets the CSS .page-enter animation replay per page — everything
+// *outside* this Routes tree (nav, background, music player) stays mounted
+// the whole time, which is the actual "seamless" part.
+export default function App() {
+  const location = useLocation();
+  return (
+    <Layout>
+      <div className="page-enter" key={location.pathname}>
+        <Routes location={location}>
+          <Route
+            path="/"
+            element={
+              <>
+                <PageMeta
+                  title="suspiciousMans — home"
+                  description="Personal site of suspiciousMans: Rust projects, a homemade game engine, and the playable web build of Hex Colony."
+                  path="/"
+                  image="/assets/img/og-default.png"
+                />
+                <Home />
+              </>
+            }
+          />
+          <Route
+            path="/projects.html"
+            element={
+              <>
+                <PageMeta
+                  title="Projects — suspiciousMans"
+                  description="Rust projects by suspiciousMans, including Hex Colony and the jame-engine game engine."
+                  path="/projects.html"
+                  image="/assets/img/og-default.png"
+                />
+                <Projects />
+              </>
+            }
+          />
+          <Route
+            path="/about.html"
+            element={
+              <>
+                <PageMeta
+                  title="About — suspiciousMans"
+                  description="About suspiciousMans: Rust developer, game builder, occasional web designer."
+                  path="/about.html"
+                  image="/assets/img/og-default.png"
+                />
+                <About />
+              </>
+            }
+          />
+          <Route
+            path="/hex-colony.html"
+            element={
+              <>
+                <PageMeta
+                  title="Hex Colony — suspiciousMans"
+                  description="Play Hex Colony, a turn-based pixel-art hex colony builder written in Rust, straight in your browser via WebAssembly."
+                  path="/hex-colony.html"
+                  image="/assets/img/hex-colony-preview.png"
+                />
+                <HexColony />
+              </>
+            }
+          />
+          <Route
+            path="/autocode.html"
+            element={
+              <>
+                <PageMeta
+                  title="AutoCode — suspiciousMans"
+                  description="Play AutoCode: write JavaScript or Python scripts to automate a farm, a spaceship, a store, and a factory, straight in your browser."
+                  path="/autocode.html"
+                  image="/assets/img/autocode-preview.png"
+                />
+                <AutoCode />
+              </>
+            }
+          />
+          <Route
+            path="/gooba.html"
+            element={
+              <>
+                <PageMeta
+                  title="Gooba — suspiciousMans"
+                  description="Gooba: a retro dithering studio. Drop in a photo, GIF, or video and turn it into crunchy pixel art, animated or still, entirely in your browser."
+                  path="/gooba.html"
+                  image="/assets/img/og-default.png"
+                />
+                <Gooba />
+              </>
+            }
+          />
+          <Route
+            path="/chat.html"
+            element={
+              <>
+                <PageMeta
+                  title="Chat — suspiciousMans"
+                  description="A live public chatroom on suspiciousMans' site — say hi."
+                  path="/chat.html"
+                  image="/assets/img/og-default.png"
+                />
+                <Chat />
+              </>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <>
+                <PageMeta title="404 — suspiciousMans" description="This page doesn't exist. Suspicious." path={location.pathname} noindex />
+                <NotFound />
+              </>
+            }
+          />
+        </Routes>
+      </div>
+    </Layout>
+  );
+}

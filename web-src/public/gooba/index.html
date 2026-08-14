@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gooba — Retro Dithering Studio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23151520'/%3E%3Crect x='2' y='2' width='4' height='4' fill='%23c6ff3d'/%3E%3Crect x='10' y='2' width='4' height='4' fill='%23ff6bd6'/%3E%3Crect x='6' y='6' width='4' height='4' fill='%239bbc0f'/%3E%3Crect x='2' y='10' width='4' height='4' fill='%237b5cff'/%3E%3Crect x='10' y='10' width='4' height='4' fill='%2355ffff'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="logo">
+      <span class="logo-mark">◆</span>
+      <h1>GOOBA</h1>
+    </div>
+    <p class="tagline">turn your photos and videos into crunchy retro pixels</p>
+  </header>
+
+  <main class="layout">
+    <section class="stage" id="stage">
+      <div class="canvas-wrap" id="dropZone">
+        <canvas id="previewCanvas"></canvas>
+        <div class="empty-state" id="emptyState">
+          <p><strong>Drop an image, GIF, or video here</strong></p>
+          <p>or</p>
+          <button id="chooseFileBtn" class="btn btn-primary" type="button">Choose a file</button>
+          <button id="sampleBtn" class="btn btn-ghost" type="button">Use a sample image</button>
+          <button id="batchEnterBtn" class="btn btn-ghost" type="button">Batch mode</button>
+          <input type="file" id="fileInput" accept="image/*,video/*" hidden />
+        </div>
+        <div class="loading-overlay" id="loadingOverlay" hidden>
+          <p id="loadingText">Loading…</p>
+        </div>
+      </div>
+
+      <div class="playback-bar" id="playbackBar" hidden>
+        <button id="playPauseBtn" class="btn btn-ghost" type="button" aria-label="Play/Pause">▶</button>
+        <input type="range" id="frameScrubber" min="0" max="1" step="1" value="0" />
+        <span class="frame-counter" id="frameCounter">1 / 1</span>
+      </div>
+
+      <div class="stage-actions" id="stageActions" hidden>
+        <span class="media-info" id="mediaInfo"></span>
+        <button id="changeImageBtn" class="btn btn-ghost" type="button">Change media</button>
+        <button id="downloadPngBtn" class="btn btn-primary" type="button">Download PNG</button>
+        <button id="downloadGifBtn" class="btn btn-primary" type="button" hidden>Download GIF</button>
+        <button id="downloadWebmBtn" class="btn btn-primary" type="button" hidden>Download WebM</button>
+      </div>
+
+      <div class="batch-panel" id="batchPanel" hidden>
+        <div class="batch-toolbar">
+          <button id="batchAddBtn" class="btn btn-primary" type="button">Add images</button>
+          <button id="batchDownloadBtn" class="btn btn-primary" type="button" disabled>Download All (ZIP)</button>
+          <button id="batchExitBtn" class="btn btn-ghost" type="button">Exit batch mode</button>
+          <input type="file" id="batchFileInput" accept="image/*" multiple hidden />
+        </div>
+        <div class="batch-grid" id="batchGrid">
+          <p class="batch-empty" id="batchEmpty">No images yet — click "Add images" to select several files at once. The current settings apply to all of them.</p>
+        </div>
+      </div>
+    </section>
+
+    <aside class="controls" id="controls">
+      <div class="control-group">
+        <h2>Algorithm</h2>
+        <label class="field">
+          <span>Dither method</span>
+          <select id="algorithm">
+            <option value="floydSteinberg" selected>Floyd–Steinberg</option>
+            <option value="atkinson">Atkinson</option>
+            <option value="jarvisJudiceNinke">Jarvis-Judice-Ninke</option>
+            <option value="stucki">Stucki</option>
+            <option value="burkes">Burkes</option>
+            <option value="sierraLite">Sierra Lite</option>
+            <option value="ordered">Ordered</option>
+            <option value="halftone">Halftone Dots</option>
+            <option value="random">Random Noise</option>
+            <option value="none">None (posterize only)</option>
+          </select>
+        </label>
+        <label class="field" id="matrixTypeField" hidden>
+          <span>Pattern</span>
+          <select id="matrixType">
+            <option value="bayer" selected>Bayer</option>
+            <option value="diagonal">Diagonal Lines</option>
+            <option value="crosshatch">Crosshatch</option>
+          </select>
+        </label>
+        <label class="field" id="bayerField" hidden>
+          <span>Matrix size</span>
+          <select id="bayerSize">
+            <option value="2">2×2</option>
+            <option value="4" selected>4×4</option>
+            <option value="8">8×8</option>
+          </select>
+        </label>
+        <label class="field" id="haltoneCellField" hidden>
+          <span>Dot cell size</span>
+          <select id="haltoneCellSize">
+            <option value="4">4px</option>
+            <option value="6" selected>6px</option>
+            <option value="8">8px</option>
+            <option value="10">10px</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Strength <output id="amountOut">1.0</output></span>
+          <input type="range" id="amount" min="0" max="2" step="0.05" value="1" />
+        </label>
+      </div>
+
+      <div class="control-group">
+        <h2>Color</h2>
+        <label class="field">
+          <span>Mode</span>
+          <select id="colorMode">
+            <option value="levels" selected>Full Color (RGB levels)</option>
+            <option value="grayscale">Grayscale</option>
+            <option value="palette">Preset Palette</option>
+            <option value="duotone">Custom Duotone</option>
+            <option value="auto">Auto-Extract Palette</option>
+          </select>
+        </label>
+        <label class="field" id="levelsField">
+          <span>Levels per channel <output id="levelsOut">4</output></span>
+          <input type="range" id="levels" min="2" max="8" step="1" value="4" />
+        </label>
+        <label class="field" id="paletteField" hidden>
+          <span>Preset</span>
+          <select id="presetPalette"></select>
+        </label>
+        <div class="field duotone-row" id="duotoneField" hidden>
+          <label class="swatch-label">
+            <span>Dark</span>
+            <input type="color" id="duotoneDark" value="#0f380f" />
+          </label>
+          <label class="swatch-label">
+            <span>Light</span>
+            <input type="color" id="duotoneLight" value="#9bbc0f" />
+          </label>
+        </div>
+        <label class="field" id="autoField" hidden>
+          <span>Colors <output id="autoOut">6</output></span>
+          <input type="range" id="autoColors" min="2" max="16" step="1" value="6" />
+        </label>
+        <label class="field checkbox-field">
+          <span>Invert</span>
+          <input type="checkbox" id="invert" />
+        </label>
+      </div>
+
+      <div class="control-group">
+        <h2>Image</h2>
+        <label class="field">
+          <span>Pixel size <output id="pixelSizeOut">4</output>px</span>
+          <input type="range" id="pixelSize" min="1" max="16" step="1" value="4" />
+        </label>
+        <label class="field">
+          <span>Brightness <output id="brightnessOut">0</output></span>
+          <input type="range" id="brightness" min="-100" max="100" step="1" value="0" />
+        </label>
+        <label class="field">
+          <span>Contrast <output id="contrastOut">0</output></span>
+          <input type="range" id="contrast" min="-100" max="100" step="1" value="0" />
+        </label>
+      </div>
+
+      <div class="control-group">
+        <h2>Effects</h2>
+        <ul class="effects-list" id="effectsList"></ul>
+      </div>
+
+      <div class="control-group">
+        <h2>Animate</h2>
+        <label class="field checkbox-field" id="animateStillField" hidden>
+          <span>Animate still image</span>
+          <input type="checkbox" id="animateStill" />
+        </label>
+        <label class="field" id="temporalDurationField" hidden>
+          <span>Loop duration <output id="temporalDurationOut">2.0</output>s</span>
+          <input type="range" id="temporalDuration" min="0.5" max="6" step="0.5" value="2" />
+        </label>
+        <label class="field" id="temporalFpsField" hidden>
+          <span>FPS <output id="temporalFpsOut">12</output></span>
+          <input type="range" id="temporalFps" min="4" max="30" step="1" value="12" />
+        </label>
+        <label class="field" id="temporalJitterField" hidden>
+          <span>Temporal jitter <output id="temporalJitterOut">20</output></span>
+          <input type="range" id="temporalJitter" min="0" max="100" step="1" value="20" />
+        </label>
+      </div>
+
+      <button id="resetBtn" class="btn btn-ghost full-width" type="button">Reset settings</button>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <p>Gooba runs entirely in your browser — nothing you upload leaves your machine.</p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

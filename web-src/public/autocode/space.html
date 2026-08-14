@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoCode — Space</title>
+    <script type="module" crossorigin src="/autocode/assets/space-DnckLwfO.js"></script>
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Dock-DQToxM1Z.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Sound-CXK0kihV.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/CanvasPool-8td293LM.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/canvasUtils-C8_brHhr.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/BatchableSprite-qOYjpB38.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/getPo2TextureFromSource-CzhtZTC9.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Text-CMg41cYS.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Warehouse-Bn_cejO5.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/CrewSupply-vxflKXea.js">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Dock-CCknoWvH.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Sound-cO2QGFYv.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/space-D3diPOVQ.css">
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <span class="brand">AUTOCODE · SPACE</span>
+        <a id="hub-link" class="hub-link" href="game.html" title="Play the full merged game — all four worlds">🎮 Hub</a>
+        <script>
+          // Already inside the hub's iframe — a link back to game.html here would nest
+          // a second hub inside the first, so it only makes sense on this page standalone.
+          if (window.self !== window.top) document.getElementById("hub-link").remove();
+        </script>
+        <select id="challenge-select"></select>
+        <span id="tick-display">TICK <b>0</b></span>
+        <span class="spacer"></span>
+        <span id="layout-picker-host"></span>
+        <button id="shipyard-btn">Shipyard</button>
+        <button id="docs-btn">Docs</button>
+        <button id="mute-btn" title="Toggle sound">🔊</button>
+        <span id="mode-note">prototype</span>
+      </header>
+
+      <div id="dock-root" class="dock-root"></div>
+
+      <!-- Each panel's real content host — dockview re-parents these into dock-root at runtime,
+           it never recreates them, so Pixi/Monaco/the console mount into these exact elements. -->
+      <div id="world-panel" class="dock-panel-host" style="display: none"></div>
+      <div id="status-panel" class="dock-panel-host" style="display: none">
+        <div class="card-header">
+          SHIP STATUS
+          <span class="badge" id="ship-status-badge">idle</span>
+        </div>
+        <span id="credits-display" title="Shared credits — earned by selling at the Store">$0.00</span>
+        <div class="stat-row"><span>Location</span><span id="stat-location">base</span></div>
+        <div class="stat-row"><span>Fuel</span><span id="stat-fuel">100 / 100</span></div>
+        <div class="bar"><div class="bar-fill" id="fuel-bar"></div></div>
+        <div class="stat-row"><span>Cargo</span><span id="stat-cargo">0 / 20</span></div>
+        <div class="bar"><div class="bar-fill" id="cargo-bar"></div></div>
+        <div class="stat-row" id="cargo-breakdown"></div>
+        <div class="stat-row"><span>Warehouse</span><span id="stat-warehouse">—</span></div>
+        <div class="stat-row"><span>Crew</span><span id="stat-crew">—</span></div>
+
+        <div class="scripts-header">SCRIPT</div>
+        <div class="scripts-row">
+          <span class="script-dot" id="script-dot"></span>
+          <span id="script-name">pilot.js</span>
+          <span class="spacer"></span>
+          <button id="run-btn">Run ▶</button>
+          <button id="stop-btn">Stop ■</button>
+        </div>
+      </div>
+      <div id="editor-host" class="dock-panel-host" style="display: none"></div>
+      <div id="console-panel" class="dock-panel-host" style="display: none">
+        <div class="console-toolbar">
+          <span class="spacer"></span>
+          <button id="fallback-btn" title="Toggle the rule-based fallback pilot">Auto-Pilot: On</button>
+        </div>
+        <div id="console-host"></div>
+      </div>
+    </div>
+  </body>
+</html>

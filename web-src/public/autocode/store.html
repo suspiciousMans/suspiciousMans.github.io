@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoCode — Store</title>
+    <script type="module" crossorigin src="/autocode/assets/store-Bulul2Nx.js"></script>
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Dock-DQToxM1Z.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Sound-CXK0kihV.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/CanvasPool-8td293LM.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/canvasUtils-C8_brHhr.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/BatchableSprite-qOYjpB38.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/getPo2TextureFromSource-CzhtZTC9.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Text-CMg41cYS.js">
+    <link rel="modulepreload" crossorigin href="/autocode/assets/Warehouse-Bn_cejO5.js">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Dock-CCknoWvH.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/Sound-cO2QGFYv.css">
+    <link rel="stylesheet" crossorigin href="/autocode/assets/store-CQRhu7os.css">
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <span class="brand">AUTOCODE · STORE</span>
+        <a id="hub-link" class="hub-link" href="game.html" title="Play the full merged game — all four worlds">🎮 Hub</a>
+        <script>
+          // Already inside the hub's iframe — a link back to game.html here would nest
+          // a second hub inside the first, so it only makes sense on this page standalone.
+          if (window.self !== window.top) document.getElementById("hub-link").remove();
+        </script>
+        <select id="challenge-select"></select>
+        <span id="tick-display">TICK <b>0</b></span>
+        <span class="spacer"></span>
+        <span id="layout-picker-host"></span>
+        <button id="market-btn">Market</button>
+        <button id="docs-btn">Docs</button>
+        <button id="mute-btn" title="Toggle sound">🔊</button>
+      </header>
+
+      <div id="dock-root" class="dock-root"></div>
+
+      <!-- Each panel's real content host — dockview re-parents these into dock-root at runtime,
+           it never recreates them, so Pixi/Monaco/the console mount into these exact elements. -->
+      <div id="world-panel" class="dock-panel-host" style="display: none"></div>
+      <div id="status-panel" class="dock-panel-host" style="display: none">
+        <div class="card-header">
+          STORE STATUS
+          <span class="badge" id="stats-badge">0 served</span>
+        </div>
+        <span id="credits-display" title="Shared credits — spend them in Space">$0.00</span>
+        <div class="stat-row"><span>Balance</span><span id="stat-balance">$0.00</span></div>
+        <div class="stat-row"><span>Served</span><span id="stat-served">0</span></div>
+        <div class="stat-row"><span>Missed</span><span id="stat-missed">0</span></div>
+        <div class="stat-row"><span>Wasted</span><span id="stat-wasted">0</span></div>
+        <div class="stat-row"><span>Warehouse</span><span id="stat-warehouse">—</span></div>
+
+        <div class="scripts-header">SCRIPT</div>
+        <div class="scripts-row">
+          <span class="script-dot" id="script-dot"></span>
+          <span id="script-name">idle</span>
+          <span class="spacer"></span>
+          <button id="run-btn">Run ▶</button>
+          <button id="stop-btn">Stop ■</button>
+        </div>
+      </div>
+      <div id="editor-host" class="dock-panel-host" style="display: none"></div>
+      <div id="console-host" class="dock-panel-host" style="display: none"></div>
+    </div>
+  </body>
+</html>
