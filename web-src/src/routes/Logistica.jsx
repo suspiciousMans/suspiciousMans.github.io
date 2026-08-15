@@ -164,11 +164,25 @@ export default function Logistica() {
                                 </div>
                                 <div className="game-toolbar">
                                     <span className="status">Running locally in your browser via WebAssembly.</span>
-                                    {fsSupported && (
-                                        <button type="button" className="btn btn-outline" onClick={toggleFullscreen}>
-                                            {fsLabel}
-                                        </button>
-                                    )}
+                                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                        {fsSupported && (
+                                            <button type="button" className="btn btn-outline" onClick={toggleFullscreen}>
+                                                {fsLabel}
+                                            </button>
+                                        )}
+                                        <a
+                                            className="btn btn-outline"
+                                            href="https://github.com/suspiciousMans/Logistica-/releases/latest/download/logistica-windows-x86_64.exe"
+                                        >
+                                            Download for Windows
+                                        </a>
+                                        <a
+                                            className="btn btn-outline"
+                                            href="https://github.com/suspiciousMans/Logistica-/releases/latest/download/logistica-linux-x86_64"
+                                        >
+                                            Download for Linux
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                             <p style={{ textAlign: "center", color: "var(--text-dim)", fontSize: "14px", marginTop: "26px" }}>
