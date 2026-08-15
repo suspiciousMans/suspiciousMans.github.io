@@ -25,10 +25,56 @@ export default function Logistica() {
     const [error, setError] = useState("");
     const [shake, setShake] = useState(false);
     const inputRef = useRef(null);
+    const canvasWrapRef = useRef(null);
+    const frameRef = useRef(null);
+    const [fsLabel, setFsLabel] = useState("⛶ Fullscreen");
+    const [fsSupported, setFsSupported] = useState(true);
 
     useEffect(() => {
         if (!unlocked) inputRef.current?.focus();
     }, [unlocked]);
+
+    // Only set up once the iframe/canvas-wrap actually exists post-unlock —
+    // same fullscreen pattern as Hex Colony's game-canvas-wrap, minus the
+    // canvas buffer sync (the iframe's own content resizes itself via CSS
+    // 100%/100% plus eframe's internal ResizeObserver, so there's nothing
+    // extra to drive from the host page).
+    useEffect(() => {
+        const canvasWrap = canvasWrapRef.current;
+        if (!canvasWrap) return;
+
+        function isFullscreen() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement);
+        }
+
+        function onFullscreenChange() {
+            setFsLabel(isFullscreen() ? "⛶ Exit Fullscreen" : "⛶ Fullscreen");
+            if (isFullscreen()) frameRef.current?.contentWindow?.focus();
+        }
+
+        const canRequestFullscreen = canvasWrap.requestFullscreen || canvasWrap.webkitRequestFullscreen;
+        if (canRequestFullscreen) {
+            document.addEventListener("fullscreenchange", onFullscreenChange);
+            document.addEventListener("webkitfullscreenchange", onFullscreenChange);
+        } else {
+            setFsSupported(false);
+        }
+
+        return () => {
+            document.removeEventListener("fullscreenchange", onFullscreenChange);
+            document.removeEventListener("webkitfullscreenchange", onFullscreenChange);
+        };
+    }, [unlocked]);
+
+    function toggleFullscreen() {
+        const canvasWrap = canvasWrapRef.current;
+        const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        if (isFs) {
+            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        } else {
+            (canvasWrap.requestFullscreen || canvasWrap.webkitRequestFullscreen).call(canvasWrap);
+        }
+    }
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -82,8 +128,16 @@ export default function Logistica() {
                     ) : (
                         <>
                             <div className="game-shell">
-                                <div className="game-canvas-wrap" style={{ aspectRatio: "16 / 9" }}>
-                                    <iframe src="/logistica/index.html" title="Logistica — logic gate simulator"></iframe>
+                                <div className="game-canvas-wrap" style={{ aspectRatio: "16 / 9" }} ref={canvasWrapRef}>
+                                    <iframe ref={frameRef} src="/logistica/index.html" title="Logistica — logic gate simulator"></iframe>
+                                </div>
+                                <div className="game-toolbar">
+                                    <span className="status">Running locally in your browser via WebAssembly.</span>
+                                    {fsSupported && (
+                                        <button type="button" className="btn btn-outline" onClick={toggleFullscreen}>
+                                            {fsLabel}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                             <p style={{ textAlign: "center", color: "var(--text-dim)", fontSize: "14px", marginTop: "26px" }}>
