@@ -26,6 +26,13 @@ import { createPortal } from "react-dom";
 // hands off cleanly instead of visibly jumping.
 
 const NAV_LINKS = ["Home", "Projects", "Hex Colony", "AutoCode", "Gooba", "About", "Chat"];
+// The cursor visits every link, but in this order — not NAV_LINKS' own
+// left-to-right order — so it lands on Home last. Home is where the real
+// nav's pill actually is once this overlay fades away (this plays on the
+// homepage), so ending there instead of wherever the last link in the row
+// happens to be is what makes the pill's position continuous through the
+// handoff instead of jumping the instant the real page takes over.
+const VISIT_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 const TITLE_FULL = "I Am Suspicious";
 const TITLE_START = 1.45;
@@ -49,22 +56,25 @@ function easeInOutCubic(x) {
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 }
 
-// Piecewise-eased lookup across a link index's [arrive, leave] timing, used
+// Piecewise-eased lookup across a visit step's [arrive, leave] timing, used
 // for both the cursor tip and the hover pill so they move in lockstep.
+// Walks VISIT_ORDER rather than linkRects directly — see its comment.
 function cursorX(t, linkRects) {
     if (!linkRects.length) return 0;
-    if (t <= CURSOR_START) return linkRects[0].cx;
-    for (let i = 0; i < linkRects.length; i++) {
+    const first = linkRects[VISIT_ORDER[0]];
+    if (t <= CURSOR_START) return first.cx;
+    for (let i = 0; i < VISIT_ORDER.length; i++) {
         const arrive = CURSOR_START + i * PER_LINK + TRAVEL;
         const leave = arrive + DWELL;
+        const rect = linkRects[VISIT_ORDER[i]];
         if (t <= arrive) {
-            const prevX = i === 0 ? linkRects[0].cx : linkRects[i - 1].cx;
+            const prevRect = i === 0 ? first : linkRects[VISIT_ORDER[i - 1]];
             const f = easeInOutCubic(clamp01((t - (arrive - TRAVEL)) / TRAVEL));
-            return lerp(prevX, linkRects[i].cx, f);
+            return lerp(prevRect.cx, rect.cx, f);
         }
-        if (t <= leave) return linkRects[i].cx;
+        if (t <= leave) return rect.cx;
     }
-    return linkRects[linkRects.length - 1].cx;
+    return linkRects[VISIT_ORDER[VISIT_ORDER.length - 1]].cx;
 }
 
 export default function HeroSting({ onDone }) {
@@ -173,8 +183,8 @@ export default function HeroSting({ onDone }) {
 
     const cx = linkRects.length ? cursorX(t, linkRects) : 0;
     const cy = linkRects.length ? linkRects[0].cy : 0;
-    const activeIdx = Math.min(NAV_LINKS.length - 1, Math.max(0, Math.floor((t - CURSOR_START) / PER_LINK)));
-    const pillRect = linkRects[activeIdx];
+    const visitStep = Math.min(VISIT_ORDER.length - 1, Math.max(0, Math.floor((t - CURSOR_START) / PER_LINK)));
+    const pillRect = linkRects[VISIT_ORDER[visitStep]];
     const navContainerLeft = linkRects.length ? navRef.current.getBoundingClientRect().left : 0;
     const pillOpacity = t >= CURSOR_START + TRAVEL * 0.4 && t < NAV_DEMO_END ? navLinksOpacity : 0;
     const cursorOpacity = clamp01((t - CURSOR_START + 0.15) / 0.15) * (1 - clamp01((t - NAV_DEMO_END) / 0.2));
@@ -196,7 +206,7 @@ export default function HeroSting({ onDone }) {
                 <div className="hero-sting-blob hero-sting-blob-3" />
             </div>
 
-            <header className="site-header hero-sting-nav-bg" style={{ opacity: navBgOpacity }}>
+            <header className="site-header" style={{ opacity: navBgOpacity, position: "static" }}>
                 <div className="wrap">
                     <div className="brand" style={{ opacity: brandTextOpacity }}>
                         <span ref={markTargetRef} style={{ width: 22, height: 22, display: "inline-block", flexShrink: 0 }} />
@@ -223,6 +233,10 @@ export default function HeroSting({ onDone }) {
                                 {label}
                             </span>
                         ))}
+                        {/* Not part of the cursor demo (it's external, not a route), but the
+                            real nav has it trailing the links — included here purely so the
+                            handoff frame matches exactly, not just the pieces the cursor visits. */}
+                        <span style={{ color: "var(--text-dim)", fontSize: 15, fontWeight: 500, padding: "8px 14px" }}>GitHub</span>
                     </nav>
                 </div>
             </header>
@@ -244,7 +258,7 @@ export default function HeroSting({ onDone }) {
                 </svg>
             )}
 
-            <section className="hero hero-sting-hero" style={{ opacity: heroOpacity }}>
+            <section className="hero" style={{ opacity: heroOpacity }}>
                 <div className="wrap">
                     <span className="eyebrow" style={{ opacity: eyebrowOpacity }}>
                         Rust · Game Dev · Web
