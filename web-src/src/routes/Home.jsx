@@ -1,13 +1,23 @@
+import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import TypewriterTitle from "../components/TypewriterTitle.jsx";
+import HeroSting from "../components/HeroSting.jsx";
 import { handleCardMouseMove, handleCardMouseLeave } from "../utils/cardSpotlight.js";
 import useScrollReveal from "../hooks/useScrollReveal.js";
 
 export default function Home() {
     const revealRef = useScrollReveal();
+    // Home.jsx fully remounts on every arrival at "/" (route content keys
+    // off the pathname — see App.jsx), so mounting HeroSting unconditionally
+    // here already gives the "plays on every fresh homepage load" behavior
+    // without needing any persistence flag; it just plays once per mount
+    // and then removes itself.
+    const [stingDone, setStingDone] = useState(false);
+    const onStingDone = useCallback(() => setStingDone(true), []);
 
     return (
         <div ref={revealRef}>
+            {!stingDone && <HeroSting onDone={onStingDone} />}
             <section className="hero">
                 <div className="wrap">
                     <span className="eyebrow">Rust · Game Dev · Web</span>

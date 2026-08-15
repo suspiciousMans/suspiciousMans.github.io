@@ -1017,6 +1017,98 @@ section {
     gap: 20px;
 }
 
+/* ---------- hero sting ---------- */
+/* A one-time intro overlay (HeroSting.jsx) that sits on top of the real,
+   already-interactive homepage and fades away once its ~5s sequence
+   finishes. z-index above everything, including the sticky nav (50). */
+
+.hero-sting {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: linear-gradient(160deg, var(--ink) 0%, var(--ink) 55%, var(--ink-2) 140%);
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.hero-sting-blobs {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.hero-sting-blob {
+    position: absolute;
+    width: 46vmax;
+    height: 46vmax;
+    border-radius: 50%;
+    filter: blur(90px);
+    animation: hero-sting-drift 8s ease-in-out infinite;
+}
+
+.hero-sting-blob-1 {
+    background: var(--accent);
+    opacity: 0.16;
+    top: -18%;
+    left: -6%;
+}
+
+.hero-sting-blob-2 {
+    background: var(--accent-2);
+    opacity: 0.12;
+    bottom: -20%;
+    right: -8%;
+    animation-delay: -2.6s;
+}
+
+.hero-sting-blob-3 {
+    background: var(--accent-3);
+    opacity: 0.1;
+    top: 34%;
+    right: 18%;
+    animation-delay: -5.2s;
+}
+
+@keyframes hero-sting-drift {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+    50% {
+        transform: translate(3%, -2%);
+    }
+}
+
+.hero-sting-nav-bg {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.hero-sting-mark {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.hero-sting-hero {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-sting-cursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    will-change: transform;
+}
+
 /* ---------- route transitions ---------- */
 /* The persisted app shell (nav/background/player) never remounts, so this
    only ever animates the routed page content — the concrete payoff of the
@@ -1104,7 +1196,8 @@ section {
     .card-media img,
     .tag,
     .gate-shake,
-    .reveal {
+    .reveal,
+    .hero-sting-blob {
         animation: none !important;
         transition: none !important;
     }
