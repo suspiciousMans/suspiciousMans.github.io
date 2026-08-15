@@ -8,6 +8,7 @@ import About from "./routes/About.jsx";
 import HexColony from "./routes/HexColony.jsx";
 import AutoCode from "./routes/AutoCode.jsx";
 import Gooba from "./routes/Gooba.jsx";
+import Logistica from "./routes/Logistica.jsx";
 import Chat from "./routes/Chat.jsx";
 import NotFound from "./routes/NotFound.jsx";
 import PageMeta from "./components/PageMeta.jsx";
@@ -124,6 +125,21 @@ export default function App() {
                   image="/assets/img/og-default.png"
                 />
                 <Gooba />
+              </>
+            }
+          />
+          <Route
+            path="/logistica.html"
+            element={
+              <>
+                <PageMeta
+                  title="Logistica — suspiciousMans"
+                  description="Logistica: a gate-level logic simulator and microprocessor-building sandbox, running entirely in the browser via WebAssembly."
+                  path="/logistica.html"
+                  image="/assets/img/og-default.png"
+                  noindex
+                />
+                <Logistica />
               </>
             }
           />

@@ -71,6 +71,16 @@ const projects = [
         ],
     },
     {
+        name: "Logistica",
+        tags: ["Rust", "WebAssembly", "egui"],
+        description:
+            "A gate-level logic simulator for building microprocessors out of logic gates — click-and-place gates and wires on a canvas, backed by a fast headless simulation engine and a small chip-definition DSL. Password-gated.",
+        links: [
+            { label: "Use it", href: "/logistica.html" },
+            { label: "Source", href: "https://github.com/suspiciousMans/Logistica-", external: true },
+        ],
+    },
+    {
         name: "This site",
         tags: ["React", "Vite"],
         description:
