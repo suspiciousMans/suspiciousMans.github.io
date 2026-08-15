@@ -1086,14 +1086,6 @@ section {
     pointer-events: none;
 }
 
-.hero-sting-cursor {
-    position: absolute;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    will-change: transform;
-}
-
 /* ---------- route transitions ---------- */
 /* The persisted app shell (nav/background/player) never remounts, so this
    only ever animates the routed page content — the concrete payoff of the

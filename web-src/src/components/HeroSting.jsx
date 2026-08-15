@@ -4,29 +4,31 @@ import { createPortal } from "react-dom";
 // A one-time, ~5s cinematic intro that plays over the real (already
 // mounted, already interactive) homepage: the hex brand mark scales in at
 // center, shrinks into the nav corner while the hero content builds in,
-// nav links fade in and a simulated cursor glides across them (the same
-// hover-pill the real nav uses), then the whole overlay crossfades away to
-// reveal the real page underneath. From the "Hero Sting.dc.html" design —
-// adapted from its fixed 1920x1080 mock into responsive layout reusing the
-// site's actual CSS classes, and from a forever-loop into a single
-// once-per-arrival intro (see HeroSting's caller in Home.jsx for why).
+// then nav links fade in and the hover pill glides across them on its own
+// (the same pill the real nav uses), before the whole overlay crossfades
+// away to reveal the real page underneath. From the "Hero Sting.dc.html"
+// design — adapted from its fixed 1920x1080 mock into responsive layout
+// reusing the site's actual CSS classes, from a forever-loop into a single
+// once-per-arrival intro, and with the design's simulated mouse cursor
+// dropped entirely (see HeroSting's caller in Home.jsx for the loop/once
+// choice).
 //
 // Purely decorative: pointer-events stay off throughout, and it never
 // touches the real Nav/Home underneath — it just sits on top of them and
 // fades away, so there's no risk of it leaving the real page in a broken
 // state if anything about the timing is slightly off.
 //
-// All positions the mark/cursor/pill animate to are measured off mimic
-// elements laid out with the site's real CSS classes (.site-header, .wrap,
-// .brand, nav.main-nav) rather than guessed as viewport percentages — the
-// real nav sits inside a max-width, centered .wrap, so its actual pixel
-// position depends on viewport width in a way that isn't a fixed
-// percentage. Measuring guarantees the mark's "small" end state lines up
-// with where the real brand mark actually is, so the closing crossfade
-// hands off cleanly instead of visibly jumping.
+// All positions the mark/pill animate to are measured off mimic elements
+// laid out with the site's real CSS classes (.site-header, .wrap, .brand,
+// nav.main-nav) rather than guessed as viewport percentages — the real nav
+// sits inside a max-width, centered .wrap, so its actual pixel position
+// depends on viewport width in a way that isn't a fixed percentage.
+// Measuring guarantees the mark's "small" end state lines up with where
+// the real brand mark actually is, so the closing crossfade hands off
+// cleanly instead of visibly jumping.
 
 const NAV_LINKS = ["Home", "Projects", "Hex Colony", "AutoCode", "Gooba", "About", "Chat"];
-// The cursor visits every link, but in this order — not NAV_LINKS' own
+// The pill visits every link, but in this order — not NAV_LINKS' own
 // left-to-right order — so it lands on Home last. Home is where the real
 // nav's pill actually is once this overlay fades away (this plays on the
 // homepage), so ending there instead of wherever the last link in the row
@@ -38,11 +40,11 @@ const TITLE_FULL = "I Am Suspicious";
 const TITLE_START = 1.45;
 const TITLE_CPS = 20; // characters per second, matching the design
 
-const CURSOR_START = 3.05;
+const PILL_START = 3.05;
 const DWELL = 0.22;
 const TRAVEL = 0.16;
 const PER_LINK = DWELL + TRAVEL;
-const NAV_DEMO_END = CURSOR_START + NAV_LINKS.length * PER_LINK;
+const NAV_DEMO_END = PILL_START + NAV_LINKS.length * PER_LINK;
 const FADE_START = NAV_DEMO_END + 0.15;
 const FADE_END = FADE_START + 0.45;
 
@@ -54,27 +56,6 @@ function clamp01(v) {
 }
 function easeInOutCubic(x) {
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-}
-
-// Piecewise-eased lookup across a visit step's [arrive, leave] timing, used
-// for both the cursor tip and the hover pill so they move in lockstep.
-// Walks VISIT_ORDER rather than linkRects directly — see its comment.
-function cursorX(t, linkRects) {
-    if (!linkRects.length) return 0;
-    const first = linkRects[VISIT_ORDER[0]];
-    if (t <= CURSOR_START) return first.cx;
-    for (let i = 0; i < VISIT_ORDER.length; i++) {
-        const arrive = CURSOR_START + i * PER_LINK + TRAVEL;
-        const leave = arrive + DWELL;
-        const rect = linkRects[VISIT_ORDER[i]];
-        if (t <= arrive) {
-            const prevRect = i === 0 ? first : linkRects[VISIT_ORDER[i - 1]];
-            const f = easeInOutCubic(clamp01((t - (arrive - TRAVEL)) / TRAVEL));
-            return lerp(prevRect.cx, rect.cx, f);
-        }
-        if (t <= leave) return rect.cx;
-    }
-    return linkRects[VISIT_ORDER[VISIT_ORDER.length - 1]].cx;
 }
 
 export default function HeroSting({ onDone }) {
@@ -93,7 +74,7 @@ export default function HeroSting({ onDone }) {
 
     useEffect(() => {
         const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        // The nav-link cursor demo only makes sense against the desktop nav
+        // The nav-link pill demo only makes sense against the desktop nav
         // row (mobile collapses it behind a hamburger), matching the same
         // 720px breakpoint the real nav switches at.
         const tooNarrow = window.innerWidth <= 720;
@@ -181,13 +162,10 @@ export default function HeroSting({ onDone }) {
     const btnOpacity = clamp01((t - 2.75) / 0.25);
     const btnScale = lerp(0.92, 1, clamp01((t - 2.75) / 0.25));
 
-    const cx = linkRects.length ? cursorX(t, linkRects) : 0;
-    const cy = linkRects.length ? linkRects[0].cy : 0;
-    const visitStep = Math.min(VISIT_ORDER.length - 1, Math.max(0, Math.floor((t - CURSOR_START) / PER_LINK)));
+    const visitStep = Math.min(VISIT_ORDER.length - 1, Math.max(0, Math.floor((t - PILL_START) / PER_LINK)));
     const pillRect = linkRects[VISIT_ORDER[visitStep]];
     const navContainerLeft = linkRects.length ? navRef.current.getBoundingClientRect().left : 0;
-    const pillOpacity = t >= CURSOR_START + TRAVEL * 0.4 && t < NAV_DEMO_END ? navLinksOpacity : 0;
-    const cursorOpacity = clamp01((t - CURSOR_START + 0.15) / 0.15) * (1 - clamp01((t - NAV_DEMO_END) / 0.2));
+    const pillOpacity = t >= PILL_START + TRAVEL * 0.4 && t < NAV_DEMO_END ? navLinksOpacity : 0;
 
     const overlayOpacity = 1 - clamp01((t - FADE_START) / (FADE_END - FADE_START));
 
@@ -281,12 +259,6 @@ export default function HeroSting({ onDone }) {
                     </div>
                 </div>
             </section>
-
-            <div className="hero-sting-cursor" style={{ opacity: cursorOpacity, transform: `translate(${cx}px, ${cy}px)` }}>
-                <svg width="22" height="25" viewBox="0 0 22 25">
-                    <path d="M1 1 L1 20 L6.5 15.5 L9.5 22 L13 20.5 L10 14 L17 14 Z" fill="#e9f3f1" stroke="#060f11" strokeWidth="1.2" strokeLinejoin="round" />
-                </svg>
-            </div>
         </div>,
         document.body
     );
