@@ -52,17 +52,48 @@ export default function Logistica() {
             if (isFullscreen()) frameRef.current?.contentWindow?.focus();
         }
 
+        // The browser already exits fullscreen on Escape natively — except
+        // entering fullscreen here also moves keyboard focus into the
+        // iframe (a separate, same-origin document), and the app itself
+        // binds Escape to "deselect the current tool". Depending on how it
+        // handles that keydown, it can end up swallowing the press before
+        // it's treated as the global fullscreen-exit shortcut. Explicit,
+        // capture-phase listeners on both the outer page and the iframe's
+        // own document make the exit deterministic either way.
+        function onKeyDown(e) {
+            if (e.key === "Escape" && isFullscreen()) {
+                (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+            }
+        }
+
         const canRequestFullscreen = canvasWrap.requestFullscreen || canvasWrap.webkitRequestFullscreen;
         if (canRequestFullscreen) {
             document.addEventListener("fullscreenchange", onFullscreenChange);
             document.addEventListener("webkitfullscreenchange", onFullscreenChange);
+            document.addEventListener("keydown", onKeyDown, true);
         } else {
             setFsSupported(false);
         }
 
+        const frame = frameRef.current;
+        let frameDoc = null;
+        function attachFrameKeyDown() {
+            try {
+                frameDoc = frame.contentDocument;
+                frameDoc?.addEventListener("keydown", onKeyDown, true);
+            } catch (err) {
+                // Shouldn't happen (same-origin), but don't break the page over it.
+            }
+        }
+        frame?.addEventListener("load", attachFrameKeyDown);
+        attachFrameKeyDown(); // in case the iframe already finished loading
+
         return () => {
             document.removeEventListener("fullscreenchange", onFullscreenChange);
             document.removeEventListener("webkitfullscreenchange", onFullscreenChange);
+            document.removeEventListener("keydown", onKeyDown, true);
+            frame?.removeEventListener("load", attachFrameKeyDown);
+            frameDoc?.removeEventListener("keydown", onKeyDown, true);
         };
     }, [unlocked]);
 
