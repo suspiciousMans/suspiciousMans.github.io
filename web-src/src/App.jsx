@@ -30,13 +30,21 @@ export default function App() {
 
   useLayoutEffect(() => {
     if (location.pathname === displayLocation.pathname) return;
+    // A plain multi-page site starts every navigation at the top; without
+    // this an SPA silently carries over whatever scroll offset the last
+    // page happened to be at. That's more than a cosmetic gap now that
+    // in-view content (scroll-reveal cards/paragraphs) depends on actually
+    // being on screen to trigger — landing mid-page could leave a route's
+    // reveal-observer with nothing intersecting until the user scrolls.
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (typeof document.startViewTransition === "function" && !reducedMotion) {
       document.startViewTransition(() => {
         flushSync(() => setDisplayLocation(location));
+        window.scrollTo(0, 0);
       });
     } else {
       setDisplayLocation(location);
+      window.scrollTo(0, 0);
     }
   }, [location, displayLocation]);
 

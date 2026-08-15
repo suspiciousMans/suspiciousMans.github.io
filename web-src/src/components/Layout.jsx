@@ -1,4 +1,5 @@
 import AudioBackground from "./AudioBackground.jsx";
+import CursorSpotlight from "./CursorSpotlight.jsx";
 import Nav from "./Nav.jsx";
 import Footer from "./Footer.jsx";
 import MusicPlayer from "./MusicPlayer.jsx";
@@ -15,6 +16,7 @@ export default function Layout({ children }) {
     return (
         <>
             <AudioBackground />
+            <CursorSpotlight />
             <Nav />
             <main>{children}</main>
             <HexColonyPersistent />

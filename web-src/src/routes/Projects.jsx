@@ -1,8 +1,11 @@
 import projects from "../data/projects.js";
 import ProjectCard from "../components/ProjectCard.jsx";
 import TypewriterTitle from "../components/TypewriterTitle.jsx";
+import useScrollReveal from "../hooks/useScrollReveal.js";
 
 export default function Projects() {
+    const revealRef = useScrollReveal();
+
     return (
         <>
             <section className="hero" style={{ paddingBottom: "24px" }}>
@@ -15,7 +18,7 @@ export default function Projects() {
 
             <section>
                 <div className="wrap">
-                    <div className="grid">
+                    <div className="grid" ref={revealRef}>
                         {projects.map((project) => (
                             <ProjectCard key={project.name} project={project} />
                         ))}
