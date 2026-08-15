@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import TypewriterTitle from "../components/TypewriterTitle.jsx";
 import HeroSting from "../components/HeroSting.jsx";
-import { handleCardMouseMove, handleCardMouseLeave } from "../utils/cardSpotlight.js";
+import { handleCardPointerMove, handleCardPointerLeave } from "../utils/cardSpotlight.js";
 import useScrollReveal from "../hooks/useScrollReveal.js";
 
 export default function Home() {
@@ -45,7 +45,7 @@ export default function Home() {
                         <p>A turn-based, pixel-art hex colony builder written in Rust — now playable straight in the browser.</p>
                     </div>
                     <div className="reveal" data-reveal style={{ maxWidth: "820px", margin: "0 auto" }}>
-                        <div className="card" onMouseMove={handleCardMouseMove} onMouseLeave={handleCardMouseLeave}>
+                        <div className="card" onPointerMove={handleCardPointerMove} onPointerLeave={handleCardPointerLeave}>
                             <div className="card-media" data-shimmer>
                                 <img
                                     src="/assets/img/hex-colony-preview.png"
@@ -81,7 +81,7 @@ export default function Home() {
                         <p>Write JavaScript or Python and automate a farm, a spaceship, a store, and a factory — runs entirely in the browser.</p>
                     </div>
                     <div className="reveal" data-reveal style={{ maxWidth: "820px", margin: "0 auto" }}>
-                        <div className="card" onMouseMove={handleCardMouseMove} onMouseLeave={handleCardMouseLeave}>
+                        <div className="card" onPointerMove={handleCardPointerMove} onPointerLeave={handleCardPointerLeave}>
                             <div className="card-media" data-shimmer>
                                 <img
                                     src="/assets/img/autocode-preview.png"
