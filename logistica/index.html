@@ -13,8 +13,8 @@
          wasm32-unknown-unknown, runs wasm-bindgen, and copies everything into dist/. -->
     
 <script type="module">
-import init, * as bindings from './logistica-app-b03cdde7eca6dbfc.js';
-const wasm = await init({ module_or_path: './logistica-app-b03cdde7eca6dbfc_bg.wasm' });
+import init, * as bindings from './logistica-app-f32bfd211064ad4.js';
+const wasm = await init({ module_or_path: './logistica-app-f32bfd211064ad4_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -52,7 +52,7 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
             letter-spacing: 0.02em;
         }
     </style>
-<link rel="modulepreload" href="./logistica-app-b03cdde7eca6dbfc.js" crossorigin="anonymous" integrity="sha384-9ZuCmghMjRXJpz4av7sIQfgElJGsFZM08iVgVc2w5A2N4JpnCUHgzOafMAUbfawt"><link rel="preload" href="./logistica-app-b03cdde7eca6dbfc_bg.wasm" crossorigin="anonymous" integrity="sha384-LwcwBVTXnWro/ooZ3mJyAIqqz0vlsTvEz3pMJIfsBevFBLbJj+Bj+TINIn0ozzgx" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="./logistica-app-f32bfd211064ad4.js" crossorigin="anonymous" integrity="sha384-9ZuCmghMjRXJpz4av7sIQfgElJGsFZM08iVgVc2w5A2N4JpnCUHgzOafMAUbfawt"><link rel="preload" href="./logistica-app-f32bfd211064ad4_bg.wasm" crossorigin="anonymous" integrity="sha384-aOK3IjoIzcj7+0VZnyah6YpL89bZZII5OB34xQQ+Who4uaimsvfNAxWuwx/pqpAp" as="fetch" type="application/wasm"></head>
 <body>
     <canvas id="logistica_canvas"></canvas>
     <div id="logistica_loading_text">Loading Logistica…</div>
