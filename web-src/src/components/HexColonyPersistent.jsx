@@ -46,10 +46,41 @@ export default function HexColonyPersistent() {
 
         canvas.addEventListener("click", () => canvas.focus());
 
+        // The compiled game reads MouseEvent.offsetX/offsetY straight off
+        // the browser event and uses it directly as a pixel coordinate
+        // into its own canvas buffer — it has no concept of
+        // devicePixelRatio. offsetX/offsetY are always reported in CSS
+        // pixels, so now that syncCanvasBuffer (below) renders the buffer
+        // at a DPR-scaled resolution, the game would see coordinates too
+        // small by exactly that factor and every click/pan/zoom would
+        // land off by roughly half on a 2x display. These listeners run
+        // ahead of the game's own (which only get attached once the wasm
+        // module below finishes loading — same-target DOM listeners fire
+        // in registration order) and rewrite offsetX/offsetY into buffer-
+        // pixel space before the game ever sees the event.
+        function patchOffsetToBufferSpace(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            Object.defineProperty(e, "offsetX", { value: (e.clientX - rect.left) * scaleX, configurable: true });
+            Object.defineProperty(e, "offsetY", { value: (e.clientY - rect.top) * scaleY, configurable: true });
+        }
+        const patchedEventTypes = ["mousedown", "mouseup", "mousemove", "wheel", "contextmenu"];
+        patchedEventTypes.forEach((type) => canvas.addEventListener(type, patchOffsetToBufferSpace));
+
         function syncCanvasBuffer() {
             const rect = canvas.getBoundingClientRect();
-            const w = Math.max(1, Math.round(rect.width));
-            const h = Math.max(1, Math.round(rect.height));
+            // The backing buffer has to be sized in device pixels, not CSS
+            // pixels — otherwise on any HiDPI display the game renders at
+            // 1x and the browser stretches that to fill 2x+ physical
+            // pixels. image-rendering: pixelated (for the crisp pixel-art
+            // look) makes that stretch nearest-neighbor rather than blurry,
+            // but the result is still visibly blockier than the display is
+            // capable of. Capped at 3x since going higher just costs fill
+            // rate for no visible gain.
+            const dpr = Math.min(window.devicePixelRatio || 1, 3);
+            const w = Math.max(1, Math.round(rect.width * dpr));
+            const h = Math.max(1, Math.round(rect.height * dpr));
             if (canvas.width !== w) canvas.width = w;
             if (canvas.height !== h) canvas.height = h;
         }
@@ -99,6 +130,7 @@ export default function HexColonyPersistent() {
         return () => {
             document.removeEventListener("fullscreenchange", onFullscreenChange);
             document.removeEventListener("webkitfullscreenchange", onFullscreenChange);
+            patchedEventTypes.forEach((type) => canvas.removeEventListener(type, patchOffsetToBufferSpace));
             if (resizeObserver) resizeObserver.disconnect();
         };
         // Intentionally mount-once — see the file-level comment.
