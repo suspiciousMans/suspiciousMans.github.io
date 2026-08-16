@@ -166,11 +166,6 @@
       </div>
 
       <div class="control-group">
-        <h2>Effects</h2>
-        <ul class="effects-list" id="effectsList"></ul>
-      </div>
-
-      <div class="control-group">
         <h2>Animate</h2>
         <label class="field checkbox-field" id="animateStillField" hidden>
           <span>Animate still image</span>
@@ -189,6 +184,16 @@
           <input type="range" id="temporalJitter" min="0" max="100" step="1" value="20" />
         </label>
       </div>
+
+      <details class="control-group">
+        <summary>Effects</summary>
+        <ul class="effects-list" id="effectsList"></ul>
+      </details>
+
+      <details class="control-group">
+        <summary>Overlays</summary>
+        <ul class="effects-list" id="overlaysList"></ul>
+      </details>
 
       <button id="resetBtn" class="btn btn-ghost full-width" type="button">Reset settings</button>
     </aside>

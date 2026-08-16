@@ -362,6 +362,47 @@ body {
   padding-bottom: 0.4rem;
 }
 
+details.control-group {
+  gap: 0;
+}
+
+details.control-group summary {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: var(--accent-strong);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 0.4rem;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+details.control-group summary::-webkit-details-marker {
+  display: none;
+}
+
+details.control-group summary::after {
+  content: '+';
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+details.control-group[open] summary::after {
+  content: '−';
+}
+
+details.control-group[open] summary {
+  margin-bottom: 0.75rem;
+}
+
+details.control-group .effects-list {
+  margin-top: 0.75rem;
+}
+
 .field {
   display: flex;
   flex-direction: column;

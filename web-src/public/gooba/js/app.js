@@ -2,6 +2,7 @@ import { applyDither, applyAdjustments } from './dither.js';
 import { PRESET_PALETTES, paletteToRgb, hexToRgb } from './palettes.js';
 import { medianCutPalette } from './quantize.js';
 import { EFFECT_DEFS, applyEffects, applyTemporalJitter } from './effects.js';
+import { OVERLAY_DEFS, applyOverlays } from './overlays.js';
 import { decodeGIF, encodeGIF } from './gif.js';
 import { extractVideoFrames } from './video.js';
 import { createZip } from './zip.js';
@@ -71,6 +72,7 @@ const contrastOut = $('contrastOut');
 const resetBtn = $('resetBtn');
 
 const effectsListEl = $('effectsList');
+const overlaysListEl = $('overlaysList');
 
 const animateStillField = $('animateStillField');
 const animateStillCheckbox = $('animateStill');
@@ -135,6 +137,7 @@ Object.entries(PRESET_PALETTES).forEach(([key, palette]) => {
 presetPaletteSelect.value = 'gameboy';
 
 let effectsStack = EFFECT_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
+let overlaysStack = OVERLAY_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
 
 // ---------- helpers ----------
 
@@ -304,6 +307,7 @@ function runPipeline(rawImageData, target, frameIndex, animated, useAutoPaletteC
   });
 
   result = applyEffects(result, effectsStack, frameIndex);
+  result = applyOverlays(result, overlaysStack, frameIndex);
 
   smallCtx.putImageData(result, 0, 0);
   return { smallCanvas, smallW, smallH };
@@ -699,9 +703,9 @@ downloadWebmBtn.addEventListener('click', async () => {
 
 // ---------- effects UI ----------
 
-function renderEffectsList() {
-  effectsListEl.innerHTML = '';
-  effectsStack.forEach((effect, idx) => {
+function renderStackList(stack, containerEl, onReorder) {
+  containerEl.innerHTML = '';
+  stack.forEach((item, idx) => {
     const li = document.createElement('li');
     li.className = 'effect-row';
 
@@ -711,13 +715,13 @@ function renderEffectsList() {
     const label = document.createElement('label');
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.checked = effect.enabled;
+    checkbox.checked = item.enabled;
     checkbox.addEventListener('change', () => {
-      effect.enabled = checkbox.checked;
+      item.enabled = checkbox.checked;
       scheduleRender();
     });
     const span = document.createElement('span');
-    span.textContent = effect.label;
+    span.textContent = item.label;
     label.append(checkbox, span);
 
     const reorder = document.createElement('div');
@@ -727,17 +731,17 @@ function renderEffectsList() {
     upBtn.textContent = '↑';
     upBtn.disabled = idx === 0;
     upBtn.addEventListener('click', () => {
-      [effectsStack[idx - 1], effectsStack[idx]] = [effectsStack[idx], effectsStack[idx - 1]];
-      renderEffectsList();
+      [stack[idx - 1], stack[idx]] = [stack[idx], stack[idx - 1]];
+      onReorder();
       scheduleRender();
     });
     const downBtn = document.createElement('button');
     downBtn.type = 'button';
     downBtn.textContent = '↓';
-    downBtn.disabled = idx === effectsStack.length - 1;
+    downBtn.disabled = idx === stack.length - 1;
     downBtn.addEventListener('click', () => {
-      [effectsStack[idx + 1], effectsStack[idx]] = [effectsStack[idx], effectsStack[idx + 1]];
-      renderEffectsList();
+      [stack[idx + 1], stack[idx]] = [stack[idx], stack[idx + 1]];
+      onReorder();
       scheduleRender();
     });
     reorder.append(upBtn, downBtn);
@@ -749,15 +753,23 @@ function renderEffectsList() {
     range.min = '0';
     range.max = '100';
     range.step = '1';
-    range.value = String(effect.amount);
+    range.value = String(item.amount);
     range.addEventListener('input', () => {
-      effect.amount = +range.value;
+      item.amount = +range.value;
       scheduleRender();
     });
 
     li.append(head, range);
-    effectsListEl.appendChild(li);
+    containerEl.appendChild(li);
   });
+}
+
+function renderEffectsList() {
+  renderStackList(effectsStack, effectsListEl, renderEffectsList);
+}
+
+function renderOverlaysList() {
+  renderStackList(overlaysStack, overlaysListEl, renderOverlaysList);
 }
 
 // ---------- batch mode ----------
@@ -993,6 +1005,8 @@ resetBtn.addEventListener('click', () => {
 
   effectsStack = EFFECT_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
   renderEffectsList();
+  overlaysStack = OVERLAY_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
+  renderOverlaysList();
 
   currentFrame = 0;
   if (isAnimated()) play();
@@ -1006,5 +1020,6 @@ resetBtn.addEventListener('click', () => {
 // ---------- init ----------
 
 renderEffectsList();
+renderOverlaysList();
 updateControlVisibility();
 updatePlaybackUI();
