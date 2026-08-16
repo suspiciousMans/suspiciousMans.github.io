@@ -81,8 +81,23 @@ export default function HexColonyPersistent() {
             const dpr = Math.min(window.devicePixelRatio || 1, 3);
             const w = Math.max(1, Math.round(rect.width * dpr));
             const h = Math.max(1, Math.round(rect.height * dpr));
+            const resized = canvas.width !== w || canvas.height !== h;
             if (canvas.width !== w) canvas.width = w;
             if (canvas.height !== h) canvas.height = h;
+            // Setting canvas.width/height resets *all* 2D context state,
+            // including imageSmoothingEnabled — the game sets that to
+            // false once at startup for crisp pixel art, but every resize
+            // after that (window resize, fullscreen toggle, and now every
+            // DPR-driven resize above) silently put it back to the
+            // browser's smoothing-on default. That's what was actually
+            // producing the blur: sprites drawn via drawImage() got
+            // bilinear-filtered on every scale up instead of staying
+            // nearest-neighbor, and it only became obvious once the
+            // buffer was large enough to need real upscaling.
+            if (resized) {
+                const ctx = canvas.getContext("2d");
+                if (ctx) ctx.imageSmoothingEnabled = false;
+            }
         }
 
         function isFullscreen() {
