@@ -108,6 +108,21 @@ export default function HexColonyPersistent() {
             setFsLabel(isFullscreen() ? "⛶ Exit Fullscreen" : "⛶ Fullscreen");
             syncCanvasBuffer();
             canvas.focus();
+            // fullscreenchange fires as soon as fullscreen mode is
+            // *entered*, but on some browsers the box hasn't finished
+            // settling to its final 100vw/100vh size yet at that exact
+            // moment — the immediate sync above can grab a mid-transition
+            // rect and lock in a buffer that's slightly too small, which
+            // then sits there looking soft for the rest of the session
+            // since nothing else prompts a re-check. Re-syncing across a
+            // couple of animation frames catches that once layout is
+            // actually final, at negligible cost (a no-op if the size
+            // already matched).
+            requestAnimationFrame(() => requestAnimationFrame(syncCanvasBuffer));
+            // Some OS-level fullscreen transitions (e.g. macOS's animated
+            // Space switch) run well past a couple of animation frames —
+            // catch those too.
+            setTimeout(syncCanvasBuffer, 400);
         }
 
         const canRequestFullscreen = canvasWrap.requestFullscreen || canvasWrap.webkitRequestFullscreen;
