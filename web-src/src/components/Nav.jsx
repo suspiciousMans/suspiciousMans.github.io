@@ -8,7 +8,6 @@ const LINKS = [
     { to: "/autocode.html", label: "AutoCode" },
     { to: "/gooba.html", label: "Gooba" },
     { to: "/about.html", label: "About" },
-    { to: "/chat.html", label: "Chat" },
 ];
 
 export default function Nav() {

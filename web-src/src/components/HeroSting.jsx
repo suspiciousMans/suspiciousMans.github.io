@@ -27,7 +27,7 @@ import { createPortal } from "react-dom";
 // the real brand mark actually is, so the closing crossfade hands off
 // cleanly instead of visibly jumping.
 
-const NAV_LINKS = ["Home", "Projects", "Hex Colony", "AutoCode", "Gooba", "About", "Chat"];
+const NAV_LINKS = ["Home", "Projects", "Hex Colony", "AutoCode", "Gooba", "About"];
 // The pill visits every link, but in this order — not NAV_LINKS' own
 // left-to-right order — so it lands on Home last. Home is where the real
 // nav's pill actually is once this overlay fades away (this plays on the
