@@ -10,6 +10,8 @@ import {
   FILTER_BLEND_MODES, FILTER_PRESET_COLORS, GRADIENT_PRESETS,
   MIN_GRADIENT_STOPS, MAX_GRADIENT_STOPS, applyColorFilter,
 } from './colorfilter.js';
+import { ASCII_RAMPS, ASCII_COLOR_MODES, renderAsciiArt } from './ascii.js';
+import { loadFavorites, addFavorite, removeFavorite } from './favorites.js';
 import { decodeGIF, encodeGIF } from './gif.js';
 import { extractVideoFrames } from './video.js';
 import { createZip } from './zip.js';
@@ -22,6 +24,11 @@ const dropZone = $('dropZone');
 const fileInput = $('fileInput');
 const chooseFileBtn = $('chooseFileBtn');
 const sampleBtn = $('sampleBtn');
+const webcamBtn = $('webcamBtn');
+const capturePhotoBtn = $('capturePhotoBtn');
+const stopWebcamBtn = $('stopWebcamBtn');
+const stopMotionBtn = $('stopMotionBtn');
+const stopMotionFileInput = $('stopMotionFileInput');
 const batchEnterBtn = $('batchEnterBtn');
 const changeImageBtn = $('changeImageBtn');
 const downloadPngBtn = $('downloadPngBtn');
@@ -53,9 +60,17 @@ const bayerField = $('bayerField');
 const bayerSizeSelect = $('bayerSize');
 const haltoneCellField = $('haltoneCellField');
 const haltoneCellSizeSelect = $('haltoneCellSize');
+const asciiRampField = $('asciiRampField');
+const asciiRampSelect = $('asciiRamp');
+const asciiColorModeField = $('asciiColorModeField');
+const asciiColorModeSelect = $('asciiColorMode');
+const asciiCustomColorField = $('asciiCustomColorField');
+const asciiCustomColor = $('asciiCustomColor');
+const amountField = $('amountField');
 const amountInput = $('amount');
 const amountOut = $('amountOut');
 
+const colorModeFields = $('colorModeFields');
 const colorModeSelect = $('colorMode');
 const levelsField = $('levelsField');
 const levelsInput = $('levels');
@@ -65,9 +80,17 @@ const presetPaletteSelect = $('presetPalette');
 const duotoneField = $('duotoneField');
 const duotoneDark = $('duotoneDark');
 const duotoneLight = $('duotoneLight');
+const duotoneSaveBtn = $('duotoneSaveBtn');
+const duotoneFavoritesEl = $('duotoneFavorites');
 const autoField = $('autoField');
 const autoColorsInput = $('autoColors');
 const autoOut = $('autoOut');
+const referenceField = $('referenceField');
+const referenceThumb = $('referenceThumb');
+const referencePickBtn = $('referencePickBtn');
+const referenceClearBtn = $('referenceClearBtn');
+const referenceFileInput = $('referenceFileInput');
+const referenceHint = $('referenceHint');
 const invertCheckbox = $('invert');
 
 const pixelSizeInput = $('pixelSize');
@@ -84,14 +107,20 @@ const colorFilterSolidFields = $('colorFilterSolidFields');
 const colorFilterGradientFields = $('colorFilterGradientFields');
 const filterSwatchesEl = $('filterSwatches');
 const colorFilterColor = $('colorFilterColor');
+const filterColorSaveBtn = $('filterColorSaveBtn');
 const gradientPresetSwatchesEl = $('gradientPresetSwatches');
 const gradientPreviewEl = $('gradientPreview');
 const gradientStopsListEl = $('gradientStopsList');
 const gradientAddStopBtn = $('gradientAddStopBtn');
+const gradientSaveBtn = $('gradientSaveBtn');
 const gradientTypeSelect = $('gradientType');
 const gradientAngleField = $('gradientAngleField');
 const gradientAngleInput = $('gradientAngle');
 const gradientAngleOut = $('gradientAngleOut');
+const gradientAnimateCheckbox = $('gradientAnimate');
+const gradientSpeedField = $('gradientSpeedField');
+const gradientSpeedInput = $('gradientSpeed');
+const gradientSpeedOut = $('gradientSpeedOut');
 const colorFilterBlendMode = $('colorFilterBlendMode');
 const colorFilterAmount = $('colorFilterAmount');
 const colorFilterAmountOut = $('colorFilterAmountOut');
@@ -133,6 +162,13 @@ const batchTarget = {
 batchTarget.rawCtx = batchTarget.rawCanvas.getContext('2d');
 batchTarget.smallCtx = batchTarget.smallCanvas.getContext('2d', { willReadFrequently: true });
 
+const liveVideoEl = document.createElement('video');
+liveVideoEl.muted = true;
+liveVideoEl.playsInline = true;
+const liveCanvas = document.createElement('canvas');
+const liveCtx = liveCanvas.getContext('2d', { willReadFrequently: true });
+let liveStream = null;
+
 // ---------- state ----------
 
 const STILL_MAX_DIMENSION = 1600;
@@ -154,6 +190,9 @@ let accumulated = 0;
 let renderScheduled = false;
 
 let autoPaletteCache = { key: null, palette: null };
+let referenceImageData = null;
+let referenceImageVersion = 0;
+let referencePaletteCache = { key: null, palette: null };
 
 let batchItems = []; // [{ id, name, imageData }]
 
@@ -164,6 +203,19 @@ Object.entries(PRESET_PALETTES).forEach(([key, palette]) => {
   presetPaletteSelect.appendChild(opt);
 });
 presetPaletteSelect.value = 'gameboy';
+
+ASCII_RAMPS.forEach((ramp) => {
+  const opt = document.createElement('option');
+  opt.value = ramp.chars;
+  opt.textContent = ramp.label;
+  asciiRampSelect.appendChild(opt);
+});
+ASCII_COLOR_MODES.forEach((mode) => {
+  const opt = document.createElement('option');
+  opt.value = mode.id;
+  opt.textContent = mode.label;
+  asciiColorModeSelect.appendChild(opt);
+});
 
 let effectsStack = EFFECT_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
 let overlaysStack = OVERLAY_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
@@ -176,6 +228,8 @@ let colorFilterConfig = {
   gradientStops: ['#ff6b6b', '#8a6fe0'],
   gradientType: 'spatial',
   gradientAngle: 90,
+  gradientAnimate: false,
+  gradientSpeed: 50,
   blendMode: 'multiply',
   amount: 60,
 };
@@ -188,12 +242,14 @@ function clampCurrentFrame() {
 }
 
 function isAnimated() {
+  if (mediaMode === 'live') return true;
   if (mediaMode === 'sequence') return sourceFrames.length > 1;
   if (mediaMode === 'image') return animateStillCheckbox.checked;
   return false;
 }
 
 function totalFramesCount() {
+  if (mediaMode === 'live') return 2; // unused by the live render path; just needs to be >1 for play() to proceed
   if (mediaMode === 'sequence') return Math.max(1, sourceFrames.length);
   if (mediaMode === 'image' && animateStillCheckbox.checked) {
     return Math.max(2, Math.round(+temporalDurationInput.value * +temporalFpsInput.value));
@@ -201,7 +257,13 @@ function totalFramesCount() {
   return 1;
 }
 
+function grabLiveVideoFrame() {
+  liveCtx.drawImage(liveVideoEl, 0, 0, mediaWidth, mediaHeight);
+  return liveCtx.getImageData(0, 0, mediaWidth, mediaHeight);
+}
+
 function getSourceFrameData(index) {
+  if (mediaMode === 'live') return grabLiveVideoFrame();
   if (mediaMode === 'sequence') return sourceFrames[index % sourceFrames.length].imageData;
   return sourceFrames[0].imageData;
 }
@@ -271,7 +333,19 @@ function getCurrentSettings() {
     brightness: +brightnessInput.value,
     contrast: +contrastInput.value,
     temporalJitter: +temporalJitterInput.value,
+    asciiChars: asciiRampSelect.value,
+    asciiColorMode: asciiColorModeSelect.value,
+    asciiCustomColor: asciiCustomColor.value,
   };
+}
+
+function resolveReferencePalette(colorCount) {
+  if (!referenceImageData) return null;
+  const key = `${referenceImageVersion}:${colorCount}`;
+  if (referencePaletteCache.key !== key) {
+    referencePaletteCache = { key, palette: medianCutPalette(referenceImageData, colorCount) };
+  }
+  return referencePaletteCache.palette;
 }
 
 function resolveAutoPalette(imageDataForPalette, autoColors, useCache, cacheKeyExtra) {
@@ -293,8 +367,9 @@ function runPipeline(rawImageData, target, frameIndex, animated, useAutoPaletteC
   rawCanvas.height = rawImageData.height;
   rawCtx.putImageData(rawImageData, 0, 0);
 
-  const smallW = Math.max(1, Math.round(rawImageData.width / settings.pixelSize));
-  const smallH = Math.max(1, Math.round(rawImageData.height / settings.pixelSize));
+  const isAscii = settings.algorithm === 'ascii';
+  const smallW = isAscii ? rawImageData.width : Math.max(1, Math.round(rawImageData.width / settings.pixelSize));
+  const smallH = isAscii ? rawImageData.height : Math.max(1, Math.round(rawImageData.height / settings.pixelSize));
   smallCanvas.width = smallW;
   smallCanvas.height = smallH;
   smallCtx.imageSmoothingEnabled = true;
@@ -308,49 +383,68 @@ function runPipeline(rawImageData, target, frameIndex, animated, useAutoPaletteC
     imageData = applyTemporalJitter(imageData, settings.temporalJitter, frameIndex);
   }
 
-  let ditherMode = 'levels';
-  let palette;
-  if (settings.colorMode === 'levels') {
-    ditherMode = 'levels';
-  } else if (settings.colorMode === 'grayscale') {
-    ditherMode = 'grayscale';
-  } else if (settings.colorMode === 'palette') {
-    ditherMode = 'palette';
-    palette = paletteToRgb(PRESET_PALETTES[settings.presetPalette].colors);
-  } else if (settings.colorMode === 'duotone') {
-    ditherMode = 'palette';
-    palette = [hexToRgb(settings.duotoneDark), hexToRgb(settings.duotoneLight)];
-  } else if (settings.colorMode === 'auto') {
-    ditherMode = 'palette';
-    palette = resolveAutoPalette(
-      imageData,
-      settings.autoColors,
-      useAutoPaletteCache,
-      `${settings.pixelSize}:${settings.brightness}:${settings.contrast}`,
-    );
+  let result;
+  if (isAscii) {
+    result = renderAsciiArt(imageData, smallCanvas, smallCtx, {
+      cellSize: Math.max(6, settings.pixelSize + 4),
+      chars: settings.asciiChars,
+      colorMode: settings.asciiColorMode,
+      customColor: settings.asciiCustomColor,
+      invert: settings.invert,
+    });
+  } else {
+    let ditherMode = 'levels';
+    let palette;
+    if (settings.colorMode === 'levels') {
+      ditherMode = 'levels';
+    } else if (settings.colorMode === 'grayscale') {
+      ditherMode = 'grayscale';
+    } else if (settings.colorMode === 'palette') {
+      ditherMode = 'palette';
+      palette = paletteToRgb(PRESET_PALETTES[settings.presetPalette].colors);
+    } else if (settings.colorMode === 'duotone') {
+      ditherMode = 'palette';
+      palette = [hexToRgb(settings.duotoneDark), hexToRgb(settings.duotoneLight)];
+    } else if (settings.colorMode === 'auto') {
+      ditherMode = 'palette';
+      palette = resolveAutoPalette(
+        imageData,
+        settings.autoColors,
+        useAutoPaletteCache,
+        `${settings.pixelSize}:${settings.brightness}:${settings.contrast}`,
+      );
+    } else if (settings.colorMode === 'reference') {
+      ditherMode = 'palette';
+      palette = resolveReferencePalette(settings.autoColors) || resolveAutoPalette(
+        imageData,
+        settings.autoColors,
+        useAutoPaletteCache,
+        `${settings.pixelSize}:${settings.brightness}:${settings.contrast}`,
+      );
+    }
+
+    const phase = animated && (settings.algorithm === 'ordered' || settings.algorithm === 'halftone')
+      ? { x: frameIndex, y: 0 }
+      : { x: 0, y: 0 };
+
+    result = applyDither(imageData, {
+      algorithm: settings.algorithm,
+      mode: ditherMode,
+      palette,
+      levels: settings.levels,
+      bayerSize: settings.bayerSize,
+      matrixType: settings.matrixType,
+      haltoneCellSize: settings.haltoneCellSize,
+      phase,
+      amount: settings.amount,
+      invert: settings.invert,
+    });
   }
-
-  const phase = animated && (settings.algorithm === 'ordered' || settings.algorithm === 'halftone')
-    ? { x: frameIndex, y: 0 }
-    : { x: 0, y: 0 };
-
-  let result = applyDither(imageData, {
-    algorithm: settings.algorithm,
-    mode: ditherMode,
-    palette,
-    levels: settings.levels,
-    bayerSize: settings.bayerSize,
-    matrixType: settings.matrixType,
-    haltoneCellSize: settings.haltoneCellSize,
-    phase,
-    amount: settings.amount,
-    invert: settings.invert,
-  });
 
   result = applyEffects(result, effectsStack, frameIndex);
   result = applyOverlays(result, overlaysStack, frameIndex);
   result = applyCustomOverlays(result, customOverlays, frameIndex);
-  result = applyColorFilter(result, colorFilterConfig);
+  result = applyColorFilter(result, colorFilterConfig, frameIndex);
 
   smallCtx.putImageData(result, 0, 0);
   return { smallCanvas, smallW, smallH };
@@ -396,6 +490,11 @@ function updateFrameCounterText() {
 
 function loop(now) {
   if (!playing) return;
+  if (mediaMode === 'live') {
+    renderCurrentFrame();
+    rafId = requestAnimationFrame(loop);
+    return;
+  }
   const dt = now - lastTickTime;
   lastTickTime = now;
   accumulated += dt;
@@ -440,15 +539,22 @@ frameScrubber.addEventListener('input', () => {
 // ---------- visibility ----------
 
 function updateControlVisibility() {
+  const isAscii = algorithmSelect.value === 'ascii';
   matrixTypeField.hidden = algorithmSelect.value !== 'ordered';
   bayerField.hidden = algorithmSelect.value !== 'ordered';
   haltoneCellField.hidden = algorithmSelect.value !== 'halftone';
+  amountField.hidden = isAscii;
+  asciiRampField.hidden = !isAscii;
+  asciiColorModeField.hidden = !isAscii;
+  asciiCustomColorField.hidden = !isAscii || asciiColorModeSelect.value !== 'custom';
+  colorModeFields.hidden = isAscii;
 
   const mode = colorModeSelect.value;
   levelsField.hidden = !(mode === 'levels' || mode === 'grayscale');
   paletteField.hidden = mode !== 'palette';
   duotoneField.hidden = mode !== 'duotone';
-  autoField.hidden = mode !== 'auto';
+  autoField.hidden = !(mode === 'auto' || mode === 'reference');
+  referenceField.hidden = mode !== 'reference';
 
   animateStillField.hidden = !(mediaLoaded && mediaMode === 'image');
   const showTemporalControls = mediaLoaded && mediaMode === 'image' && animateStillCheckbox.checked;
@@ -459,21 +565,34 @@ function updateControlVisibility() {
 
 function updatePlaybackUI() {
   const animated = isAnimated();
+  const isLive = mediaMode === 'live';
   clampCurrentFrame();
-  playbackBar.hidden = !animated;
-  if (animated) {
+  playbackBar.hidden = !animated || isLive;
+  if (animated && !isLive) {
     frameScrubber.max = String(Math.max(1, totalFramesCount() - 1));
     frameScrubber.value = String(currentFrame);
     updateFrameCounterText();
   }
-  downloadGifBtn.hidden = !animated;
-  downloadWebmBtn.hidden = !animated || !mediaRecorderSupported();
+  downloadGifBtn.hidden = !animated || isLive;
+  downloadWebmBtn.hidden = !animated || isLive || !mediaRecorderSupported();
+  capturePhotoBtn.hidden = !isLive;
+  stopWebcamBtn.hidden = !isLive;
+  changeImageBtn.hidden = isLive;
+  downloadPngBtn.hidden = isLive;
   updateControlVisibility();
 }
 
 // ---------- media loading ----------
 
+function stopLiveStream() {
+  if (liveStream) {
+    liveStream.getTracks().forEach((t) => t.stop());
+    liveStream = null;
+  }
+}
+
 function setMediaFromFrames(mode, width, height, frames, infoText) {
+  if (mediaMode === 'live' && mode !== 'live') stopLiveStream();
   mediaMode = mode;
   mediaWidth = width;
   mediaHeight = height;
@@ -589,6 +708,128 @@ function handleFile(file) {
   showError('Unsupported file type');
 }
 
+async function startWebcam() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showError('This browser cannot access the camera');
+    return;
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+  } catch (err) {
+    console.error(err);
+    showError('Could not access the camera');
+    return;
+  }
+
+  liveStream = stream;
+  liveVideoEl.srcObject = stream;
+  try {
+    await liveVideoEl.play();
+  } catch (err) {
+    console.error(err);
+    stopLiveStream();
+    showError('Could not start the camera preview');
+    return;
+  }
+
+  const scale = Math.min(1, ANIMATED_MAX_DIMENSION / Math.max(liveVideoEl.videoWidth, liveVideoEl.videoHeight));
+  const w = Math.max(1, Math.round(liveVideoEl.videoWidth * scale));
+  const h = Math.max(1, Math.round(liveVideoEl.videoHeight * scale));
+  liveCanvas.width = w;
+  liveCanvas.height = h;
+
+  mediaMode = 'live';
+  mediaWidth = w;
+  mediaHeight = h;
+  sourceFrames = [];
+  mediaVersion++;
+  currentFrame = 0;
+  accumulated = 0;
+  autoPaletteCache = { key: null, palette: null };
+  mediaLoaded = true;
+
+  mediaInfo.textContent = `Webcam — ${w}×${h} live`;
+  emptyState.style.display = 'none';
+  previewCanvas.style.display = 'block';
+  stageActions.hidden = false;
+
+  updatePlaybackUI();
+  play();
+}
+
+function stopWebcam() {
+  stopLiveStream();
+  pause();
+  mediaMode = 'none';
+  mediaLoaded = false;
+  emptyState.style.display = 'flex';
+  previewCanvas.style.display = 'none';
+  stageActions.hidden = true;
+  mediaInfo.textContent = '';
+  updatePlaybackUI();
+}
+
+function capturePhoto() {
+  const scale = Math.min(1, STILL_MAX_DIMENSION / Math.max(liveVideoEl.videoWidth, liveVideoEl.videoHeight));
+  const w = Math.max(1, Math.round(liveVideoEl.videoWidth * scale));
+  const h = Math.max(1, Math.round(liveVideoEl.videoHeight * scale));
+  const tmp = document.createElement('canvas');
+  tmp.width = w;
+  tmp.height = h;
+  const tctx = tmp.getContext('2d');
+  tctx.drawImage(liveVideoEl, 0, 0, w, h);
+  const imageData = tctx.getImageData(0, 0, w, h);
+  setMediaFromFrames('image', w, h, [{ imageData, delay: 1000 / 12 }], `Webcam photo — ${w}×${h}`);
+}
+
+async function loadStopMotionFiles(files) {
+  const imageFiles = files.filter((f) => f.type.startsWith('image/'));
+  if (imageFiles.length < 2) {
+    showError('Pick at least 2 images for stop-motion');
+    return;
+  }
+  showLoading('Loading stop-motion frames…');
+  try {
+    const rawDatas = [];
+    for (const file of imageFiles) {
+      rawDatas.push(await loadImageAsData(file, 1200));
+    }
+
+    const firstW = rawDatas[0].width, firstH = rawDatas[0].height;
+    const scale = Math.min(1, ANIMATED_MAX_DIMENSION / Math.max(firstW, firstH));
+    const targetW = Math.max(1, Math.round(firstW * scale));
+    const targetH = Math.max(1, Math.round(firstH * scale));
+
+    const srcCanvas = document.createElement('canvas');
+    const srcCtx = srcCanvas.getContext('2d');
+    const dstCanvas = document.createElement('canvas');
+    dstCanvas.width = targetW;
+    dstCanvas.height = targetH;
+    const dstCtx = dstCanvas.getContext('2d');
+
+    const fps = 6;
+    const delay = 1000 / fps;
+    const frames = rawDatas.map((data) => {
+      srcCanvas.width = data.width;
+      srcCanvas.height = data.height;
+      srcCtx.putImageData(data, 0, 0);
+      const coverScale = Math.max(targetW / data.width, targetH / data.height);
+      const dw = data.width * coverScale, dh = data.height * coverScale;
+      dstCtx.clearRect(0, 0, targetW, targetH);
+      dstCtx.drawImage(srcCanvas, (targetW - dw) / 2, (targetH - dh) / 2, dw, dh);
+      return { imageData: dstCtx.getImageData(0, 0, targetW, targetH), delay };
+    });
+
+    hideLoading();
+    setMediaFromFrames('sequence', targetW, targetH, frames, `Stop-motion — ${frames.length} frames`);
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showError('Could not load stop-motion frames');
+  }
+}
+
 function generateSampleImage() {
   const w = 640, h = 480;
   const canvas = document.createElement('canvas');
@@ -658,6 +899,31 @@ chooseFileBtn.addEventListener('click', () => fileInput.click());
 changeImageBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
 sampleBtn.addEventListener('click', generateSampleImage);
+
+webcamBtn.addEventListener('click', startWebcam);
+capturePhotoBtn.addEventListener('click', capturePhoto);
+stopWebcamBtn.addEventListener('click', stopWebcam);
+
+stopMotionBtn.addEventListener('click', () => stopMotionFileInput.click());
+stopMotionFileInput.addEventListener('change', () => {
+  loadStopMotionFiles(Array.from(stopMotionFileInput.files));
+  stopMotionFileInput.value = '';
+});
+
+document.addEventListener('paste', (e) => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) {
+        e.preventDefault();
+        handleFile(file);
+      }
+      break;
+    }
+  }
+});
 
 // ---------- export ----------
 
@@ -1140,8 +1406,47 @@ algorithmSelect.addEventListener('change', () => { updateControlVisibility(); sc
 matrixTypeSelect.addEventListener('change', scheduleRender);
 bayerSizeSelect.addEventListener('change', scheduleRender);
 haltoneCellSizeSelect.addEventListener('change', scheduleRender);
+asciiRampSelect.addEventListener('change', scheduleRender);
+asciiColorModeSelect.addEventListener('change', () => { updateControlVisibility(); scheduleRender(); });
+asciiCustomColor.addEventListener('input', scheduleRender);
 colorModeSelect.addEventListener('change', () => { updateControlVisibility(); scheduleRender(); });
 presetPaletteSelect.addEventListener('change', scheduleRender);
+
+referencePickBtn.addEventListener('click', () => referenceFileInput.click());
+referenceFileInput.addEventListener('change', async () => {
+  const file = referenceFileInput.files[0];
+  referenceFileInput.value = '';
+  if (!file) return;
+  try {
+    referenceImageData = await loadImageAsData(file, 500);
+    referenceImageVersion++;
+    referencePaletteCache = { key: null, palette: null };
+    const tctx = referenceThumb.getContext('2d');
+    tctx.imageSmoothingEnabled = true;
+    tctx.clearRect(0, 0, referenceThumb.width, referenceThumb.height);
+    const scale = Math.max(referenceThumb.width / referenceImageData.width, referenceThumb.height / referenceImageData.height);
+    const dw = referenceImageData.width * scale, dh = referenceImageData.height * scale;
+    const tmp = document.createElement('canvas');
+    tmp.width = referenceImageData.width; tmp.height = referenceImageData.height;
+    tmp.getContext('2d').putImageData(referenceImageData, 0, 0);
+    tctx.drawImage(tmp, (referenceThumb.width - dw) / 2, (referenceThumb.height - dh) / 2, dw, dh);
+    referenceClearBtn.hidden = false;
+    referenceHint.textContent = `${referenceImageData.width}×${referenceImageData.height} reference loaded.`;
+    scheduleRender();
+  } catch (err) {
+    console.error(err);
+    showError('Could not load reference image');
+  }
+});
+referenceClearBtn.addEventListener('click', () => {
+  referenceImageData = null;
+  referenceImageVersion++;
+  referencePaletteCache = { key: null, palette: null };
+  referenceThumb.getContext('2d').clearRect(0, 0, referenceThumb.width, referenceThumb.height);
+  referenceClearBtn.hidden = true;
+  referenceHint.textContent = 'No reference image chosen — using the current photo instead.';
+  scheduleRender();
+});
 duotoneDark.addEventListener('input', scheduleRender);
 duotoneLight.addEventListener('input', scheduleRender);
 invertCheckbox.addEventListener('change', scheduleRender);
@@ -1153,23 +1458,81 @@ bindRange(pixelSizeInput, pixelSizeOut);
 bindRange(brightnessInput, brightnessOut);
 bindRange(contrastInput, contrastOut);
 
+function makeColorSwatch(color, label, onPick) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'filter-swatch';
+  btn.style.background = color;
+  btn.title = label;
+  btn.setAttribute('aria-label', label);
+  btn.addEventListener('click', onPick);
+  return btn;
+}
+
 function renderFilterSwatches() {
   filterSwatchesEl.innerHTML = '';
   FILTER_PRESET_COLORS.forEach((preset) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'filter-swatch';
-    btn.style.background = preset.color;
-    btn.title = preset.label;
-    btn.setAttribute('aria-label', preset.label);
-    if (preset.color.toLowerCase() === colorFilterConfig.color.toLowerCase()) btn.classList.add('active');
-    btn.addEventListener('click', () => {
+    const btn = makeColorSwatch(preset.color, preset.label, () => {
       colorFilterConfig.color = preset.color;
       colorFilterColor.value = preset.color;
       renderFilterSwatches();
       scheduleRender();
     });
+    if (preset.color.toLowerCase() === colorFilterConfig.color.toLowerCase()) btn.classList.add('active');
     filterSwatchesEl.appendChild(btn);
+  });
+
+  loadFavorites('filterColors').forEach((color, idx) => {
+    const item = document.createElement('div');
+    item.className = 'favorite-item';
+    const btn = makeColorSwatch(color, 'Saved color', () => {
+      colorFilterConfig.color = color;
+      colorFilterColor.value = color;
+      renderFilterSwatches();
+      scheduleRender();
+    });
+    if (color.toLowerCase() === colorFilterConfig.color.toLowerCase()) btn.classList.add('active');
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'favorite-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.setAttribute('aria-label', 'Remove saved color');
+    removeBtn.addEventListener('click', () => {
+      removeFavorite('filterColors', idx);
+      renderFilterSwatches();
+    });
+    item.append(btn, removeBtn);
+    filterSwatchesEl.appendChild(item);
+  });
+}
+
+function renderDuotoneFavorites() {
+  duotoneFavoritesEl.innerHTML = '';
+  loadFavorites('duotones').forEach((pair, idx) => {
+    const item = document.createElement('div');
+    item.className = 'favorite-item';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'filter-swatch';
+    btn.style.background = `linear-gradient(90deg, ${pair.dark} 50%, ${pair.light} 50%)`;
+    btn.title = 'Saved duotone';
+    btn.setAttribute('aria-label', 'Saved duotone');
+    btn.addEventListener('click', () => {
+      duotoneDark.value = pair.dark;
+      duotoneLight.value = pair.light;
+      scheduleRender();
+    });
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'favorite-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.setAttribute('aria-label', 'Remove saved duotone');
+    removeBtn.addEventListener('click', () => {
+      removeFavorite('duotones', idx);
+      renderDuotoneFavorites();
+    });
+    item.append(btn, removeBtn);
+    duotoneFavoritesEl.appendChild(item);
   });
 }
 
@@ -1228,6 +1591,33 @@ function renderGradientPresetSwatches() {
     });
     gradientPresetSwatchesEl.appendChild(btn);
   });
+
+  loadFavorites('gradients').forEach((saved, idx) => {
+    const item = document.createElement('div');
+    item.className = 'favorite-item';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'filter-swatch gradient-preset-swatch';
+    btn.style.background = `linear-gradient(90deg, ${saved.stops.join(', ')})`;
+    btn.title = 'Saved gradient';
+    btn.setAttribute('aria-label', 'Saved gradient');
+    btn.addEventListener('click', () => {
+      colorFilterConfig.gradientStops = [...saved.stops];
+      renderGradientStops();
+      scheduleRender();
+    });
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'favorite-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.setAttribute('aria-label', 'Remove saved gradient');
+    removeBtn.addEventListener('click', () => {
+      removeFavorite('gradients', idx);
+      renderGradientPresetSwatches();
+    });
+    item.append(btn, removeBtn);
+    gradientPresetSwatchesEl.appendChild(item);
+  });
 }
 
 FILTER_BLEND_MODES.forEach((mode) => {
@@ -1241,6 +1631,20 @@ FILTER_BLEND_MODES.forEach((mode) => {
 renderFilterSwatches();
 renderGradientPresetSwatches();
 renderGradientStops();
+renderDuotoneFavorites();
+
+filterColorSaveBtn.addEventListener('click', () => {
+  addFavorite('filterColors', colorFilterColor.value);
+  renderFilterSwatches();
+});
+duotoneSaveBtn.addEventListener('click', () => {
+  addFavorite('duotones', { dark: duotoneDark.value, light: duotoneLight.value });
+  renderDuotoneFavorites();
+});
+gradientSaveBtn.addEventListener('click', () => {
+  addFavorite('gradients', { stops: [...colorFilterConfig.gradientStops] });
+  renderGradientPresetSwatches();
+});
 
 colorFilterEnabled.addEventListener('change', () => {
   colorFilterConfig.enabled = colorFilterEnabled.checked;
@@ -1270,19 +1674,34 @@ gradientTypeSelect.addEventListener('change', () => {
   scheduleRender();
 });
 bindRange(gradientAngleInput, gradientAngleOut, () => { colorFilterConfig.gradientAngle = +gradientAngleInput.value; });
+gradientAnimateCheckbox.addEventListener('change', () => {
+  colorFilterConfig.gradientAnimate = gradientAnimateCheckbox.checked;
+  gradientSpeedField.hidden = !colorFilterConfig.gradientAnimate;
+  // Animating the gradient only does anything visible once frames are
+  // actually advancing — auto-enable "Animate still image" on a plain
+  // photo so turning this on is never a silent no-op.
+  if (colorFilterConfig.gradientAnimate && mediaMode === 'image' && !animateStillCheckbox.checked) {
+    animateStillCheckbox.checked = true;
+    syncAnimateStillState();
+  }
+  scheduleRender();
+});
+bindRange(gradientSpeedInput, gradientSpeedOut, () => { colorFilterConfig.gradientSpeed = +gradientSpeedInput.value; });
 colorFilterBlendMode.addEventListener('change', () => {
   colorFilterConfig.blendMode = colorFilterBlendMode.value;
   scheduleRender();
 });
 bindRange(colorFilterAmount, colorFilterAmountOut, () => { colorFilterConfig.amount = +colorFilterAmount.value; });
 
-animateStillCheckbox.addEventListener('change', () => {
+function syncAnimateStillState() {
   updateControlVisibility();
   updatePlaybackUI();
   currentFrame = 0;
   if (isAnimated()) play();
   else { pause(); scheduleRender(); }
-});
+}
+
+animateStillCheckbox.addEventListener('change', syncAnimateStillState);
 
 bindRange(temporalDurationInput, temporalDurationOut, updatePlaybackUI);
 bindRange(temporalFpsInput, temporalFpsOut, updatePlaybackUI);
@@ -1296,6 +1715,9 @@ const DEFAULTS = {
   bayerSize: '4',
   haltoneCellSize: '6',
   amount: '1',
+  asciiRamp: ASCII_RAMPS[0].chars,
+  asciiColorMode: ASCII_COLOR_MODES[0].id,
+  asciiCustomColor: '#e6e6e6',
   colorMode: 'levels',
   levels: '4',
   presetPalette: 'gameboy',
@@ -1316,6 +1738,8 @@ const DEFAULTS = {
   colorFilterGradientStops: ['#ff6b6b', '#8a6fe0'],
   colorFilterGradientType: 'spatial',
   colorFilterGradientAngle: '90',
+  colorFilterGradientAnimate: false,
+  colorFilterGradientSpeed: '50',
   colorFilterBlendMode: 'multiply',
   colorFilterAmount: '60',
 };
@@ -1326,6 +1750,9 @@ resetBtn.addEventListener('click', () => {
   bayerSizeSelect.value = DEFAULTS.bayerSize;
   haltoneCellSizeSelect.value = DEFAULTS.haltoneCellSize;
   amountInput.value = DEFAULTS.amount;
+  asciiRampSelect.value = DEFAULTS.asciiRamp;
+  asciiColorModeSelect.value = DEFAULTS.asciiColorMode;
+  asciiCustomColor.value = DEFAULTS.asciiCustomColor;
   colorModeSelect.value = DEFAULTS.colorMode;
   levelsInput.value = DEFAULTS.levels;
   presetPaletteSelect.value = DEFAULTS.presetPalette;
@@ -1346,6 +1773,9 @@ resetBtn.addEventListener('click', () => {
   gradientTypeSelect.value = DEFAULTS.colorFilterGradientType;
   gradientAngleInput.value = DEFAULTS.colorFilterGradientAngle;
   gradientAngleOut.textContent = DEFAULTS.colorFilterGradientAngle;
+  gradientAnimateCheckbox.checked = DEFAULTS.colorFilterGradientAnimate;
+  gradientSpeedInput.value = DEFAULTS.colorFilterGradientSpeed;
+  gradientSpeedOut.textContent = DEFAULTS.colorFilterGradientSpeed;
   colorFilterBlendMode.value = DEFAULTS.colorFilterBlendMode;
   colorFilterAmount.value = DEFAULTS.colorFilterAmount;
   colorFilterConfig = {
@@ -1355,12 +1785,15 @@ resetBtn.addEventListener('click', () => {
     gradientStops: [...DEFAULTS.colorFilterGradientStops],
     gradientType: DEFAULTS.colorFilterGradientType,
     gradientAngle: +DEFAULTS.colorFilterGradientAngle,
+    gradientAnimate: DEFAULTS.colorFilterGradientAnimate,
+    gradientSpeed: +DEFAULTS.colorFilterGradientSpeed,
     blendMode: DEFAULTS.colorFilterBlendMode,
     amount: +DEFAULTS.colorFilterAmount,
   };
   colorFilterFields.hidden = !colorFilterConfig.enabled;
   colorFilterSolidFields.hidden = colorFilterConfig.type !== 'solid';
   colorFilterGradientFields.hidden = colorFilterConfig.type !== 'gradient';
+  gradientSpeedField.hidden = !colorFilterConfig.gradientAnimate;
   gradientAngleField.hidden = colorFilterConfig.gradientType === 'luminance';
   renderFilterSwatches();
   renderGradientStops();

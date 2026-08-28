@@ -9,6 +9,9 @@ export const EFFECT_DEFS = [
   { id: 'grain', label: 'Grain', defaultAmount: 25 },
   { id: 'glow', label: 'Glow', defaultAmount: 30 },
   { id: 'jpegGlitch', label: 'JPEG Glitch', defaultAmount: 30 },
+  { id: 'pixelSort', label: 'Pixel Sort', defaultAmount: 35 },
+  { id: 'crtWarp', label: 'CRT Warp', defaultAmount: 40 },
+  { id: 'phosphorMask', label: 'Phosphor Mask', defaultAmount: 35 },
 ];
 
 function clamp(v) {
@@ -174,6 +177,90 @@ function jpegGlitch(imageData, amount, frameIndex) {
   return imageData;
 }
 
+function luminance(data, i) {
+  return 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+}
+
+function pixelSort(imageData, amount, frameIndex) {
+  if (amount <= 0) return imageData;
+  const { data, width, height } = imageData;
+  const strength = amount / 100;
+  const rand = mulberry32(frameIndex * 4211 + 29);
+  const threshold = 235 - strength * 175;
+  const rowCoverage = 0.25 + strength * 0.65;
+
+  for (let y = 0; y < height; y++) {
+    if (rand() > rowCoverage) continue;
+    let x = 0;
+    while (x < width) {
+      if (luminance(data, (y * width + x) * 4) < threshold) { x++; continue; }
+      let runEnd = x;
+      while (runEnd < width && luminance(data, (y * width + runEnd) * 4) >= threshold) runEnd++;
+
+      const run = [];
+      for (let px = x; px < runEnd; px++) {
+        const i = (y * width + px) * 4;
+        run.push([data[i], data[i + 1], data[i + 2], data[i + 3]]);
+      }
+      run.sort((a, b) => (0.299 * a[0] + 0.587 * a[1] + 0.114 * a[2]) - (0.299 * b[0] + 0.587 * b[1] + 0.114 * b[2]));
+      for (let k = 0; k < run.length; k++) {
+        const i = (y * width + x + k) * 4;
+        data[i] = run[k][0]; data[i + 1] = run[k][1]; data[i + 2] = run[k][2]; data[i + 3] = run[k][3];
+      }
+      x = runEnd + 1;
+    }
+  }
+  return imageData;
+}
+
+function crtWarp(imageData, amount) {
+  if (amount <= 0) return imageData;
+  const { data, width, height } = imageData;
+  const src = data.slice();
+  const strength = (amount / 100) * 0.35;
+  const cx = width / 2, cy = height / 2;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const nx = cx ? (x - cx) / cx : 0;
+      const ny = cy ? (y - cy) / cy : 0;
+      const r2 = nx * nx + ny * ny;
+      const factor = 1 + strength * r2;
+      const srcX = cx + nx * factor * cx;
+      const srcY = cy + ny * factor * cy;
+      const i = (y * width + x) * 4;
+
+      if (srcX < 0 || srcX >= width - 1 || srcY < 0 || srcY >= height - 1) {
+        data[i] = 0; data[i + 1] = 0; data[i + 2] = 0;
+        continue;
+      }
+      const si = (Math.round(srcY) * width + Math.round(srcX)) * 4;
+      const darken = 1 - Math.min(0.85, r2 * 0.75 * strength);
+      data[i] = clamp(src[si] * darken);
+      data[i + 1] = clamp(src[si + 1] * darken);
+      data[i + 2] = clamp(src[si + 2] * darken);
+    }
+  }
+  return imageData;
+}
+
+function phosphorMask(imageData, amount) {
+  if (amount <= 0) return imageData;
+  const { data, width, height } = imageData;
+  const strength = amount / 100;
+  const mult = 1 - strength * 0.7;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const channel = x % 3;
+      if (channel !== 0) data[i] = clamp(data[i] * mult);
+      if (channel !== 1) data[i + 1] = clamp(data[i + 1] * mult);
+      if (channel !== 2) data[i + 2] = clamp(data[i + 2] * mult);
+    }
+  }
+  return imageData;
+}
+
 export function applyTemporalJitter(imageData, amount, frameIndex) {
   if (amount <= 0) return imageData;
   const { data } = imageData;
@@ -188,7 +275,10 @@ export function applyTemporalJitter(imageData, amount, frameIndex) {
   return imageData;
 }
 
-const EFFECT_FNS = { scanlines, vignette, chromaticAberration, grain, glow, jpegGlitch };
+const EFFECT_FNS = {
+  scanlines, vignette, chromaticAberration, grain, glow, jpegGlitch,
+  pixelSort, crtWarp, phosphorMask,
+};
 
 export function applyEffects(imageData, stack, frameIndex = 0) {
   let result = imageData;

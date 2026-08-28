@@ -115,6 +115,13 @@ body {
   text-align: center;
 }
 
+.empty-state-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
 .stage-actions {
   display: flex;
   align-items: center;
@@ -551,6 +558,27 @@ input[type="range"] {
   color: var(--muted);
 }
 
+.reference-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#referenceThumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 5px;
+  border: 1px solid var(--panel-border);
+  background: repeating-conic-gradient(#20202e 0% 25%, #1a1a26 0% 50%) 50% / 12px 12px;
+  flex-shrink: 0;
+}
+
+.reference-hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 input[type="color"] {
   width: 44px;
   height: 32px;
@@ -588,6 +616,36 @@ input[type="color"] {
   width: 40px;
   height: 22px;
   border-radius: 4px;
+}
+
+.gradient-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.favorite-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.favorite-remove {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--panel-border);
+  background: none;
+  color: var(--danger);
+  font-size: 0.6rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.favorite-remove:hover {
+  border-color: var(--danger);
 }
 
 #colorFilterFields,

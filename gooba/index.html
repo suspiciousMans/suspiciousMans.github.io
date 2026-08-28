@@ -22,11 +22,16 @@
         <canvas id="previewCanvas"></canvas>
         <div class="empty-state" id="emptyState">
           <p><strong>Drop an image, GIF, or video here</strong></p>
-          <p>or</p>
-          <button id="chooseFileBtn" class="btn btn-primary" type="button">Choose a file</button>
-          <button id="sampleBtn" class="btn btn-ghost" type="button">Use a sample image</button>
-          <button id="batchEnterBtn" class="btn btn-ghost" type="button">Batch mode</button>
+          <p>or paste one — or use one of these:</p>
+          <div class="empty-state-buttons">
+            <button id="chooseFileBtn" class="btn btn-primary" type="button">Choose a file</button>
+            <button id="sampleBtn" class="btn btn-ghost" type="button">Use a sample image</button>
+            <button id="webcamBtn" class="btn btn-ghost" type="button">Webcam</button>
+            <button id="stopMotionBtn" class="btn btn-ghost" type="button">Stop-motion</button>
+            <button id="batchEnterBtn" class="btn btn-ghost" type="button">Batch mode</button>
+          </div>
           <input type="file" id="fileInput" accept="image/*,video/*" hidden />
+          <input type="file" id="stopMotionFileInput" accept="image/*" multiple hidden />
         </div>
         <div class="loading-overlay" id="loadingOverlay" hidden>
           <p id="loadingText">Loading…</p>
@@ -41,6 +46,8 @@
 
       <div class="stage-actions" id="stageActions" hidden>
         <span class="media-info" id="mediaInfo"></span>
+        <button id="capturePhotoBtn" class="btn btn-primary" type="button" hidden>Capture Photo</button>
+        <button id="stopWebcamBtn" class="btn btn-ghost" type="button" hidden>Stop Camera</button>
         <button id="changeImageBtn" class="btn btn-ghost" type="button">Change media</button>
         <button id="downloadPngBtn" class="btn btn-primary" type="button">Download PNG</button>
         <button id="downloadGifBtn" class="btn btn-primary" type="button" hidden>Download GIF</button>
@@ -76,7 +83,20 @@
             <option value="halftone">Halftone Dots</option>
             <option value="random">Random Noise</option>
             <option value="none">None (posterize only)</option>
+            <option value="ascii">ASCII Art</option>
           </select>
+        </label>
+        <label class="field" id="asciiRampField" hidden>
+          <span>Character set</span>
+          <select id="asciiRamp"></select>
+        </label>
+        <label class="field" id="asciiColorModeField" hidden>
+          <span>Color</span>
+          <select id="asciiColorMode"></select>
+        </label>
+        <label class="swatch-label" id="asciiCustomColorField" hidden>
+          <span>Custom color</span>
+          <input type="color" id="asciiCustomColor" value="#e6e6e6" />
         </label>
         <label class="field" id="matrixTypeField" hidden>
           <span>Pattern</span>
@@ -103,46 +123,63 @@
             <option value="10">10px</option>
           </select>
         </label>
-        <label class="field">
+        <label class="field" id="amountField">
           <span>Strength <output id="amountOut">1.0</output></span>
           <input type="range" id="amount" min="0" max="2" step="0.05" value="1" />
         </label>
       </div>
 
-      <div class="control-group">
+      <div class="control-group" id="colorControlGroup">
         <h2>Color</h2>
-        <label class="field">
-          <span>Mode</span>
-          <select id="colorMode">
-            <option value="levels" selected>Full Color (RGB levels)</option>
-            <option value="grayscale">Grayscale</option>
-            <option value="palette">Preset Palette</option>
-            <option value="duotone">Custom Duotone</option>
-            <option value="auto">Auto-Extract Palette</option>
-          </select>
-        </label>
-        <label class="field" id="levelsField">
-          <span>Levels per channel <output id="levelsOut">4</output></span>
-          <input type="range" id="levels" min="2" max="8" step="1" value="4" />
-        </label>
-        <label class="field" id="paletteField" hidden>
-          <span>Preset</span>
-          <select id="presetPalette"></select>
-        </label>
-        <div class="field duotone-row" id="duotoneField" hidden>
-          <label class="swatch-label">
-            <span>Dark</span>
-            <input type="color" id="duotoneDark" value="#0f380f" />
+        <div id="colorModeFields">
+          <label class="field">
+            <span>Mode</span>
+            <select id="colorMode">
+              <option value="levels" selected>Full Color (RGB levels)</option>
+              <option value="grayscale">Grayscale</option>
+              <option value="palette">Preset Palette</option>
+              <option value="duotone">Custom Duotone</option>
+              <option value="auto">Auto-Extract Palette</option>
+              <option value="reference">From Reference Image</option>
+            </select>
           </label>
-          <label class="swatch-label">
-            <span>Light</span>
-            <input type="color" id="duotoneLight" value="#9bbc0f" />
+          <label class="field" id="levelsField">
+            <span>Levels per channel <output id="levelsOut">4</output></span>
+            <input type="range" id="levels" min="2" max="8" step="1" value="4" />
           </label>
+          <label class="field" id="paletteField" hidden>
+            <span>Preset</span>
+            <select id="presetPalette"></select>
+          </label>
+          <div class="field" id="duotoneField" hidden>
+            <div class="duotone-row">
+              <label class="swatch-label">
+                <span>Dark</span>
+                <input type="color" id="duotoneDark" value="#0f380f" />
+              </label>
+              <label class="swatch-label">
+                <span>Light</span>
+                <input type="color" id="duotoneLight" value="#9bbc0f" />
+              </label>
+              <button type="button" id="duotoneSaveBtn" class="btn btn-ghost btn-small">☆ Save</button>
+            </div>
+            <div class="filter-swatches" id="duotoneFavorites"></div>
+          </div>
+          <label class="field" id="autoField" hidden>
+            <span>Colors <output id="autoOut">6</output></span>
+            <input type="range" id="autoColors" min="2" max="16" step="1" value="6" />
+          </label>
+          <div class="field" id="referenceField" hidden>
+            <span>Reference image</span>
+            <div class="reference-row">
+              <canvas id="referenceThumb" width="48" height="48"></canvas>
+              <button type="button" id="referencePickBtn" class="btn btn-ghost btn-small">Choose image</button>
+              <button type="button" id="referenceClearBtn" class="btn btn-ghost btn-small" hidden>Clear</button>
+            </div>
+            <input type="file" id="referenceFileInput" accept="image/*" hidden />
+            <span class="reference-hint" id="referenceHint">No reference image chosen — using the current photo instead.</span>
+          </div>
         </div>
-        <label class="field" id="autoField" hidden>
-          <span>Colors <output id="autoOut">6</output></span>
-          <input type="range" id="autoColors" min="2" max="16" step="1" value="6" />
-        </label>
         <label class="field checkbox-field">
           <span>Invert</span>
           <input type="checkbox" id="invert" />
@@ -205,10 +242,13 @@
               <span>Presets</span>
               <div class="filter-swatches" id="filterSwatches"></div>
             </div>
-            <label class="swatch-label" style="align-items: flex-start;">
-              <span>Custom</span>
-              <input type="color" id="colorFilterColor" value="#ff9d3c" />
-            </label>
+            <div class="duotone-row">
+              <label class="swatch-label">
+                <span>Custom</span>
+                <input type="color" id="colorFilterColor" value="#ff9d3c" />
+              </label>
+              <button type="button" id="filterColorSaveBtn" class="btn btn-ghost btn-small">☆ Save</button>
+            </div>
           </div>
 
           <div id="colorFilterGradientFields" hidden>
@@ -220,7 +260,10 @@
             <div class="field">
               <span>Stops</span>
               <div class="gradient-stops" id="gradientStopsList"></div>
-              <button type="button" id="gradientAddStopBtn" class="btn btn-ghost btn-small">+ Add stop</button>
+              <div class="gradient-actions">
+                <button type="button" id="gradientAddStopBtn" class="btn btn-ghost btn-small">+ Add stop</button>
+                <button type="button" id="gradientSaveBtn" class="btn btn-ghost btn-small">☆ Save gradient</button>
+              </div>
             </div>
             <label class="field">
               <span>Map by</span>
@@ -232,6 +275,14 @@
             <label class="field" id="gradientAngleField">
               <span>Angle <output id="gradientAngleOut">90</output>°</span>
               <input type="range" id="gradientAngle" min="0" max="360" step="1" value="90" />
+            </label>
+            <label class="field checkbox-field">
+              <span>Animate gradient</span>
+              <input type="checkbox" id="gradientAnimate" />
+            </label>
+            <label class="field" id="gradientSpeedField" hidden>
+              <span>Speed <output id="gradientSpeedOut">50</output></span>
+              <input type="range" id="gradientSpeed" min="1" max="100" step="1" value="50" />
             </label>
           </div>
 

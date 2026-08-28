@@ -85,7 +85,16 @@ function sampleGradient(stopsRgb, t) {
   ];
 }
 
-export function applyColorFilter(imageData, config) {
+// Reflects t back into [0,1] like a mirror rather than wrapping — so an
+// animated phase shift always cycles smoothly with no jump-cut at the
+// loop point, regardless of what colors the first/last stops happen to be.
+function pingPong(t) {
+  let m = t % 2;
+  if (m < 0) m += 2;
+  return m <= 1 ? m : 2 - m;
+}
+
+export function applyColorFilter(imageData, config, frameIndex = 0) {
   if (!config.enabled || config.amount <= 0) return imageData;
   const { data, width, height } = imageData;
   const t = config.amount / 100;
@@ -96,6 +105,8 @@ export function applyColorFilter(imageData, config) {
     const dirX = Math.cos(angleRad);
     const dirY = Math.sin(angleRad);
     const luminanceMapped = config.gradientType === 'luminance';
+    const animate = !!config.gradientAnimate;
+    const phase = animate ? frameIndex * ((config.gradientSpeed || 0) / 100) * 0.08 : 0;
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -109,6 +120,7 @@ export function applyColorFilter(imageData, config) {
           const ny = height > 1 ? y / (height - 1) - 0.5 : 0;
           gt = nx * dirX + ny * dirY + 0.5;
         }
+        if (animate) gt = pingPong(gt + phase);
         const [fr, fg, fb] = sampleGradient(stopsRgb, gt);
         const [nr, ng, nb] = blendPixel(r, g, b, fr, fg, fb, config.blendMode);
         data[i] = clamp(r + (nr - r) * t);
