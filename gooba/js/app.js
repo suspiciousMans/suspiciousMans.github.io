@@ -6,6 +6,7 @@ import {
   OVERLAY_DEFS, applyOverlays,
   CUSTOM_OVERLAY_SHAPES, CUSTOM_OVERLAY_MOTIONS, CUSTOM_OVERLAY_PRESETS, applyCustomOverlays,
 } from './overlays.js';
+import { FILTER_BLEND_MODES, FILTER_PRESET_COLORS, applyColorFilter } from './colorfilter.js';
 import { decodeGIF, encodeGIF } from './gif.js';
 import { extractVideoFrames } from './video.js';
 import { createZip } from './zip.js';
@@ -72,6 +73,15 @@ const brightnessInput = $('brightness');
 const brightnessOut = $('brightnessOut');
 const contrastInput = $('contrast');
 const contrastOut = $('contrastOut');
+
+const colorFilterEnabled = $('colorFilterEnabled');
+const colorFilterFields = $('colorFilterFields');
+const filterSwatchesEl = $('filterSwatches');
+const colorFilterColor = $('colorFilterColor');
+const colorFilterBlendMode = $('colorFilterBlendMode');
+const colorFilterAmount = $('colorFilterAmount');
+const colorFilterAmountOut = $('colorFilterAmountOut');
+
 const resetBtn = $('resetBtn');
 
 const effectsListEl = $('effectsList');
@@ -145,6 +155,7 @@ let effectsStack = EFFECT_DEFS.map((def) => ({ ...def, enabled: false, amount: d
 let overlaysStack = OVERLAY_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
 let customOverlays = [];
 let customOverlaySeq = 0;
+let colorFilterConfig = { enabled: false, color: FILTER_PRESET_COLORS[0].color, blendMode: 'multiply', amount: 60 };
 
 // ---------- helpers ----------
 
@@ -316,6 +327,7 @@ function runPipeline(rawImageData, target, frameIndex, animated, useAutoPaletteC
   result = applyEffects(result, effectsStack, frameIndex);
   result = applyOverlays(result, overlaysStack, frameIndex);
   result = applyCustomOverlays(result, customOverlays, frameIndex);
+  result = applyColorFilter(result, colorFilterConfig);
 
   smallCtx.putImageData(result, 0, 0);
   return { smallCanvas, smallW, smallH };
@@ -1118,6 +1130,52 @@ bindRange(pixelSizeInput, pixelSizeOut);
 bindRange(brightnessInput, brightnessOut);
 bindRange(contrastInput, contrastOut);
 
+function renderFilterSwatches() {
+  filterSwatchesEl.innerHTML = '';
+  FILTER_PRESET_COLORS.forEach((preset) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'filter-swatch';
+    btn.style.background = preset.color;
+    btn.title = preset.label;
+    btn.setAttribute('aria-label', preset.label);
+    if (preset.color.toLowerCase() === colorFilterConfig.color.toLowerCase()) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      colorFilterConfig.color = preset.color;
+      colorFilterColor.value = preset.color;
+      renderFilterSwatches();
+      scheduleRender();
+    });
+    filterSwatchesEl.appendChild(btn);
+  });
+}
+
+FILTER_BLEND_MODES.forEach((mode) => {
+  const opt = document.createElement('option');
+  opt.value = mode.id;
+  opt.textContent = mode.label;
+  if (mode.id === colorFilterConfig.blendMode) opt.selected = true;
+  colorFilterBlendMode.appendChild(opt);
+});
+
+renderFilterSwatches();
+
+colorFilterEnabled.addEventListener('change', () => {
+  colorFilterConfig.enabled = colorFilterEnabled.checked;
+  colorFilterFields.hidden = !colorFilterConfig.enabled;
+  scheduleRender();
+});
+colorFilterColor.addEventListener('input', () => {
+  colorFilterConfig.color = colorFilterColor.value;
+  renderFilterSwatches();
+  scheduleRender();
+});
+colorFilterBlendMode.addEventListener('change', () => {
+  colorFilterConfig.blendMode = colorFilterBlendMode.value;
+  scheduleRender();
+});
+bindRange(colorFilterAmount, colorFilterAmountOut, () => { colorFilterConfig.amount = +colorFilterAmount.value; });
+
 animateStillCheckbox.addEventListener('change', () => {
   updateControlVisibility();
   updatePlaybackUI();
@@ -1152,6 +1210,10 @@ const DEFAULTS = {
   temporalDuration: '2',
   temporalFps: '12',
   temporalJitter: '20',
+  colorFilterEnabled: false,
+  colorFilterColor: FILTER_PRESET_COLORS[0].color,
+  colorFilterBlendMode: 'multiply',
+  colorFilterAmount: '60',
 };
 
 resetBtn.addEventListener('click', () => {
@@ -1174,6 +1236,18 @@ resetBtn.addEventListener('click', () => {
   temporalDurationInput.value = DEFAULTS.temporalDuration;
   temporalFpsInput.value = DEFAULTS.temporalFps;
   temporalJitterInput.value = DEFAULTS.temporalJitter;
+  colorFilterEnabled.checked = DEFAULTS.colorFilterEnabled;
+  colorFilterColor.value = DEFAULTS.colorFilterColor;
+  colorFilterBlendMode.value = DEFAULTS.colorFilterBlendMode;
+  colorFilterAmount.value = DEFAULTS.colorFilterAmount;
+  colorFilterConfig = {
+    enabled: DEFAULTS.colorFilterEnabled,
+    color: DEFAULTS.colorFilterColor,
+    blendMode: DEFAULTS.colorFilterBlendMode,
+    amount: +DEFAULTS.colorFilterAmount,
+  };
+  colorFilterFields.hidden = !colorFilterConfig.enabled;
+  renderFilterSwatches();
 
   amountOut.textContent = (+DEFAULTS.amount).toFixed(2);
   levelsOut.textContent = DEFAULTS.levels;

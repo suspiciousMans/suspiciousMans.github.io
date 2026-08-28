@@ -186,6 +186,34 @@
       </div>
 
       <details class="control-group">
+        <summary>Color Filter</summary>
+        <label class="field checkbox-field">
+          <span>Enable</span>
+          <input type="checkbox" id="colorFilterEnabled" />
+        </label>
+        <div id="colorFilterFields" hidden>
+          <div class="field">
+            <span>Presets</span>
+            <div class="filter-swatches" id="filterSwatches"></div>
+          </div>
+          <div class="field duotone-row">
+            <label class="swatch-label">
+              <span>Custom</span>
+              <input type="color" id="colorFilterColor" value="#ff9d3c" />
+            </label>
+            <label class="field" style="flex: 1;">
+              <span>Blend mode</span>
+              <select id="colorFilterBlendMode"></select>
+            </label>
+          </div>
+          <label class="field">
+            <span>Intensity <output id="colorFilterAmountOut">60</output></span>
+            <input type="range" id="colorFilterAmount" min="0" max="100" step="1" value="60" />
+          </label>
+        </div>
+      </details>
+
+      <details class="control-group">
         <summary>Effects</summary>
         <ul class="effects-list" id="effectsList"></ul>
       </details>
