@@ -6,7 +6,10 @@ import {
   OVERLAY_DEFS, applyOverlays,
   CUSTOM_OVERLAY_SHAPES, CUSTOM_OVERLAY_MOTIONS, CUSTOM_OVERLAY_PRESETS, applyCustomOverlays,
 } from './overlays.js';
-import { FILTER_BLEND_MODES, FILTER_PRESET_COLORS, applyColorFilter } from './colorfilter.js';
+import {
+  FILTER_BLEND_MODES, FILTER_PRESET_COLORS, GRADIENT_PRESETS,
+  MIN_GRADIENT_STOPS, MAX_GRADIENT_STOPS, applyColorFilter,
+} from './colorfilter.js';
 import { decodeGIF, encodeGIF } from './gif.js';
 import { extractVideoFrames } from './video.js';
 import { createZip } from './zip.js';
@@ -76,8 +79,19 @@ const contrastOut = $('contrastOut');
 
 const colorFilterEnabled = $('colorFilterEnabled');
 const colorFilterFields = $('colorFilterFields');
+const colorFilterType = $('colorFilterType');
+const colorFilterSolidFields = $('colorFilterSolidFields');
+const colorFilterGradientFields = $('colorFilterGradientFields');
 const filterSwatchesEl = $('filterSwatches');
 const colorFilterColor = $('colorFilterColor');
+const gradientPresetSwatchesEl = $('gradientPresetSwatches');
+const gradientPreviewEl = $('gradientPreview');
+const gradientStopsListEl = $('gradientStopsList');
+const gradientAddStopBtn = $('gradientAddStopBtn');
+const gradientTypeSelect = $('gradientType');
+const gradientAngleField = $('gradientAngleField');
+const gradientAngleInput = $('gradientAngle');
+const gradientAngleOut = $('gradientAngleOut');
 const colorFilterBlendMode = $('colorFilterBlendMode');
 const colorFilterAmount = $('colorFilterAmount');
 const colorFilterAmountOut = $('colorFilterAmountOut');
@@ -155,7 +169,16 @@ let effectsStack = EFFECT_DEFS.map((def) => ({ ...def, enabled: false, amount: d
 let overlaysStack = OVERLAY_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
 let customOverlays = [];
 let customOverlaySeq = 0;
-let colorFilterConfig = { enabled: false, color: FILTER_PRESET_COLORS[0].color, blendMode: 'multiply', amount: 60 };
+let colorFilterConfig = {
+  enabled: false,
+  type: 'solid',
+  color: FILTER_PRESET_COLORS[0].color,
+  gradientStops: ['#ff6b6b', '#8a6fe0'],
+  gradientType: 'spatial',
+  gradientAngle: 90,
+  blendMode: 'multiply',
+  amount: 60,
+};
 
 // ---------- helpers ----------
 
@@ -1150,6 +1173,63 @@ function renderFilterSwatches() {
   });
 }
 
+function updateGradientPreview() {
+  gradientPreviewEl.style.background = `linear-gradient(90deg, ${colorFilterConfig.gradientStops.join(', ')})`;
+}
+
+function renderGradientStops() {
+  gradientStopsListEl.innerHTML = '';
+  colorFilterConfig.gradientStops.forEach((color, idx) => {
+    const row = document.createElement('div');
+    row.className = 'gradient-stop';
+
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = color;
+    input.addEventListener('input', () => {
+      colorFilterConfig.gradientStops[idx] = input.value;
+      updateGradientPreview();
+      scheduleRender();
+    });
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'gradient-stop-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.setAttribute('aria-label', 'Remove stop');
+    removeBtn.disabled = colorFilterConfig.gradientStops.length <= MIN_GRADIENT_STOPS;
+    removeBtn.addEventListener('click', () => {
+      if (colorFilterConfig.gradientStops.length <= MIN_GRADIENT_STOPS) return;
+      colorFilterConfig.gradientStops.splice(idx, 1);
+      renderGradientStops();
+      scheduleRender();
+    });
+
+    row.append(input, removeBtn);
+    gradientStopsListEl.appendChild(row);
+  });
+  updateGradientPreview();
+  gradientAddStopBtn.disabled = colorFilterConfig.gradientStops.length >= MAX_GRADIENT_STOPS;
+}
+
+function renderGradientPresetSwatches() {
+  gradientPresetSwatchesEl.innerHTML = '';
+  GRADIENT_PRESETS.forEach((preset) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'filter-swatch gradient-preset-swatch';
+    btn.style.background = `linear-gradient(90deg, ${preset.stops.join(', ')})`;
+    btn.title = preset.label;
+    btn.setAttribute('aria-label', preset.label);
+    btn.addEventListener('click', () => {
+      colorFilterConfig.gradientStops = [...preset.stops];
+      renderGradientStops();
+      scheduleRender();
+    });
+    gradientPresetSwatchesEl.appendChild(btn);
+  });
+}
+
 FILTER_BLEND_MODES.forEach((mode) => {
   const opt = document.createElement('option');
   opt.value = mode.id;
@@ -1159,10 +1239,18 @@ FILTER_BLEND_MODES.forEach((mode) => {
 });
 
 renderFilterSwatches();
+renderGradientPresetSwatches();
+renderGradientStops();
 
 colorFilterEnabled.addEventListener('change', () => {
   colorFilterConfig.enabled = colorFilterEnabled.checked;
   colorFilterFields.hidden = !colorFilterConfig.enabled;
+  scheduleRender();
+});
+colorFilterType.addEventListener('change', () => {
+  colorFilterConfig.type = colorFilterType.value;
+  colorFilterSolidFields.hidden = colorFilterConfig.type !== 'solid';
+  colorFilterGradientFields.hidden = colorFilterConfig.type !== 'gradient';
   scheduleRender();
 });
 colorFilterColor.addEventListener('input', () => {
@@ -1170,6 +1258,18 @@ colorFilterColor.addEventListener('input', () => {
   renderFilterSwatches();
   scheduleRender();
 });
+gradientAddStopBtn.addEventListener('click', () => {
+  if (colorFilterConfig.gradientStops.length >= MAX_GRADIENT_STOPS) return;
+  colorFilterConfig.gradientStops.push('#ffffff');
+  renderGradientStops();
+  scheduleRender();
+});
+gradientTypeSelect.addEventListener('change', () => {
+  colorFilterConfig.gradientType = gradientTypeSelect.value;
+  gradientAngleField.hidden = colorFilterConfig.gradientType === 'luminance';
+  scheduleRender();
+});
+bindRange(gradientAngleInput, gradientAngleOut, () => { colorFilterConfig.gradientAngle = +gradientAngleInput.value; });
 colorFilterBlendMode.addEventListener('change', () => {
   colorFilterConfig.blendMode = colorFilterBlendMode.value;
   scheduleRender();
@@ -1211,7 +1311,11 @@ const DEFAULTS = {
   temporalFps: '12',
   temporalJitter: '20',
   colorFilterEnabled: false,
+  colorFilterType: 'solid',
   colorFilterColor: FILTER_PRESET_COLORS[0].color,
+  colorFilterGradientStops: ['#ff6b6b', '#8a6fe0'],
+  colorFilterGradientType: 'spatial',
+  colorFilterGradientAngle: '90',
   colorFilterBlendMode: 'multiply',
   colorFilterAmount: '60',
 };
@@ -1237,17 +1341,29 @@ resetBtn.addEventListener('click', () => {
   temporalFpsInput.value = DEFAULTS.temporalFps;
   temporalJitterInput.value = DEFAULTS.temporalJitter;
   colorFilterEnabled.checked = DEFAULTS.colorFilterEnabled;
+  colorFilterType.value = DEFAULTS.colorFilterType;
   colorFilterColor.value = DEFAULTS.colorFilterColor;
+  gradientTypeSelect.value = DEFAULTS.colorFilterGradientType;
+  gradientAngleInput.value = DEFAULTS.colorFilterGradientAngle;
+  gradientAngleOut.textContent = DEFAULTS.colorFilterGradientAngle;
   colorFilterBlendMode.value = DEFAULTS.colorFilterBlendMode;
   colorFilterAmount.value = DEFAULTS.colorFilterAmount;
   colorFilterConfig = {
     enabled: DEFAULTS.colorFilterEnabled,
+    type: DEFAULTS.colorFilterType,
     color: DEFAULTS.colorFilterColor,
+    gradientStops: [...DEFAULTS.colorFilterGradientStops],
+    gradientType: DEFAULTS.colorFilterGradientType,
+    gradientAngle: +DEFAULTS.colorFilterGradientAngle,
     blendMode: DEFAULTS.colorFilterBlendMode,
     amount: +DEFAULTS.colorFilterAmount,
   };
   colorFilterFields.hidden = !colorFilterConfig.enabled;
+  colorFilterSolidFields.hidden = colorFilterConfig.type !== 'solid';
+  colorFilterGradientFields.hidden = colorFilterConfig.type !== 'gradient';
+  gradientAngleField.hidden = colorFilterConfig.gradientType === 'luminance';
   renderFilterSwatches();
+  renderGradientStops();
 
   amountOut.textContent = (+DEFAULTS.amount).toFixed(2);
   levelsOut.textContent = DEFAULTS.levels;
