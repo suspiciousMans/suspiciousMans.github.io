@@ -193,3 +193,139 @@ export function applyOverlays(imageData, stack, frameIndex = 0) {
   }
   return result;
 }
+
+// ---------- customizable particle overlays ----------
+// User-built overlay layers: pick a shape, a color, an optional glow, and a
+// motion mode. Each particle's position is still a pure function of
+// (frameIndex, its own index, the layer's seed) — no simulated state — so
+// these behave identically to the built-in overlays under scrubbing/export.
+
+export const CUSTOM_OVERLAY_SHAPES = ['circle', 'square', 'triangle', 'star', 'diamond', 'streak'];
+export const CUSTOM_OVERLAY_MOTIONS = [
+  { id: 'falling', label: 'Falling' },
+  { id: 'floating', label: 'Floating' },
+  { id: 'static', label: 'Static Twinkle' },
+  { id: 'sweep', label: 'Sweep' },
+];
+
+export const CUSTOM_OVERLAY_PRESETS = {
+  blank: { name: 'Custom', shape: 'circle', color: '#ffffff', motion: 'falling', speed: 40, count: 20, size: 2, glow: false, glowAmount: 40 },
+  sparkles: { name: 'Sparkles', shape: 'star', color: '#fff6c9', motion: 'static', speed: 40, count: 18, size: 3, glow: true, glowAmount: 60 },
+  embers: { name: 'Embers', shape: 'circle', color: '#ff6a1f', motion: 'floating', speed: 30, count: 14, size: 2, glow: true, glowAmount: 70 },
+  orbs: { name: 'Orbs', shape: 'circle', color: '#7fd8ff', motion: 'floating', speed: 20, count: 6, size: 6, glow: true, glowAmount: 80 },
+};
+
+function hexToRgbLocal(hex) {
+  const clean = hex.replace('#', '');
+  const n = parseInt(clean, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function plot(data, width, height, x, y, r, g, b, alpha) {
+  if (alpha <= 0 || x < 0 || x >= width || y < 0 || y >= height) return;
+  const i = (y * width + x) * 4;
+  data[i] = clamp(data[i] * (1 - alpha) + r * alpha);
+  data[i + 1] = clamp(data[i + 1] * (1 - alpha) + g * alpha);
+  data[i + 2] = clamp(data[i + 2] * (1 - alpha) + b * alpha);
+}
+
+function drawParticle(imageData, cx, cy, size, shape, rgb, alpha, glowAmount) {
+  const { data, width, height } = imageData;
+  const r = Math.max(0.6, size);
+  const [cr, cg, cb] = rgb;
+
+  if (glowAmount > 0) {
+    const glowR = r * 2.2;
+    const gR = Math.ceil(glowR);
+    for (let dy = -gR; dy <= gR; dy++) {
+      for (let dx = -gR; dx <= gR; dx++) {
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > glowR) continue;
+        const falloff = Math.max(0, 1 - dist / glowR);
+        const a = falloff * falloff * (glowAmount / 100) * 0.5 * alpha;
+        plot(data, width, height, Math.round(cx + dx), Math.round(cy + dy), cr, cg, cb, a);
+      }
+    }
+  }
+
+  const R = Math.ceil(r);
+  for (let dy = -R; dy <= R; dy++) {
+    for (let dx = -R; dx <= R; dx++) {
+      let inside = false;
+      if (shape === 'circle') {
+        inside = dx * dx + dy * dy <= r * r;
+      } else if (shape === 'square') {
+        inside = Math.abs(dx) <= r && Math.abs(dy) <= r;
+      } else if (shape === 'diamond') {
+        inside = Math.abs(dx) + Math.abs(dy) <= r;
+      } else if (shape === 'triangle') {
+        if (dy < -r || dy > r) {
+          inside = false;
+        } else {
+          const w = r * ((dy + r) / (2 * r || 1));
+          inside = Math.abs(dx) <= w;
+        }
+      } else if (shape === 'star') {
+        const onAxis = (Math.abs(dx) <= 0.6 && Math.abs(dy) <= r) || (Math.abs(dy) <= 0.6 && Math.abs(dx) <= r);
+        const center = dx * dx + dy * dy <= Math.max(1, r * 0.35) * Math.max(1, r * 0.35);
+        inside = onAxis || center;
+      } else if (shape === 'streak') {
+        inside = Math.abs(dx) <= Math.max(1, r * 0.35) && dy >= -r * 2.5 && dy <= r * 0.6;
+      } else {
+        inside = dx * dx + dy * dy <= r * r;
+      }
+      if (!inside) continue;
+      plot(data, width, height, Math.round(cx + dx), Math.round(cy + dy), cr, cg, cb, alpha);
+    }
+  }
+}
+
+function renderCustomOverlay(imageData, config, frameIndex) {
+  if (!config.enabled || config.count <= 0) return imageData;
+  const { width, height } = imageData;
+  const rgb = hexToRgbLocal(config.color);
+  const speed = config.speed / 100;
+
+  for (let i = 0; i < config.count; i++) {
+    const rand = mulberry32(config.seed * 100003 + i * 7907 + 13);
+    const baseX = rand() * width;
+    const baseY = rand() * height;
+    const size = Math.max(0.6, config.size * (0.6 + rand() * 0.8));
+    let x, y, alpha = 1;
+
+    if (config.motion === 'falling') {
+      const fallSpeed = (0.3 + speed * 2.2) * (height / 50) * (0.6 + rand() * 0.8);
+      const wind = (rand() - 0.5) * 5;
+      const span = height + size * 2;
+      y = (((baseY + frameIndex * fallSpeed) % span) + span) % span - size;
+      x = baseX + Math.sin(frameIndex * 0.05 + i) * wind;
+    } else if (config.motion === 'sweep') {
+      const sweepSpeed = (0.3 + speed * 2.2) * (width / 50) * (0.6 + rand() * 0.8);
+      const span = width + size * 2;
+      x = (((baseX + frameIndex * sweepSpeed) % span) + span) % span - size;
+      y = baseY;
+    } else if (config.motion === 'static') {
+      x = baseX;
+      y = baseY;
+      alpha = 0.35 + 0.65 * Math.abs(Math.sin(frameIndex * (0.04 + speed * 0.12) + i * 1.7));
+    } else {
+      // floating
+      const freq = 0.015 + speed * 0.03 + rand() * 0.01;
+      const ampX = (4 + rand() * 10) * (0.4 + speed);
+      const ampY = (4 + rand() * 10) * (0.4 + speed);
+      x = baseX + Math.sin(frameIndex * freq + i * 3.1) * ampX;
+      y = baseY + Math.cos(frameIndex * freq * 1.4 + i * 2.3) * ampY;
+    }
+
+    drawParticle(imageData, x, y, size, config.shape, rgb, alpha, config.glow ? config.glowAmount : 0);
+  }
+  return imageData;
+}
+
+export function applyCustomOverlays(imageData, list, frameIndex = 0) {
+  let result = imageData;
+  for (const config of list) {
+    result = renderCustomOverlay(result, config, frameIndex);
+  }
+  return result;
+}

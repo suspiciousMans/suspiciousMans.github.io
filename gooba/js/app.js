@@ -2,7 +2,10 @@ import { applyDither, applyAdjustments } from './dither.js';
 import { PRESET_PALETTES, paletteToRgb, hexToRgb } from './palettes.js';
 import { medianCutPalette } from './quantize.js';
 import { EFFECT_DEFS, applyEffects, applyTemporalJitter } from './effects.js';
-import { OVERLAY_DEFS, applyOverlays } from './overlays.js';
+import {
+  OVERLAY_DEFS, applyOverlays,
+  CUSTOM_OVERLAY_SHAPES, CUSTOM_OVERLAY_MOTIONS, CUSTOM_OVERLAY_PRESETS, applyCustomOverlays,
+} from './overlays.js';
 import { decodeGIF, encodeGIF } from './gif.js';
 import { extractVideoFrames } from './video.js';
 import { createZip } from './zip.js';
@@ -73,6 +76,8 @@ const resetBtn = $('resetBtn');
 
 const effectsListEl = $('effectsList');
 const overlaysListEl = $('overlaysList');
+const customOverlaysListEl = $('customOverlaysList');
+const customOverlayAddBtns = document.querySelectorAll('[data-custom-overlay-preset]');
 
 const animateStillField = $('animateStillField');
 const animateStillCheckbox = $('animateStill');
@@ -138,6 +143,8 @@ presetPaletteSelect.value = 'gameboy';
 
 let effectsStack = EFFECT_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
 let overlaysStack = OVERLAY_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
+let customOverlays = [];
+let customOverlaySeq = 0;
 
 // ---------- helpers ----------
 
@@ -308,6 +315,7 @@ function runPipeline(rawImageData, target, frameIndex, animated, useAutoPaletteC
 
   result = applyEffects(result, effectsStack, frameIndex);
   result = applyOverlays(result, overlaysStack, frameIndex);
+  result = applyCustomOverlays(result, customOverlays, frameIndex);
 
   smallCtx.putImageData(result, 0, 0);
   return { smallCanvas, smallW, smallH };
@@ -772,6 +780,180 @@ function renderOverlaysList() {
   renderStackList(overlaysStack, overlaysListEl, renderOverlaysList);
 }
 
+// ---------- custom overlay builder ----------
+
+function addCustomOverlay(presetKey) {
+  const preset = CUSTOM_OVERLAY_PRESETS[presetKey] || CUSTOM_OVERLAY_PRESETS.blank;
+  customOverlaySeq++;
+  customOverlays.push({
+    ...preset,
+    id: `custom-${Date.now()}-${customOverlaySeq}`,
+    enabled: true,
+    seed: Math.floor(Math.random() * 1e6) + customOverlaySeq,
+  });
+  renderCustomOverlaysList();
+  scheduleRender();
+}
+
+function createCustomOverlayCard(config, idx, total) {
+  const li = document.createElement('li');
+  li.className = 'custom-overlay-card';
+
+  const head = document.createElement('div');
+  head.className = 'card-head';
+
+  const enableCheckbox = document.createElement('input');
+  enableCheckbox.type = 'checkbox';
+  enableCheckbox.checked = config.enabled;
+  enableCheckbox.addEventListener('change', () => {
+    config.enabled = enableCheckbox.checked;
+    scheduleRender();
+  });
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'card-name';
+  nameInput.value = config.name;
+  nameInput.maxLength = 24;
+  nameInput.addEventListener('input', () => { config.name = nameInput.value; });
+
+  const reorder = document.createElement('div');
+  reorder.className = 'effect-reorder';
+  const upBtn = document.createElement('button');
+  upBtn.type = 'button';
+  upBtn.textContent = '↑';
+  upBtn.disabled = idx === 0;
+  upBtn.addEventListener('click', () => {
+    [customOverlays[idx - 1], customOverlays[idx]] = [customOverlays[idx], customOverlays[idx - 1]];
+    renderCustomOverlaysList();
+    scheduleRender();
+  });
+  const downBtn = document.createElement('button');
+  downBtn.type = 'button';
+  downBtn.textContent = '↓';
+  downBtn.disabled = idx === total - 1;
+  downBtn.addEventListener('click', () => {
+    [customOverlays[idx + 1], customOverlays[idx]] = [customOverlays[idx], customOverlays[idx + 1]];
+    renderCustomOverlaysList();
+    scheduleRender();
+  });
+  reorder.append(upBtn, downBtn);
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'card-remove';
+  removeBtn.textContent = '✕';
+  removeBtn.setAttribute('aria-label', 'Remove overlay');
+  removeBtn.addEventListener('click', () => {
+    customOverlays = customOverlays.filter((c) => c.id !== config.id);
+    renderCustomOverlaysList();
+    scheduleRender();
+  });
+
+  head.append(enableCheckbox, nameInput, reorder, removeBtn);
+
+  const body = document.createElement('div');
+  body.className = 'card-body';
+
+  const shapeField = document.createElement('label');
+  shapeField.className = 'card-field';
+  const shapeSpan = document.createElement('span');
+  shapeSpan.textContent = 'Shape';
+  const shapeSelect = document.createElement('select');
+  CUSTOM_OVERLAY_SHAPES.forEach((s) => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s[0].toUpperCase() + s.slice(1);
+    if (s === config.shape) opt.selected = true;
+    shapeSelect.appendChild(opt);
+  });
+  shapeSelect.addEventListener('change', () => { config.shape = shapeSelect.value; scheduleRender(); });
+  shapeField.append(shapeSpan, shapeSelect);
+
+  const colorField = document.createElement('label');
+  colorField.className = 'card-field';
+  const colorSpan = document.createElement('span');
+  colorSpan.textContent = 'Color';
+  const colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = config.color;
+  colorInput.addEventListener('input', () => { config.color = colorInput.value; scheduleRender(); });
+  colorField.append(colorSpan, colorInput);
+
+  const motionField = document.createElement('label');
+  motionField.className = 'card-field';
+  const motionSpan = document.createElement('span');
+  motionSpan.textContent = 'Motion';
+  const motionSelect = document.createElement('select');
+  CUSTOM_OVERLAY_MOTIONS.forEach((m) => {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = m.label;
+    if (m.id === config.motion) opt.selected = true;
+    motionSelect.appendChild(opt);
+  });
+  motionSelect.addEventListener('change', () => { config.motion = motionSelect.value; scheduleRender(); });
+  motionField.append(motionSpan, motionSelect);
+
+  function rangeField(label, key, min, max, step, formatter) {
+    const field = document.createElement('label');
+    field.className = 'card-field';
+    const span = document.createElement('span');
+    const out = document.createElement('output');
+    out.textContent = formatter ? formatter(config[key]) : config[key];
+    span.append(`${label} `, out);
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.min = String(min);
+    input.max = String(max);
+    input.step = String(step);
+    input.value = String(config[key]);
+    input.addEventListener('input', () => {
+      config[key] = +input.value;
+      out.textContent = formatter ? formatter(config[key]) : config[key];
+      scheduleRender();
+    });
+    field.append(span, input);
+    return field;
+  }
+
+  const speedField = rangeField('Speed', 'speed', 0, 100, 1);
+  const countField = rangeField('Count', 'count', 1, 60, 1);
+  const sizeField = rangeField('Size', 'size', 1, 12, 1);
+
+  const glowField = document.createElement('label');
+  glowField.className = 'card-field checkbox-field';
+  const glowSpan = document.createElement('span');
+  glowSpan.textContent = 'Glow';
+  const glowCheckbox = document.createElement('input');
+  glowCheckbox.type = 'checkbox';
+  glowCheckbox.checked = config.glow;
+  glowField.append(glowSpan, glowCheckbox);
+
+  const glowAmountField = rangeField('Glow amount', 'glowAmount', 0, 100, 1);
+  glowAmountField.hidden = !config.glow;
+  glowCheckbox.addEventListener('change', () => {
+    config.glow = glowCheckbox.checked;
+    glowAmountField.hidden = !config.glow;
+    scheduleRender();
+  });
+
+  body.append(shapeField, colorField, motionField, speedField, countField, sizeField, glowField, glowAmountField);
+  li.append(head, body);
+  return li;
+}
+
+function renderCustomOverlaysList() {
+  customOverlaysListEl.innerHTML = '';
+  customOverlays.forEach((config, idx) => {
+    customOverlaysListEl.appendChild(createCustomOverlayCard(config, idx, customOverlays.length));
+  });
+}
+
+customOverlayAddBtns.forEach((btn) => {
+  btn.addEventListener('click', () => addCustomOverlay(btn.dataset.customOverlayPreset));
+});
+
 // ---------- batch mode ----------
 
 function loadImageAsData(file, maxDim) {
@@ -1007,6 +1189,8 @@ resetBtn.addEventListener('click', () => {
   renderEffectsList();
   overlaysStack = OVERLAY_DEFS.map((def) => ({ ...def, enabled: false, amount: def.defaultAmount }));
   renderOverlaysList();
+  customOverlays = [];
+  renderCustomOverlaysList();
 
   currentFrame = 0;
   if (isAnimated()) play();
@@ -1021,5 +1205,6 @@ resetBtn.addEventListener('click', () => {
 
 renderEffectsList();
 renderOverlaysList();
+renderCustomOverlaysList();
 updateControlVisibility();
 updatePlaybackUI();
