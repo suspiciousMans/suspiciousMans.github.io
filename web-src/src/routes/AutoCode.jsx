@@ -10,38 +10,54 @@ export default function AutoCode() {
     return (
         <>
             <section className="hero" style={{ paddingBottom: "24px" }}>
-                <div className="wrap">
-                    <span className="eyebrow">Play in browser</span>
-                    <TypewriterTitle segments={[{ text: "Auto" }, { text: "Code", accent: true }]} />
-                    <p className="lede">
-                        Write real JavaScript or Python and watch it run — plant and harvest crops, pilot a mining ship,
-                        run a shop, and automate a factory. Every script runs live in your browser, no install, no
-                        account.
-                    </p>
-                    <div className="hero-actions">
-                        <a className="btn btn-primary" href="/autocode/game.html">
-                            Play the full game
-                        </a>
+                <div className="wrap hero-grid">
+                    <div className="hero-copy">
+                        <span className="eyebrow">Play in browser</span>
+                        <TypewriterTitle segments={[{ text: "Auto" }, { text: "Code", accent: true }]} />
+                        <p className="lede">
+                            Write real JavaScript or Python and watch it run — plant and harvest crops, pilot a
+                            mining ship, run a shop, and automate a factory. Every script runs live in your browser,
+                            no install, no account.
+                        </p>
+                        <div className="hero-actions">
+                            <a className="btn btn-primary" href="/autocode/game.html">
+                                Play the full game
+                            </a>
+                        </div>
+                    </div>
+                    <div className="hero-visual worlds-collage" aria-hidden="true">
+                        <div className="world-tile world-tile-farm">
+                            <span>Farm</span>
+                        </div>
+                        <div className="world-tile world-tile-space">
+                            <span>Space</span>
+                        </div>
+                        <div className="world-tile world-tile-store">
+                            <span>Store</span>
+                        </div>
+                        <div className="world-tile world-tile-factory">
+                            <span>Factory</span>
+                        </div>
                     </div>
                 </div>
             </section>
 
             <section style={{ paddingTop: 0 }}>
-                <div className="wrap">
+                <div className="wrap wrap-wide">
                     <div className="section-head">
                         <span className="eyebrow">One game, four worlds</span>
                         <h2>All of it, in one place</h2>
                         <p>
-                            Farm, Space, Store, and Factory share one save — credits earned selling ore in the Store buy
-                            ship upgrades in Space, and every crew eats what the Farm grows. The full game above puts all
-                            four behind one set of tabs, so the whole loop runs without leaving the page.
+                            Farm, Space, Store, and Factory share one save — credits earned selling ore in the Store
+                            buy ship upgrades in Space, and every crew eats what the Farm grows. The full game above
+                            puts all four behind one set of tabs, so the whole loop runs without leaving the page.
                         </p>
                     </div>
                     <div className="section-head" style={{ marginTop: "36px" }}>
                         <span className="eyebrow">Or one world at a time</span>
                         <h2>Play each world on its own</h2>
                     </div>
-                    <div className="grid">
+                    <div className="grid grid-bento">
                         <div className="card">
                             <div className="card-media">
                                 <img

@@ -1,5 +1,6 @@
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const LINKS = [
     { to: "/", label: "Home", end: true },
@@ -14,42 +15,12 @@ export default function Nav() {
     const [open, setOpen] = useState(false);
     const location = useLocation();
     const navRef = useRef(null);
-    const [pillStyle, setPillStyle] = useState({ opacity: 0 });
 
     // Close the mobile menu automatically on navigation, matching the old
     // vanilla behavior (there, a full page load reset it for free).
     useEffect(() => {
         setOpen(false);
     }, [location.pathname]);
-
-    // Glide a shared pill behind whichever link is active instead of just
-    // popping a color change — measured in JS since the links live in a
-    // wrapping flex row (desktop) that becomes a stacked column (mobile),
-    // so a pure-CSS shared-position trick can't cover both layouts.
-    function measurePill() {
-        const nav = navRef.current;
-        if (!nav) return;
-        const activeEl = nav.querySelector("a.active");
-        if (!activeEl) {
-            setPillStyle((prev) => ({ ...prev, opacity: 0 }));
-            return;
-        }
-        const navRect = nav.getBoundingClientRect();
-        const linkRect = activeEl.getBoundingClientRect();
-        setPillStyle({
-            opacity: 1,
-            width: linkRect.width,
-            height: linkRect.height,
-            transform: `translate(${linkRect.left - navRect.left}px, ${linkRect.top - navRect.top}px)`,
-        });
-    }
-
-    useLayoutEffect(measurePill, [location.pathname, open]);
-
-    useEffect(() => {
-        window.addEventListener("resize", measurePill);
-        return () => window.removeEventListener("resize", measurePill);
-    }, []);
 
     return (
         <header className="site-header">
@@ -68,22 +39,41 @@ export default function Nav() {
                 >
                     &#9776;
                 </button>
-                <nav ref={navRef} className={"main-nav" + (open ? " open" : "")}>
-                    <span className="nav-pill" style={pillStyle} aria-hidden="true" />
+                {/* Height/opacity are only ever meaningful on mobile — a
+                    matching !important rule in global.css forces both back
+                    to auto/1 above the mobile breakpoint, so this never
+                    hides the desktop nav regardless of `open`. */}
+                <motion.nav
+                    ref={navRef}
+                    className={"main-nav" + (open ? " open" : "")}
+                    initial={false}
+                    animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
+                    transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                >
                     {LINKS.map((link) => (
-                        <NavLink
-                            key={link.to}
-                            to={link.to}
-                            end={link.end}
-                            className={({ isActive }) => (isActive ? "active" : undefined)}
-                        >
-                            {link.label}
+                        <NavLink key={link.to} to={link.to} end={link.end} className={({ isActive }) => (isActive ? "active" : undefined)}>
+                            {({ isActive }) => (
+                                <>
+                                    {/* Shared layoutId — Framer Motion animates this element
+                                        from its previous active link to this one automatically,
+                                        replacing the old manual getBoundingClientRect measuring. */}
+                                    {isActive && (
+                                        <motion.span
+                                            className="nav-pill"
+                                            layoutId="nav-pill"
+                                            aria-hidden="true"
+                                            transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                                        />
+                                    )}
+                                    {link.label}
+                                </>
+                            )}
                         </NavLink>
                     ))}
                     <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener noreferrer">
                         GitHub
                     </a>
-                </nav>
+                </motion.nav>
             </div>
         </header>
     );
