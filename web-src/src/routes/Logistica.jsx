@@ -140,6 +140,7 @@ export default function Logistica() {
                 <div className="wrap">
                     {!unlocked ? (
                         <div className={"gate-card" + (shake ? " gate-shake" : "")}>
+                            <span className="gate-prompt mono">$ enter access key</span>
                             <h2>Enter password</h2>
                             <form onSubmit={handleSubmit} autoComplete="off">
                                 <input
