@@ -1,7 +1,6 @@
-import { useCallback, useState, useRef, lazy, Suspense } from "react";
+import { useState, useRef, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import TypewriterTitle from "../components/TypewriterTitle.jsx";
-import HeroSting from "../components/HeroSting.jsx";
 import HexFieldFallback from "../components/HexFieldFallback.jsx";
 import useScrollTimeline from "../hooks/useScrollTimeline.js";
 import { prefersReducedMotion, isLowPowerDevice } from "../utils/deviceCapability.js";
@@ -9,14 +8,6 @@ import { prefersReducedMotion, isLowPowerDevice } from "../utils/deviceCapabilit
 const HexField3D = lazy(() => import("../components/HexField3D.jsx"));
 
 export default function Home() {
-    // Home.jsx fully remounts on every arrival at "/" (route content keys
-    // off the pathname — see App.jsx), so mounting HeroSting unconditionally
-    // here already gives the "plays on every fresh homepage load" behavior
-    // without needing any persistence flag; it just plays once per mount
-    // and then removes itself.
-    const [stingDone, setStingDone] = useState(false);
-    const onStingDone = useCallback(() => setStingDone(true), []);
-
     // Gate the 3D hero visual once per mount rather than re-checking on
     // every render — matches prefers-reduced-motion/low-power devices by
     // skipping the dynamic import of HexField3D (and therefore three.js)
@@ -71,7 +62,6 @@ export default function Home() {
 
     return (
         <div ref={timelineRef}>
-            {!stingDone && <HeroSting onDone={onStingDone} />}
             <section className="hero">
                 <div className="wrap hero-grid">
                     <div className="hero-copy">
