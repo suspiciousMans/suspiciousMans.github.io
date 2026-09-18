@@ -11,6 +11,12 @@ const LINKS = [
     { to: "/about.html", label: "About" },
 ];
 
+// Oxidized is a fully separate static site (its own HTML/CSS/JS, its own
+// rust-toned palette) rather than a route in this SPA — same reasoning as
+// AutoCode's out-links: a plain <a> here does a full page navigation
+// instead of client-side routing, so it never inherits this site's look.
+const OXIDIZED_LINK = { href: "/oxidized/index.html", label: "Oxidized" };
+
 export default function Nav() {
     const [open, setOpen] = useState(false);
     const location = useLocation();
@@ -70,6 +76,7 @@ export default function Nav() {
                             )}
                         </NavLink>
                     ))}
+                    <a href={OXIDIZED_LINK.href}>{OXIDIZED_LINK.label}</a>
                     <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener noreferrer">
                         GitHub
                     </a>

@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oxidized — a language that corrodes</title>
+    <meta
+      name="description"
+      content="Oxidized: a toy programming language with a rust-and-corrosion aesthetic. Run real examples — Fibonacci, FizzBuzz, loops — right in the browser."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23241408'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23e2721f'%3E%F0%9F%A6%80%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/oxidized/css/style.css" />
+  </head>
+  <body>
+    <a class="back-tag" href="/">&larr; suspiciousMans.github.io</a>
+
+    <header class="ox-header">
+      <div class="wrap">
+        <span class="ox-eyebrow">a language that rusts on contact</span>
+        <h1 class="ox-title">Oxidized<span class="rust-o">.</span></h1>
+        <p class="ox-tagline">
+          A small, honest toy language. Ownership-flavored syntax, a real interpreter running in your browser, and
+          nothing that hasn't corroded a little by the time it reaches you. Try it below — <code>let</code>,
+          <code>fn</code>, <code>for i in 0..10</code>, all of it actually runs.
+        </p>
+      </div>
+    </header>
+
+    <section class="ox-section">
+      <div class="wrap">
+        <h2>Built to corrode gracefully</h2>
+        <p class="ox-lede">A handful of things Oxidized takes a stance on.</p>
+        <div class="ox-features">
+          <div class="ox-feature">
+            <span class="rivet"></span>
+            <h3>Rust-shaped syntax</h3>
+            <p><code>let</code> bindings, <code>fn</code> declarations, and range loops like <code>0..10</code> — familiar if you've written Rust, learnable if you haven't.</p>
+          </div>
+          <div class="ox-feature">
+            <span class="rivet"></span>
+            <h3>Runs where you're standing</h3>
+            <p>The whole interpreter — lexer, parser, evaluator — is a few hundred lines of JavaScript. No server, no build step, no install.</p>
+          </div>
+          <div class="ox-feature">
+            <span class="rivet"></span>
+            <h3>Fails loudly</h3>
+            <p>Divide by zero, call an undefined function, or loop forever — Oxidized surfaces the error instead of silently rusting through.</p>
+          </div>
+          <div class="ox-feature">
+            <span class="rivet"></span>
+            <h3>Deliberately small</h3>
+            <p>Numbers, strings, booleans, functions with closures, <code>if</code>/<code>while</code>/<code>for</code>. That's the whole language.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ox-section">
+      <div class="wrap">
+        <h2>Playground</h2>
+        <p class="ox-lede">Pick an example or write your own, then run it. <kbd>Ctrl/Cmd + Enter</kbd> also runs.</p>
+
+        <div class="ox-playground">
+          <div class="ox-playground-bar">
+            <select id="ox-examples" aria-label="Example programs"></select>
+            <button id="ox-run" class="ox-btn ox-btn-primary" type="button">&#9654; Run</button>
+            <button id="ox-clear" class="ox-btn" type="button">Clear output</button>
+            <span class="spacer"></span>
+            <span style="color: var(--text-dim); font-size: 0.8rem">oxidized.js — runs entirely client-side</span>
+          </div>
+          <div class="ox-panes">
+            <textarea id="ox-code" spellcheck="false" aria-label="Oxidized source code"></textarea>
+            <div class="ox-output-pane">
+              <div class="ox-output-label">Output</div>
+              <div id="ox-output"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ox-section">
+      <div class="wrap">
+        <h2>Language reference</h2>
+        <p class="ox-lede">Everything Oxidized currently understands.</p>
+        <div class="ox-ref-grid">
+          <div class="ox-ref-row">
+            <code>let x = 5;</code>
+            <p>Declares a variable. Reassign later with <code>x = x + 1;</code></p>
+          </div>
+          <div class="ox-ref-row">
+            <code>print(expr);</code>
+            <p>Writes a value to the output pane. Numbers, strings, and booleans all format sensibly.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>if (cond) { ... } else if (cond) { ... } else { ... }</code>
+            <p>Standard branching. <code>else if</code> chains as far as you like.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>while (cond) { ... }</code>
+            <p>Loops while the condition is truthy. Guarded against infinite loops by an execution-step limit.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>for i in 0..10 { ... }</code>
+            <p>Iterates <code>i</code> over the range, inclusive of the start and exclusive of the end — same convention as Rust.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>fn name(a, b) { return a + b; }</code>
+            <p>Functions, with proper closures — a function can be called before or after other declarations, as long as it exists by the time it's called.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>+ - * / %   == != &lt; &gt; &lt;= &gt;=   &amp;&amp; || !</code>
+            <p>Arithmetic, comparison, and logical operators. <code>+</code> also concatenates when either side is a string.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="ox-footer">
+      <div class="wrap">
+        <p>
+          Oxidized is a toy language and playground, part of
+          <a href="/">suspiciousMans.github.io</a>. Source lives alongside the rest of the site on
+          <a href="https://github.com/suspiciousMans/suspiciousMans.github.io" target="_blank" rel="noopener noreferrer">GitHub</a>.
+        </p>
+      </div>
+    </footer>
+
+    <script src="/oxidized/js/lang.js"></script>
+    <script src="/oxidized/js/playground.js"></script>
+  </body>
+</html>

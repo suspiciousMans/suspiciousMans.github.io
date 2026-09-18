@@ -1,0 +1,385 @@
+/* Oxidized — deliberately its own design system, sharing nothing with the
+   main site's "Oxide" green palette. Rust, corroded metal, warm decay. */
+
+:root {
+    --bg-deep: #1a0f08;
+    --bg: #241408;
+    --bg-2: #341a0c;
+    --plate: #2e1c12;
+    --plate-2: #3a2415;
+    --seam: rgba(255, 150, 60, 0.14);
+    --seam-strong: rgba(255, 150, 60, 0.3);
+    --rust-100: #ffd9ad;
+    --rust-200: #f7b26a;
+    --rust-300: #f2954a;
+    --rust-400: #e2721f;
+    --rust-500: #c1531a;
+    --rust-600: #8a3f13;
+    --rust-700: #5c2e12;
+    --patina: #6f8f6a;
+    --text: #f5e6d8;
+    --text-dim: #c2a68c;
+    --font-display: "Rye", serif;
+    --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --radius: 6px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text);
+    font-family: var(--font-mono);
+    line-height: 1.65;
+    background-color: var(--bg);
+    background-image:
+        radial-gradient(circle at 15% 0%, rgba(255, 140, 47, 0.12), transparent 55%),
+        radial-gradient(circle at 90% 20%, rgba(140, 60, 20, 0.18), transparent 45%),
+        repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0px, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px),
+        linear-gradient(160deg, var(--bg-deep) 0%, var(--bg) 45%, var(--bg-2) 100%);
+}
+
+a {
+    color: var(--rust-200);
+}
+
+a:hover {
+    color: var(--rust-100);
+}
+
+.wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ---------- corner tag / way back ---------- */
+
+.back-tag {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 20;
+    font-size: 0.75rem;
+    padding: 8px 12px;
+    border: 1px solid var(--seam-strong);
+    border-radius: var(--radius);
+    background: rgba(20, 10, 4, 0.6);
+    backdrop-filter: blur(4px);
+    text-decoration: none;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+}
+
+.back-tag:hover {
+    color: var(--rust-100);
+    border-color: var(--rust-300);
+}
+
+/* ---------- header ---------- */
+
+.ox-header {
+    padding: 96px 0 48px;
+    text-align: center;
+    border-bottom: 1px solid var(--seam);
+}
+
+.ox-eyebrow {
+    display: inline-block;
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rust-300);
+    border: 1px dashed var(--seam-strong);
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 22px;
+}
+
+.ox-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(3rem, 10vw, 6.5rem);
+    margin: 0;
+    line-height: 1;
+    color: var(--rust-200);
+    text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5), 0 0 40px rgba(226, 114, 31, 0.25);
+    letter-spacing: 0.01em;
+}
+
+.ox-title .rust-o {
+    color: var(--rust-400);
+}
+
+.ox-tagline {
+    max-width: 560px;
+    margin: 18px auto 0;
+    color: var(--text-dim);
+    font-size: 1.05rem;
+}
+
+.ox-tagline code {
+    color: var(--rust-200);
+}
+
+/* ---------- generic section ---------- */
+
+.ox-section {
+    padding: 64px 0;
+}
+
+.ox-section + .ox-section {
+    border-top: 1px solid var(--seam);
+}
+
+.ox-section h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    color: var(--rust-200);
+    font-size: 1.9rem;
+    margin: 0 0 8px;
+}
+
+.ox-section .ox-lede {
+    color: var(--text-dim);
+    max-width: 620px;
+    margin: 0 0 32px;
+}
+
+/* ---------- feature grid ---------- */
+
+.ox-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.ox-feature {
+    padding: 20px;
+    background: linear-gradient(160deg, var(--plate-2), var(--plate));
+    border: 1px solid var(--seam);
+    border-radius: var(--radius);
+    position: relative;
+}
+
+.ox-feature::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+
+.ox-feature h3 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    color: var(--rust-100);
+}
+
+.ox-feature p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+}
+
+.ox-feature .rivet {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--rust-200), var(--rust-600));
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- playground ---------- */
+
+.ox-playground {
+    border: 1px solid var(--seam-strong);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--plate);
+    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.7);
+}
+
+.ox-playground-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: linear-gradient(180deg, var(--plate-2), var(--plate));
+    border-bottom: 1px solid var(--seam);
+    flex-wrap: wrap;
+}
+
+.ox-playground-bar select {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--seam-strong);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+.ox-btn {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--seam-strong);
+    background: var(--bg);
+    color: var(--text);
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ox-btn:hover {
+    border-color: var(--rust-300);
+    color: var(--rust-100);
+}
+
+.ox-btn:active {
+    transform: translateY(1px);
+}
+
+.ox-btn-primary {
+    background: linear-gradient(160deg, var(--rust-400), var(--rust-500));
+    border-color: var(--rust-500);
+    color: #1a0f08;
+    font-weight: 600;
+}
+
+.ox-btn-primary:hover {
+    color: #1a0f08;
+    filter: brightness(1.08);
+}
+
+.ox-playground-bar .spacer {
+    flex: 1;
+}
+
+.ox-panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 720px) {
+    .ox-panes {
+        grid-template-columns: 1fr;
+    }
+}
+
+#ox-code {
+    width: 100%;
+    min-height: 320px;
+    resize: vertical;
+    border: none;
+    outline: none;
+    background: var(--bg-deep);
+    color: var(--rust-100);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding: 16px;
+    tab-size: 4;
+    border-right: 1px solid var(--seam);
+}
+
+.ox-output-pane {
+    background: #120a05;
+    padding: 16px;
+    min-height: 320px;
+    max-height: 480px;
+    overflow-y: auto;
+    font-size: 0.85rem;
+}
+
+.ox-output-label {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.ox-line {
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--rust-100);
+}
+
+.ox-line.ox-error {
+    color: #ff8a6b;
+}
+
+.ox-line.ox-meta {
+    color: var(--text-dim);
+}
+
+/* ---------- reference ---------- */
+
+.ox-ref-grid {
+    display: grid;
+    gap: 14px;
+}
+
+.ox-ref-row {
+    display: grid;
+    grid-template-columns: minmax(160px, 220px) 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--seam);
+    align-items: start;
+}
+
+.ox-ref-row > code {
+    display: block;
+    background: var(--bg-deep);
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    color: var(--rust-200);
+    font-size: 0.82rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.ox-ref-row p {
+    margin: 4px 0 0;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+/* inline code chips within body copy — never the block treatment above */
+.ox-ref-row p code,
+.ox-feature p code,
+.ox-tagline code {
+    background: rgba(0, 0, 0, 0.28);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--rust-200);
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+/* ---------- footer ---------- */
+
+.ox-footer {
+    padding: 48px 0 80px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+}
+
+.ox-footer a {
+    color: var(--rust-300);
+}
