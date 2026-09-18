@@ -569,5 +569,39 @@
         interpreter.run(program);
     }
 
-    global.Oxidized = { runOxidized, OxError };
+    // A separate, deliberately tolerant tokenizer for live syntax
+    // highlighting — unlike lex() above, it must never throw on invalid or
+    // half-typed source (an unterminated string mid-keystroke is normal,
+    // not an error) and it only needs to *look* right, not be correct.
+    const HL_TOKEN_RE =
+        /(\/\/[^\n]*)|("(?:\\.|[^"\\\n])*"?)|(\b\d+(?:\.\d+)?\b)|(\btrue\b|\bfalse\b)|(\blet\b|\bprint\b|\bif\b|\belse\b|\bwhile\b|\bfor\b|\bin\b|\bfn\b|\breturn\b)|([A-Za-z_]\w*)(?=\s*\()|([A-Za-z_]\w*)|(\.\.|[+\-*/%=<>!&|]+|[(){};,])/g;
+
+    function escapeHtml(s) {
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function highlightOxidized(source) {
+        let out = "";
+        let lastIndex = 0;
+        HL_TOKEN_RE.lastIndex = 0;
+        let m;
+        while ((m = HL_TOKEN_RE.exec(source))) {
+            if (m.index > lastIndex) out += escapeHtml(source.slice(lastIndex, m.index));
+            let cls;
+            if (m[1] !== undefined) cls = "tok-comment";
+            else if (m[2] !== undefined) cls = "tok-string";
+            else if (m[3] !== undefined) cls = "tok-number";
+            else if (m[4] !== undefined) cls = "tok-bool";
+            else if (m[5] !== undefined) cls = "tok-keyword";
+            else if (m[6] !== undefined) cls = "tok-call";
+            else if (m[7] !== undefined) cls = "tok-ident";
+            else cls = "tok-op";
+            out += `<span class="${cls}">${escapeHtml(m[0])}</span>`;
+            lastIndex = HL_TOKEN_RE.lastIndex;
+        }
+        out += escapeHtml(source.slice(lastIndex));
+        return out;
+    }
+
+    global.Oxidized = { runOxidized, highlight: highlightOxidized, OxError };
 })(window);

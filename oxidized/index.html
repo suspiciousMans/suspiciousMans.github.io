@@ -10,7 +10,7 @@
     />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23241408'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23e2721f'%3E%F0%9F%A6%80%3C/text%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0705'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23ff6a1a'%3E%F0%9F%A6%80%3C/text%3E%3C/svg%3E"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -78,7 +78,16 @@
             <span style="color: var(--text-dim); font-size: 0.8rem">oxidized.js — runs entirely client-side</span>
           </div>
           <div class="ox-panes">
-            <textarea id="ox-code" spellcheck="false" aria-label="Oxidized source code"></textarea>
+            <div class="ox-editor">
+              <pre class="ox-highlight" aria-hidden="true"><code id="ox-highlight-code"></code></pre>
+              <textarea
+                id="ox-code"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                aria-label="Oxidized source code"
+              ></textarea>
+            </div>
             <div class="ox-output-pane">
               <div class="ox-output-label">Output</div>
               <div id="ox-output"></div>
@@ -137,5 +146,6 @@
 
     <script src="/oxidized/js/lang.js"></script>
     <script src="/oxidized/js/playground.js"></script>
+    <script src="/oxidized/js/juice.js"></script>
   </body>
 </html>
