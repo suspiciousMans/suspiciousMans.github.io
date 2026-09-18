@@ -5,7 +5,7 @@ export default function NotFound() {
     return (
         <section className="hero">
             <div className="wrap">
-                <span className="eyebrow">404</span>
+                <span className="eyebrow eyebrow-glitch">404</span>
                 <TypewriterTitle
                     segments={[{ text: "Nothing " }, { text: "Suspicious", accent: true }, { text: " Here" }]}
                 />
