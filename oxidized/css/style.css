@@ -2,13 +2,13 @@
    main site's "Oxide" green palette. Rust, corroded metal, warm decay. */
 
 :root {
-    --bg-deep: #1a0f08;
-    --bg: #241408;
-    --bg-2: #341a0c;
-    --plate: #2e1c12;
-    --plate-2: #3a2415;
-    --seam: rgba(255, 150, 60, 0.14);
-    --seam-strong: rgba(255, 150, 60, 0.3);
+    --bg-deep: #030303;
+    --bg: #080807;
+    --bg-2: #0e0d0c;
+    --plate: #111110;
+    --plate-2: #171614;
+    --seam: rgba(226, 114, 31, 0.16);
+    --seam-strong: rgba(226, 114, 31, 0.38);
     --rust-100: #ffd9ad;
     --rust-200: #f7b26a;
     --rust-300: #f2954a;
@@ -17,8 +17,8 @@
     --rust-600: #8a3f13;
     --rust-700: #5c2e12;
     --patina: #6f8f6a;
-    --text: #f5e6d8;
-    --text-dim: #c2a68c;
+    --text: #ece8e3;
+    --text-dim: #948d85;
     --font-display: "Rye", serif;
     --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     --radius: 6px;
@@ -40,9 +40,9 @@ body {
     line-height: 1.65;
     background-color: var(--bg);
     background-image:
-        radial-gradient(circle at 15% 0%, rgba(255, 140, 47, 0.12), transparent 55%),
-        radial-gradient(circle at 90% 20%, rgba(140, 60, 20, 0.18), transparent 45%),
-        repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0px, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px),
+        radial-gradient(circle at 15% 0%, rgba(226, 114, 31, 0.1), transparent 55%),
+        radial-gradient(circle at 90% 20%, rgba(193, 83, 26, 0.14), transparent 45%),
+        repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0px, rgba(0, 0, 0, 0.25) 1px, transparent 1px, transparent 3px),
         linear-gradient(160deg, var(--bg-deep) 0%, var(--bg) 45%, var(--bg-2) 100%);
 }
 
@@ -71,7 +71,7 @@ a:hover {
     padding: 8px 12px;
     border: 1px solid var(--seam-strong);
     border-radius: var(--radius);
-    background: rgba(20, 10, 4, 0.6);
+    background: rgba(0, 0, 0, 0.65);
     backdrop-filter: blur(4px);
     text-decoration: none;
     color: var(--text-dim);
@@ -255,12 +255,12 @@ a:hover {
 .ox-btn-primary {
     background: linear-gradient(160deg, var(--rust-400), var(--rust-500));
     border-color: var(--rust-500);
-    color: #1a0f08;
+    color: #0a0603;
     font-weight: 600;
 }
 
 .ox-btn-primary:hover {
-    color: #1a0f08;
+    color: #0a0603;
     filter: brightness(1.08);
 }
 
@@ -296,7 +296,7 @@ a:hover {
 }
 
 .ox-output-pane {
-    background: #120a05;
+    background: #000000;
     padding: 16px;
     min-height: 320px;
     max-height: 480px;
