@@ -19,7 +19,7 @@
     --patina: #6f8f6a;
     --text: #ece8e3;
     --text-dim: #948d85;
-    --font-display: "Rye", serif;
+    --font-display: "Oswald", "IBM Plex Mono", sans-serif;
     --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     --radius: 6px;
 }
@@ -105,13 +105,14 @@ a:hover {
 
 .ox-title {
     font-family: var(--font-display);
-    font-weight: 400;
+    font-weight: 600;
+    text-transform: uppercase;
     font-size: clamp(3rem, 10vw, 6.5rem);
     margin: 0;
     line-height: 1;
     color: var(--rust-200);
     text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5), 0 0 40px rgba(226, 114, 31, 0.25);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.04em;
 }
 
 .ox-title .rust-o {
@@ -141,9 +142,11 @@ a:hover {
 
 .ox-section h2 {
     font-family: var(--font-display);
-    font-weight: 400;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     color: var(--rust-200);
-    font-size: 1.9rem;
+    font-size: 1.7rem;
     margin: 0 0 8px;
 }
 
