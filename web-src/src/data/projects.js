@@ -49,7 +49,7 @@ const projects = [
         descriptionParts: [
             "A shared playback engine with two front ends: an Electron + React desktop app for your own library, and a dependency-free ",
             { code: "<music-widget>" },
-            " embed for any website — you're hearing it right now, floating in the corner of this page.",
+            " embed for any website.",
         ],
         links: [{ label: "Source", href: "https://github.com/suspiciousMans/Music-Player", external: true }],
     },
@@ -84,7 +84,7 @@ const projects = [
         name: "This site",
         tags: ["React", "Vite"],
         description:
-            "A single-page React + Vite app on GitHub Pages. Sharp, dithered, two color themes, seamless navigation, a Lab for interactive experiments, and a music player that doesn't restart every time you click a link.",
+            "A single-page React + Vite app on GitHub Pages. Sharp, dithered, two color themes, seamless navigation and a Lab for interactive experiments.",
         links: [{ label: "Source", href: "https://github.com/suspiciousMans/suspiciousMans.github.io", external: true }],
     },
 ];

@@ -77,11 +77,6 @@ export function getCustomColors() {
     return custom;
 }
 
-export function activeColors() {
-    const t = getTheme();
-    return t === "custom" ? getCustomColors() : THEMES[t];
-}
-
 // ---------- color math ----------
 
 function rgb(hex) {
@@ -139,7 +134,6 @@ function clearInline() {
 
 function sideEffects(colors) {
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", colors.bg);
-    document.querySelector("music-widget")?.setAttribute("accent", colors.ink);
 }
 
 // Recolored art for the custom theme: { "hero-board.png": "blob:..." }.
