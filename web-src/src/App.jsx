@@ -1,16 +1,41 @@
-import { useState, useLayoutEffect } from "react";
+import { useState, useLayoutEffect, lazy, Suspense } from "react";
 import { flushSync } from "react-dom";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import Home from "./routes/Home.jsx";
-import Projects from "./routes/Projects.jsx";
-import About from "./routes/About.jsx";
 import HexColony from "./routes/HexColony.jsx";
-import AutoCode from "./routes/AutoCode.jsx";
-import Gooba from "./routes/Gooba.jsx";
-import Logistica from "./routes/Logistica.jsx";
 import NotFound from "./routes/NotFound.jsx";
 import PageMeta from "./components/PageMeta.jsx";
+
+// Home ships in the main bundle; every other route is its own chunk so new
+// pages and Lab features never grow the first load.
+// Each lazy route remembers its module once loaded, so after preload() the
+// route renders synchronously. That matters because route swaps run inside
+// flushSync + startViewTransition: a still-suspending React.lazy would make
+// the transition snapshot the empty Suspense fallback instead of the page.
+const loaded = {};
+const loaders = {};
+function lazyRoute(key, factory) {
+  loaders[key] = () => factory().then((m) => (loaded[key] = m.default));
+  const Lazy = lazy(() => loaders[key]().then((C) => ({ default: C })));
+  return function LazyRoute(props) {
+    const Comp = loaded[key];
+    return Comp ? <Comp {...props} /> : <Lazy {...props} />;
+  };
+}
+
+const Projects = lazyRoute("/projects.html", () => import("./routes/Projects.jsx"));
+const About = lazyRoute("/about.html", () => import("./routes/About.jsx"));
+const AutoCode = lazyRoute("/autocode.html", () => import("./routes/AutoCode.jsx"));
+const Gooba = lazyRoute("/gooba.html", () => import("./routes/Gooba.jsx"));
+const Logistica = lazyRoute("/logistica.html", () => import("./routes/Logistica.jsx"));
+const Lab = lazyRoute("/lab.html", () => import("./routes/Lab.jsx"));
+const LabFeature = lazyRoute("/lab/", () => import("./routes/LabFeature.jsx"));
+
+function preload(pathname) {
+  const key = pathname.startsWith("/lab/") ? "/lab/" : pathname;
+  return loaders[key] && !loaded[key] ? loaders[key]().catch(() => {}) : Promise.resolve();
+}
 
 // key={pathname} forces each route's content to remount on navigation, which
 // is what lets the route-transition animation replay per page — everything
@@ -29,27 +54,31 @@ export default function App() {
 
   useLayoutEffect(() => {
     if (location.pathname === displayLocation.pathname) return;
+    let cancelled = false;
     // A plain multi-page site starts every navigation at the top; without
-    // this an SPA silently carries over whatever scroll offset the last
-    // page happened to be at. That's more than a cosmetic gap now that
-    // in-view content (scroll-reveal cards/paragraphs) depends on actually
-    // being on screen to trigger — landing mid-page could leave a route's
-    // reveal-observer with nothing intersecting until the user scrolls.
+    // this an SPA silently carries over the last page's scroll offset.
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (typeof document.startViewTransition === "function" && !reducedMotion) {
-      document.startViewTransition(() => {
-        flushSync(() => setDisplayLocation(location));
+    preload(location.pathname).then(() => {
+      if (cancelled) return;
+      if (typeof document.startViewTransition === "function" && !reducedMotion) {
+        document.startViewTransition(() => {
+          flushSync(() => setDisplayLocation(location));
+          window.scrollTo(0, 0);
+        });
+      } else {
+        setDisplayLocation(location);
         window.scrollTo(0, 0);
-      });
-    } else {
-      setDisplayLocation(location);
-      window.scrollTo(0, 0);
-    }
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [location, displayLocation]);
 
   return (
     <Layout>
       <div className="page-content" key={displayLocation.pathname}>
+        <Suspense fallback={<div className="route-loading" />}>
         <Routes location={displayLocation}>
           <Route
             path="/"
@@ -151,6 +180,21 @@ export default function App() {
             }
           />
           <Route
+            path="/lab.html"
+            element={
+              <>
+                <PageMeta
+                  title="Lab — suspiciousMans"
+                  description="Small interactive experiments by suspiciousMans, running right in the browser."
+                  path="/lab.html"
+                  image="/assets/img/og-default.png"
+                />
+                <Lab />
+              </>
+            }
+          />
+          <Route path="/lab/:slug" element={<LabFeature />} />
+          <Route
             path="*"
             element={
               <>
@@ -160,6 +204,7 @@ export default function App() {
             }
           />
         </Routes>
+        </Suspense>
       </div>
     </Layout>
   );

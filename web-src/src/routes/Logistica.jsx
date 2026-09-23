@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import TypewriterTitle from "../components/TypewriterTitle.jsx";
+import Title from "../components/Title.jsx";
 
 // SHA-256 hex digest of the access password, same approach as the hidden
 // Task Manager gate (tasks-97b57abb/index.html) — the password itself is
@@ -124,10 +124,10 @@ export default function Logistica() {
 
     return (
         <>
-            <section className="hero" style={{ paddingBottom: "20px" }}>
+            <section className="hero hero-left hero-tight">
                 <div className="wrap">
-                    <span className="eyebrow">Members only</span>
-                    <TypewriterTitle segments={[{ text: "Logi" }, { text: "stica", accent: true }]} />
+                    <span className="label eyebrow">Members only</span>
+                    <Title segments={[{ text: "Logi" }, { text: "stica", accent: true }]} />
                     <p className="lede">
                         A gate-level logic simulator for building microprocessors out of logic gates — click-and-place
                         gates and wires on a canvas, backed by a fast headless simulation engine, running entirely in
@@ -136,7 +136,7 @@ export default function Logistica() {
                 </div>
             </section>
 
-            <section style={{ paddingTop: 0 }}>
+            <section className="section-flush">
                 <div className="wrap">
                     {!unlocked ? (
                         <div className={"gate-card" + (shake ? " gate-shake" : "")}>
@@ -186,7 +186,7 @@ export default function Logistica() {
                                     </div>
                                 </div>
                             </div>
-                            <p style={{ textAlign: "center", color: "var(--text-dim)", fontSize: "14px", marginTop: "26px" }}>
+                            <p className="source-note label">
                                 Source on{" "}
                                 <a href="https://github.com/suspiciousMans/Logistica-" target="_blank" rel="noopener noreferrer">
                                     GitHub

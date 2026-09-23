@@ -1,18 +1,18 @@
 import { Link } from "react-router-dom";
-import TypewriterTitle from "../components/TypewriterTitle.jsx";
+import Title from "../components/Title.jsx";
 import useScrollReveal from "../hooks/useScrollReveal.js";
 
 export default function About() {
     const revealRef = useScrollReveal();
 
     return (
-        <section style={{ paddingTop: "72px" }} ref={revealRef}>
+        <section className="hero hero-left" ref={revealRef}>
             <div className="wrap">
                 <div className="about-layout">
                     <div className="about-rail">
-                        <span className="eyebrow">About</span>
-                        <TypewriterTitle segments={[{ text: "I'm a very suspicious person." }]} />
-                        <span className="byline mono">rust · game-dev · web</span>
+                        <span className="label eyebrow">About</span>
+                        <Title segments={[{ text: "I'm a very " }, { text: "suspicious", accent: true }, { text: " person." }]} />
+                        <span className="byline label">rust · game-dev · web</span>
                     </div>
                     <div className="about-content">
                         <p className="reveal" data-reveal>

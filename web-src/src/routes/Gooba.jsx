@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import TypewriterTitle from "../components/TypewriterTitle.jsx";
+import Title from "../components/Title.jsx";
 
 // Unlike Hex Colony, this is a normal per-route mount: it's an iframe, and
 // browsers fully tear down an iframe's entire JS realm — all its listeners,
@@ -69,10 +69,10 @@ export default function Gooba() {
 
     return (
         <>
-            <section className="hero" style={{ paddingBottom: "20px" }}>
+            <section className="hero hero-left hero-tight">
                 <div className="wrap">
-                    <span className="eyebrow">Use it in browser</span>
-                    <TypewriterTitle segments={[{ text: "Goo" }, { text: "ba", accent: true }]} />
+                    <span className="label eyebrow">Use it in browser</span>
+                    <Title segments={[{ text: "Goo" }, { text: "ba", accent: true }]} />
                     <p className="lede">
                         A retro dithering studio. Drop in a photo, GIF, or video and turn it into crunchy pixel art —
                         animated or still, with a stackable effects chain and batch export — entirely client-side.
@@ -81,7 +81,7 @@ export default function Gooba() {
                 </div>
             </section>
 
-            <section style={{ paddingTop: 0 }}>
+            <section className="section-flush">
                 <div className="wrap">
                     <div className="tool-shell">
                         <iframe
@@ -92,7 +92,7 @@ export default function Gooba() {
                             style={{ opacity: ready ? 1 : 0, transition: "opacity 0.3s ease" }}
                         ></iframe>
                     </div>
-                    <p style={{ textAlign: "center", color: "var(--text-dim)", fontSize: "14px", marginTop: "26px" }}>
+                    <p className="source-note label">
                         Source on{" "}
                         <a href="https://github.com/suspiciousMans/Dithering-Retroslop" target="_blank" rel="noopener noreferrer">
                             GitHub

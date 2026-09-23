@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import TypewriterTitle from "./TypewriterTitle.jsx";
+import Title from "./Title.jsx";
 
 const ROUTE = "/hex-colony.html";
 
@@ -179,10 +179,10 @@ export default function HexColonyPersistent() {
 
     return (
         <div style={{ display: active ? "block" : "none" }}>
-            <section className="hero" style={{ paddingBottom: "20px" }}>
+            <section className="hero hero-left hero-tight">
                 <div className="wrap">
-                    <span className="eyebrow">Play in browser</span>
-                    <TypewriterTitle key={titleKey} segments={[{ text: "Hex " }, { text: "Colony", accent: true }]} />
+                    <span className="label eyebrow">Play in browser</span>
+                    <Title key={titleKey} segments={[{ text: "Hex " }, { text: "Colony", accent: true }]} />
                     <p className="lede">
                         A turn-based, pixel-art hex colony builder — written in Rust, compiled to WebAssembly, running
                         entirely on your machine. No install, no account.
@@ -190,7 +190,7 @@ export default function HexColonyPersistent() {
                 </div>
             </section>
 
-            <section style={{ paddingTop: 0 }}>
+            <section className="section-flush">
                 <div className="wrap">
                     <div className="game-shell">
                         <div className="game-canvas-wrap" ref={canvasWrapRef}>
@@ -200,7 +200,7 @@ export default function HexColonyPersistent() {
                                 <span>Loading Hex Colony…</span>
                             </div>
                             <div className={"game-error" + (error ? " visible" : "")}>
-                                <strong style={{ color: "#e8a7b6" }}>Couldn't load the game.</strong>
+                                <strong>Couldn't load the game.</strong>
                                 <p style={{ maxWidth: "420px" }}>
                                     Your browser may not support WebAssembly, or the build files failed to load. Try a
                                     recent Chrome, Firefox, or Safari, or grab the native build below.
@@ -245,7 +245,7 @@ export default function HexColonyPersistent() {
                         </div>
                     </div>
 
-                    <p style={{ textAlign: "center", color: "var(--text-dim)", fontSize: "14px", marginTop: "26px" }}>
+                    <p className="source-note label">
                         Source on{" "}
                         <a href="https://github.com/suspiciousMans/Hex-Colony" target="_blank" rel="noopener noreferrer">
                             GitHub

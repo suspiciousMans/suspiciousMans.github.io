@@ -84,7 +84,7 @@ const projects = [
         name: "This site",
         tags: ["React", "Vite"],
         description:
-            "A single-page React app, hosted on GitHub Pages. Same color palette since the beginning — now with seamless navigation and a music player that doesn't restart every time you click a link.",
+            "A single-page React + Vite app on GitHub Pages. Electric blue, serif type, seamless navigation, a Lab for interactive experiments, and a music player that doesn't restart every time you click a link.",
         links: [{ label: "Source", href: "https://github.com/suspiciousMans/suspiciousMans.github.io", external: true }],
     },
 ];
