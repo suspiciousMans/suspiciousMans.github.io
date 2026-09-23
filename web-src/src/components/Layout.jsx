@@ -1,4 +1,5 @@
 import Nav from "./Nav.jsx";
+import DitherField from "./DitherField.jsx";
 import Footer from "./Footer.jsx";
 import MusicPlayer from "./MusicPlayer.jsx";
 import HexColonyPersistent from "./HexColonyPersistent.jsx";
@@ -10,6 +11,7 @@ import HexColonyPersistent from "./HexColonyPersistent.jsx";
 export default function Layout({ children }) {
     return (
         <>
+            <DitherField />
             <Nav />
             <main>{children}</main>
             <HexColonyPersistent />

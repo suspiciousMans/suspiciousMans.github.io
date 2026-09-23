@@ -1358,6 +1358,23 @@ body::before {
     }
 }
 
+/* The live, animated version of the field (DitherField.jsx). The static
+   image above stays only when WebGL isn't available. */
+.dither-field {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    opacity: 0.5;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+.field-live body::before {
+    display: none;
+}
+
 @keyframes field-drift {
     to {
         background-position: center -480px;
