@@ -42,6 +42,8 @@ export default function HexToy() {
 
         function draw(t) {
             ctx.clearRect(0, 0, width, height);
+            // Follow the active color theme (global.css --fg-rgb).
+            const rgb = getComputedStyle(canvas).getPropertyValue("--fg-rgb").trim() || "255,197,61";
             for (let i = pulses.length - 1; i >= 0; i--) {
                 if (t - pulses[i].t0 > 2000) pulses.splice(i, 1);
             }
@@ -59,11 +61,11 @@ export default function HexToy() {
                         k = Math.max(k, Math.max(0, 1 - dd / 40) * (1 - (t - p.t0) / 2000));
                     }
                     hexPath(cx, cy, SIZE * (0.55 + 0.35 * k));
-                    ctx.strokeStyle = `rgba(188,171,174,${0.14 + 0.7 * k})`;
+                    ctx.strokeStyle = `rgba(${rgb},${0.14 + 0.7 * k})`;
                     ctx.lineWidth = 1;
                     ctx.stroke();
                     if (k > 0.6) {
-                        ctx.fillStyle = `rgba(236,230,231,${(k - 0.6) * 1.6})`;
+                        ctx.fillStyle = `rgba(${rgb},${(k - 0.6) * 1.6})`;
                         ctx.fill();
                     }
                 }

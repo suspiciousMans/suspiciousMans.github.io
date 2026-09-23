@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import BrandMark from "./BrandMark.jsx";
+import ThemeSwitch from "./ThemeSwitch.jsx";
 
 const LINKS = [
     { to: "/projects.html", label: "Projects" },
@@ -27,13 +28,29 @@ export default function Nav() {
         document.documentElement.classList.toggle("nav-open", open);
     }, [open]);
 
+    // Slide the header away while scrolling down, back as soon as the reader
+    // scrolls up. Never while the mobile menu is open.
+    const [hidden, setHidden] = useState(false);
+    useEffect(() => {
+        let last = window.scrollY;
+        function onScroll() {
+            const y = window.scrollY;
+            if (Math.abs(y - last) < 4) return;
+            setHidden(y > last && y > 80);
+            last = y;
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
+
     return (
-        <header className="site-header">
+        <header className={"site-header" + (hidden && !open ? " is-hidden" : "")}>
             <div className="wrap">
                 <NavLink className="brand" to="/" end>
                     <BrandMark />
                     suspiciousMans
                 </NavLink>
+                <ThemeSwitch />
                 <button
                     className="nav-toggle"
                     aria-label="Toggle navigation"

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { THEMES, getTheme } from "../theme.js";
 
 // Mounts exactly once for the whole app lifetime (Layout never remounts
 // this component on navigation), so the <music-widget> element — and the
@@ -14,7 +15,7 @@ export default function MusicPlayer() {
         script.src = "/assets/music/music-widget.js";
         script.dataset.playlist = "/assets/music/playlist.json";
         script.dataset.position = "bottom-right";
-        script.dataset.accent = "#bcabae";
+        script.dataset.accent = THEMES[getTheme()].ink;
         document.body.appendChild(script);
 
         script.addEventListener("load", () => {

@@ -3,13 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0f0f0f" />
+    <meta name="theme-color" content="#0a0833" />
+    <script>
+      // Apply the saved color theme before first paint (see src/theme.js).
+      (function () {
+        var t = "saffron";
+        try { t = localStorage.getItem("theme") || t; } catch (e) {}
+        if (t !== "saffron" && t !== "ember") t = "saffron";
+        document.documentElement.dataset.theme = t;
+        if (t === "ember") document.querySelector('meta[name="theme-color"]').content = "#140a06";
+      })();
+    </script>
     <title>suspiciousMans</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,3 93,26 93,74 50,97 7,74 7,26' fill='%230f0f0f' stroke='%23bcabae' stroke-width='6'/%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,3 93,26 93,74 50,97 7,74 7,26' fill='%230a0833' stroke='%23ffc53d' stroke-width='6'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Silkscreen&display=swap"
       rel="stylesheet"
     />
     <!-- Cloudflare Web Analytics -->
