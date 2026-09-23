@@ -59,11 +59,11 @@ export default function HexToy() {
                         k = Math.max(k, Math.max(0, 1 - dd / 40) * (1 - (t - p.t0) / 2000));
                     }
                     hexPath(cx, cy, SIZE * (0.55 + 0.35 * k));
-                    ctx.strokeStyle = `rgba(242,242,242,${0.14 + 0.7 * k})`;
+                    ctx.strokeStyle = `rgba(188,171,174,${0.14 + 0.7 * k})`;
                     ctx.lineWidth = 1;
                     ctx.stroke();
                     if (k > 0.6) {
-                        ctx.fillStyle = `rgba(255,205,66,${(k - 0.6) * 1.6})`;
+                        ctx.fillStyle = `rgba(236,230,231,${(k - 0.6) * 1.6})`;
                         ctx.fill();
                     }
                 }

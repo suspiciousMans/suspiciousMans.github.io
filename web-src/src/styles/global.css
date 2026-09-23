@@ -1,19 +1,20 @@
 /* ==========================================================================
    suspiciousMans.github.io — design system
-   Electric blue field, off-white ink, serif display + mono labels.
+   Onyx field, lilac ash ink, graphite surfaces, serif display + mono labels.
    Hairlines instead of cards, whitespace instead of decoration.
    ========================================================================== */
 
 :root {
-    --bg: #0000f2;
-    --bg-deep: #0000c2;
-    --bg-deeper: #00008a;
-    --fg: #f2f2f2;
-    --fg-dim: rgba(242, 242, 242, 0.68);
-    --fg-faint: rgba(242, 242, 242, 0.42);
-    --line: rgba(242, 242, 242, 0.2);
-    --line-strong: rgba(242, 242, 242, 0.5);
-    --accent: #ffcd42;
+    --bg: #0f0f0f;
+    --bg-deep: #161616;
+    --bg-deeper: #2d2e2e;
+    --fg: #ece6e7;
+    --fg-rgb: 188, 171, 174;
+    --fg-dim: #bcabae;
+    --fg-faint: rgba(188, 171, 174, 0.5);
+    --line: rgba(188, 171, 174, 0.16);
+    --line-strong: rgba(188, 171, 174, 0.45);
+    --accent: #bcabae;
 
     --font-display: "Instrument Serif", "Times New Roman", serif;
     --font-body: "Inter", system-ui, -apple-system, sans-serif;
@@ -309,7 +310,7 @@ p {
 .btn-primary:hover {
     background: var(--accent);
     border-color: var(--accent);
-    color: #000;
+    color: var(--bg);
 }
 
 .btn-outline {
@@ -320,7 +321,7 @@ p {
 
 .btn-outline:hover {
     border-color: var(--fg);
-    background: rgba(242, 242, 242, 0.08);
+    background: rgba(var(--fg-rgb), 0.08);
 }
 
 .btn-sm,
@@ -395,6 +396,10 @@ section {
 .hero {
     padding: 160px 0 128px;
     text-align: center;
+}
+
+.hero:not(.hero-left) {
+    background: radial-gradient(ellipse 70% 60% at 50% 45%, var(--bg-deeper), var(--bg) 75%);
 }
 
 .hero .wrap {
@@ -693,7 +698,7 @@ section {
 }
 
 .lab-tile:hover {
-    background: rgba(242, 242, 242, 0.06);
+    background: rgba(var(--fg-rgb), 0.06);
 }
 
 /* ---------- lab feature frame ---------- */
@@ -847,7 +852,7 @@ section {
 }
 
 .world-tile:hover {
-    background: rgba(242, 242, 242, 0.06);
+    background: rgba(var(--fg-rgb), 0.06);
 }
 
 .grid {
@@ -868,7 +873,7 @@ section {
 }
 
 .card:hover {
-    background: rgba(242, 242, 242, 0.05);
+    background: rgba(var(--fg-rgb), 0.05);
 }
 
 .card h3 {
