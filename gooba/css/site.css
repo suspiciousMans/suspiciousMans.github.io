@@ -1,0 +1,237 @@
+/* Gooba as it appears on suspiciousmans.github.io: the site's theme colors
+   (copied in as --site-* by js/site-theme.js), its fonts, sharp corners and
+   mono uppercase labels. Everything is scoped to html.on-site, so Gooba
+   opened on its own is untouched. */
+html.on-site {
+  --bg: var(--site-bg);
+  --panel: var(--site-bg-deep);
+  --panel-border: var(--site-line);
+  --ink: var(--site-fg-dim);
+  --muted: var(--site-fg-faint);
+  --accent: var(--site-fg);
+  --accent-strong: var(--site-fg);
+  --accent-2: var(--site-fg);
+  --well: var(--site-bg);
+  --font-display: "Big Shoulders Display", Impact, "Arial Narrow", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --font-pixel: "Silkscreen", "JetBrains Mono", monospace;
+}
+
+.on-site *,
+.on-site *::before,
+.on-site *::after {
+  border-radius: 0 !important;
+}
+
+.on-site body {
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* The site page already carries the title and the privacy note. */
+.on-site .site-header,
+.on-site .site-footer {
+  display: none;
+}
+
+.on-site .layout {
+  max-width: none;
+  padding: 24px;
+  gap: 24px;
+}
+
+/* ---------- stage ---------- */
+
+.on-site .canvas-wrap,
+.on-site .batch-grid {
+  border: 1px dashed var(--site-line-strong);
+}
+
+.on-site .canvas-wrap {
+  background: repeating-conic-gradient(var(--site-bg-deep) 0% 25%, var(--site-bg-deeper) 0% 50%) 50% / 22px 22px;
+}
+
+.on-site .canvas-wrap.drag-over {
+  border-style: solid;
+  border-color: var(--site-fg);
+  box-shadow: 0 0 0 3px rgba(var(--site-fg-rgb), 0.15) inset;
+}
+
+.on-site .empty-state {
+  color: var(--site-fg-dim);
+}
+
+.on-site .empty-state strong {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--site-head);
+}
+
+.on-site .loading-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--site-fg);
+  font-family: var(--font-pixel);
+  text-transform: uppercase;
+}
+
+.on-site .media-info,
+.on-site .frame-counter,
+.on-site .batch-item .batch-name {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.on-site .playback-bar {
+  border-width: 1px;
+}
+
+.on-site .batch-item,
+.on-site .effect-row,
+.on-site .custom-overlay-card {
+  background: var(--well);
+}
+
+/* ---------- buttons, as on the site ---------- */
+
+.on-site .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  border: 1px solid var(--site-line-strong);
+  background: transparent;
+  color: var(--site-fg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.on-site .btn:hover {
+  transform: none;
+  border-color: var(--site-fg);
+  background: rgba(var(--site-fg-rgb), 0.08);
+}
+
+.on-site .btn:active {
+  transform: translateY(1px);
+}
+
+.on-site .btn-primary,
+.on-site .btn-primary:hover {
+  background: var(--site-fg);
+  border-color: var(--site-fg);
+  color: var(--site-bg);
+}
+
+.on-site .btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.on-site .btn-small {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 11px;
+}
+
+.on-site .btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ---------- controls panel ---------- */
+
+.on-site .controls {
+  /* The frame grows to fit the page, so the panel never needs to scroll. */
+  max-height: none;
+  overflow: visible;
+  border-width: 1px;
+  padding: 20px;
+  gap: 24px;
+}
+
+.on-site .control-group h2,
+.on-site details.control-group summary {
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--site-fg);
+  border-bottom-color: var(--site-line);
+}
+
+.on-site details.control-group summary::after {
+  font-family: var(--font-mono);
+  color: var(--site-fg-dim);
+}
+
+.on-site .field,
+.on-site .card-field,
+.on-site .effect-row-head {
+  font-size: 12px;
+}
+
+.on-site .field output,
+.on-site .card-field output {
+  color: var(--site-fg);
+  font-weight: 500;
+}
+
+.on-site select,
+.on-site input[type="range"],
+.on-site input[type="checkbox"],
+.on-site input[type="color"] {
+  accent-color: var(--site-fg);
+}
+
+.on-site select {
+  background: var(--well);
+  color: var(--site-fg-dim);
+  border-color: var(--site-line-strong);
+  font-size: 12px;
+}
+
+.on-site select:focus-visible,
+.on-site .btn:focus-visible {
+  outline: 2px solid var(--site-fg);
+  outline-offset: 2px;
+}
+
+.on-site input[type="color"],
+.on-site #referenceThumb,
+.on-site .gradient-preview {
+  border-color: var(--site-line-strong);
+}
+
+.on-site #referenceThumb {
+  background: repeating-conic-gradient(var(--site-bg-deep) 0% 25%, var(--site-bg-deeper) 0% 50%) 50% / 12px 12px;
+}
+
+.on-site .filter-swatch.active {
+  border-color: var(--site-fg);
+  box-shadow: 0 0 0 2px rgba(var(--site-fg-rgb), 0.35);
+}
+
+.on-site .effect-reorder button:hover {
+  color: var(--site-fg);
+  border-color: var(--site-fg);
+}
+
+.on-site .card-name {
+  color: var(--site-fg-dim);
+}
+
+@media (max-width: 860px) {
+  .on-site .layout {
+    padding: 16px;
+  }
+}

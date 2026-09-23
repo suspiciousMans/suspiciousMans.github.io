@@ -958,6 +958,12 @@ section {
     background: #08080c;
 }
 
+/* A framed tool that paints itself in the site's theme (Gooba). */
+.tool-shell-themed {
+    background: var(--bg);
+    border-color: var(--line-strong);
+}
+
 .game-canvas-wrap {
     position: relative;
     width: 100%;
@@ -2444,5 +2450,34 @@ a {
     ::view-transition-old(*),
     ::view-transition-new(*) {
         animation: none !important;
+    }
+}
+
+/* On phones the brand, the three theme swatches and the menu toggle have to
+   share one row; without this the toggle ends up past the right edge. */
+@media (max-width: 480px) {
+    .site-header .wrap {
+        gap: 10px;
+    }
+
+    .brand {
+        font-size: 20px;
+        gap: 8px;
+    }
+
+    .theme-swatch {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+@media (max-width: 359px) {
+    .brand {
+        font-size: 16px;
+    }
+
+    .theme-swatch {
+        width: 30px;
+        height: 30px;
     }
 }
