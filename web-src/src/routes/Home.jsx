@@ -3,7 +3,7 @@ import SmartLink from "../components/SmartLink.jsx";
 import Shapes from "../components/Shapes.jsx";
 import projects from "../data/projects.js";
 import features from "../data/features.js";
-import { useTheme } from "../theme.js";
+import { artUrl, useThemeVersion } from "../theme.js";
 
 const FEATURED = [
     {
@@ -40,8 +40,8 @@ function describe(p) {
 }
 
 export default function Home() {
-    const theme = useTheme();
-    const img = (file) => `/assets/img/theme/${theme}/${file}`;
+    useThemeVersion();
+    const img = artUrl;
     const rest = projects.filter((p) => !FEATURED_NAMES.has(p.name));
     const lab = features[0];
 
