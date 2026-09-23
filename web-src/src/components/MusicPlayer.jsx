@@ -14,7 +14,7 @@ export default function MusicPlayer() {
         script.src = "/assets/music/music-widget.js";
         script.dataset.playlist = "/assets/music/playlist.json";
         script.dataset.position = "bottom-right";
-        script.dataset.accent = "#01c887";
+        script.dataset.accent = "#ffcd42";
         document.body.appendChild(script);
 
         script.addEventListener("load", () => {

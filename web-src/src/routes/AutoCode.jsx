@@ -1,4 +1,4 @@
-import TypewriterTitle from "../components/TypewriterTitle.jsx";
+import Title from "../components/Title.jsx";
 
 // The world cards below link out with plain <a> tags, not <Link> — a full
 // navigation, exiting the SPA. That's intentional and matches the existing
@@ -9,11 +9,11 @@ import TypewriterTitle from "../components/TypewriterTitle.jsx";
 export default function AutoCode() {
     return (
         <>
-            <section className="hero" style={{ paddingBottom: "24px" }}>
+            <section className="hero hero-left hero-tight">
                 <div className="wrap hero-grid">
                     <div className="hero-copy">
-                        <span className="eyebrow">Play in browser</span>
-                        <TypewriterTitle segments={[{ text: "Auto" }, { text: "Code", accent: true }]} />
+                        <span className="label eyebrow">Play in browser</span>
+                        <Title segments={[{ text: "Auto" }, { text: "Code", accent: true }]} />
                         <p className="lede">
                             Write real JavaScript or Python and watch it run — plant and harvest crops, pilot a
                             mining ship, run a shop, and automate a factory. Every script runs live in your browser,
@@ -42,10 +42,10 @@ export default function AutoCode() {
                 </div>
             </section>
 
-            <section style={{ paddingTop: 0 }}>
+            <section className="section-flush">
                 <div className="wrap wrap-wide">
                     <div className="section-head">
-                        <span className="eyebrow">One game, four worlds</span>
+                        <span className="label eyebrow">One game, four worlds</span>
                         <h2>All of it, in one place</h2>
                         <p>
                             Farm, Space, Store, and Factory share one save — credits earned selling ore in the Store
@@ -54,7 +54,7 @@ export default function AutoCode() {
                         </p>
                     </div>
                     <div className="section-head" style={{ marginTop: "36px" }}>
-                        <span className="eyebrow">Or one world at a time</span>
+                        <span className="label eyebrow">Or one world at a time</span>
                         <h2>Play each world on its own</h2>
                     </div>
                     <div className="grid grid-bento">
@@ -111,7 +111,7 @@ export default function AutoCode() {
                         </div>
                     </div>
 
-                    <p style={{ textAlign: "center", color: "var(--text-dim)", fontSize: "14px", marginTop: "26px" }}>
+                    <p className="source-note label">
                         Source on{" "}
                         <a href="https://github.com/suspiciousMans/AutoCode" target="_blank" rel="noopener noreferrer">
                             GitHub

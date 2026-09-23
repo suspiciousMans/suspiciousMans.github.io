@@ -1,40 +1,37 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import BrandMark from "./BrandMark.jsx";
 
 const LINKS = [
-    { to: "/", label: "Home", end: true },
     { to: "/projects.html", label: "Projects" },
+    { to: "/lab.html", label: "Lab" },
     { to: "/hex-colony.html", label: "Hex Colony" },
     { to: "/autocode.html", label: "AutoCode" },
     { to: "/gooba.html", label: "Gooba" },
     { to: "/about.html", label: "About" },
 ];
 
-// Oxidized is a fully separate static site (its own HTML/CSS/JS, its own
-// rust-toned palette) rather than a route in this SPA — same reasoning as
-// AutoCode's out-links: a plain <a> here does a full page navigation
-// instead of client-side routing, so it never inherits this site's look.
+// Oxidized is a fully separate static site rather than a route in this SPA,
+// so it's a plain <a> (full page navigation) instead of a NavLink.
 const OXIDIZED_LINK = { href: "/oxidized/index.html", label: "Oxidized" };
 
 export default function Nav() {
     const [open, setOpen] = useState(false);
     const location = useLocation();
-    const navRef = useRef(null);
 
-    // Close the mobile menu automatically on navigation, matching the old
-    // vanilla behavior (there, a full page load reset it for free).
     useEffect(() => {
         setOpen(false);
     }, [location.pathname]);
+
+    useEffect(() => {
+        document.documentElement.classList.toggle("nav-open", open);
+    }, [open]);
 
     return (
         <header className="site-header">
             <div className="wrap">
                 <NavLink className="brand" to="/" end>
-                    <svg className="brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <polygon points="50,3 93,26 93,74 50,97 7,74 7,26" fill="#060f11" stroke="#01c887" strokeWidth="6" />
-                    </svg>
+                    <BrandMark />
                     suspiciousMans
                 </NavLink>
                 <button
@@ -43,44 +40,20 @@ export default function Nav() {
                     aria-expanded={open}
                     onClick={() => setOpen((v) => !v)}
                 >
-                    &#9776;
+                    <span />
+                    <span />
                 </button>
-                {/* Height/opacity are only ever meaningful on mobile — a
-                    matching !important rule in global.css forces both back
-                    to auto/1 above the mobile breakpoint, so this never
-                    hides the desktop nav regardless of `open`. */}
-                <motion.nav
-                    ref={navRef}
-                    className={"main-nav" + (open ? " open" : "")}
-                    initial={false}
-                    animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
-                    transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-                >
+                <nav className={"main-nav" + (open ? " open" : "")}>
                     {LINKS.map((link) => (
-                        <NavLink key={link.to} to={link.to} end={link.end} className={({ isActive }) => (isActive ? "active" : undefined)}>
-                            {({ isActive }) => (
-                                <>
-                                    {/* Shared layoutId — Framer Motion animates this element
-                                        from its previous active link to this one automatically,
-                                        replacing the old manual getBoundingClientRect measuring. */}
-                                    {isActive && (
-                                        <motion.span
-                                            className="nav-pill"
-                                            layoutId="nav-pill"
-                                            aria-hidden="true"
-                                            transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                                        />
-                                    )}
-                                    {link.label}
-                                </>
-                            )}
+                        <NavLink key={link.to} to={link.to} className={({ isActive }) => (isActive ? "active" : undefined)}>
+                            {link.label}
                         </NavLink>
                     ))}
                     <a href={OXIDIZED_LINK.href}>{OXIDIZED_LINK.label}</a>
                     <a href="https://github.com/suspiciousMans" target="_blank" rel="noopener noreferrer">
-                        GitHub
+                        GitHub ↗
                     </a>
-                </motion.nav>
+                </nav>
             </div>
         </header>
     );

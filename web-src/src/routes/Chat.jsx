@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import TypewriterTitle from "../components/TypewriterTitle.jsx";
+import Title from "../components/Title.jsx";
 
 const MAX_NAME_LEN = 30;
 const MAX_MSG_LEN = 500;
@@ -138,15 +138,15 @@ export default function Chat() {
 
     return (
         <>
-            <section className="hero" style={{ paddingBottom: "20px" }}>
+            <section className="hero hero-left hero-tight">
                 <div className="wrap">
-                    <span className="eyebrow">Live</span>
-                    <TypewriterTitle segments={[{ text: "Say " }, { text: "Hi", accent: true }]} />
+                    <span className="label eyebrow">Live</span>
+                    <Title segments={[{ text: "Say " }, { text: "Hi", accent: true }]} />
                     <p className="lede">A public chatroom, live for anyone on this site right now. No account needed — pick a name and talk.</p>
                 </div>
             </section>
 
-            <section style={{ paddingTop: 0 }}>
+            <section className="section-flush">
                 <div className="wrap">
                     <div className="chat-shell">
                         <div className="chat-messages" ref={listRef}>
