@@ -7,11 +7,20 @@
     <script>
       // Apply the saved color theme before first paint (see src/theme.js).
       (function () {
-        var t = "saffron";
-        try { t = localStorage.getItem("theme") || t; } catch (e) {}
-        if (t !== "saffron" && t !== "ember") t = "saffron";
-        document.documentElement.dataset.theme = t;
-        if (t === "ember") document.querySelector('meta[name="theme-color"]').content = "#140a06";
+        var t = "saffron", vars = null, root = document.documentElement;
+        try {
+          t = localStorage.getItem("theme") || t;
+          vars = JSON.parse(localStorage.getItem("theme-vars"));
+        } catch (e) {}
+        if (t !== "saffron" && t !== "ember" && t !== "custom") t = "saffron";
+        if (t === "custom" && !vars) t = "saffron";
+        root.dataset.theme = t;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (t === "ember") meta.content = "#140a06";
+        if (t === "custom") {
+          for (var k in vars) root.style.setProperty(k, vars[k]);
+          meta.content = vars["--bg"];
+        }
       })();
     </script>
     <title>suspiciousMans</title>
