@@ -1,7 +1,8 @@
 // Recolors the site's two-tone dithered art for the custom theme. Every PNG
-// under /assets/img/theme/saffron/ holds exactly two opaque colors (the
-// Saffron ground and ink) plus, for the shape sprites, transparent pixels,
-// so each pixel maps cleanly onto the visitor's own ground or ink.
+// under /assets/img/theme/saffron/ holds exactly two colors (the Saffron
+// ground and ink), so each pixel maps cleanly onto the visitor's own ground
+// or ink. The shapes don't need this: they're masks painted with the theme's
+// colors in CSS.
 export const ART = [
     "bg-dither.png",
     "hero-board.png",
@@ -9,11 +10,6 @@ export const ART = [
     "hex-colony-preview-dither.png",
     "autocode-preview-dither.png",
     "hex-toy.png",
-    "sp-hex.png",
-    "sp-ico.png",
-    "sp-torus.png",
-    "sp-octa.png",
-    "sp-cube.png",
 ];
 
 const SOURCE = "/assets/img/theme/saffron/";

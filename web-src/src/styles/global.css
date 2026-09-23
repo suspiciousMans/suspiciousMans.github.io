@@ -1967,32 +1967,51 @@ a {
     --k: 0.34;
 }
 
+/* Each shape is two alpha masks cut from one 24-frame strip: the body is
+   painted with the theme's ground and the ink on top with its ink, so the
+   shapes follow every theme, custom ones included, the moment it changes. */
+.sp,
+.sp::after {
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+    -webkit-mask-size: calc(var(--w) * var(--k) * 24) calc(var(--w) * var(--k));
+    mask-size: calc(var(--w) * var(--k) * 24) calc(var(--w) * var(--k));
+    animation: sp-spin var(--sd, 4s) steps(24) infinite;
+}
+
 .sp {
+    position: relative;
     width: calc(var(--w) * var(--k));
     height: calc(var(--w) * var(--k));
-    background-repeat: no-repeat;
-    background-position: 0 0;
-    background-size: calc(var(--w) * var(--k) * 24) calc(var(--w) * var(--k));
-    image-rendering: pixelated;
-    animation: sp-spin var(--sd, 4s) steps(24) infinite;
+    background: var(--bg);
+    -webkit-mask-image: var(--sp-body);
+    mask-image: var(--sp-body);
+}
+
+.sp::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--fg);
+    -webkit-mask-image: var(--sp-ink);
+    mask-image: var(--sp-ink);
+    animation-direction: inherit;
 }
 
 @keyframes sp-spin {
     to {
-        background-position: calc(var(--w) * var(--k) * -24) 0;
+        -webkit-mask-position: calc(var(--w) * var(--k) * -24) 0;
+        mask-position: calc(var(--w) * var(--k) * -24) 0;
     }
 }
 
-.sp-hex { --w: 600px; background-image: var(--art-sp-hex, url(/assets/img/theme/saffron/sp-hex.png)); }
-.sp-ico { --w: 480px; background-image: var(--art-sp-ico, url(/assets/img/theme/saffron/sp-ico.png)); }
-.sp-torus { --w: 540px; background-image: var(--art-sp-torus, url(/assets/img/theme/saffron/sp-torus.png)); }
-.sp-octa { --w: 420px; background-image: var(--art-sp-octa, url(/assets/img/theme/saffron/sp-octa.png)); }
-.sp-cube { --w: 300px; background-image: var(--art-sp-cube, url(/assets/img/theme/saffron/sp-cube.png)); }
-:root[data-theme="ember"] .sp-hex { background-image: url(/assets/img/theme/ember/sp-hex.png); }
-:root[data-theme="ember"] .sp-ico { background-image: url(/assets/img/theme/ember/sp-ico.png); }
-:root[data-theme="ember"] .sp-torus { background-image: url(/assets/img/theme/ember/sp-torus.png); }
-:root[data-theme="ember"] .sp-octa { background-image: url(/assets/img/theme/ember/sp-octa.png); }
-:root[data-theme="ember"] .sp-cube { background-image: url(/assets/img/theme/ember/sp-cube.png); }
+.sp-hex { --w: 600px; --sp-body: url(/assets/img/sp-mask/sp-hex-body.png); --sp-ink: url(/assets/img/sp-mask/sp-hex-ink.png); }
+.sp-ico { --w: 480px; --sp-body: url(/assets/img/sp-mask/sp-ico-body.png); --sp-ink: url(/assets/img/sp-mask/sp-ico-ink.png); }
+.sp-torus { --w: 540px; --sp-body: url(/assets/img/sp-mask/sp-torus-body.png); --sp-ink: url(/assets/img/sp-mask/sp-torus-ink.png); }
+.sp-octa { --w: 420px; --sp-body: url(/assets/img/sp-mask/sp-octa-body.png); --sp-ink: url(/assets/img/sp-mask/sp-octa-ink.png); }
+.sp-cube { --w: 300px; --sp-body: url(/assets/img/sp-mask/sp-cube-body.png); --sp-ink: url(/assets/img/sp-mask/sp-cube-ink.png); }
 
 .sp-slow {
     --sd: 7s;

@@ -1,5 +1,5 @@
-// Dithered, pre-rendered 3D shapes (24-frame sprite strips in
-// /assets/img/theme/<theme>/sp-*.png) floating over the home page. The big
+// Dithered, pre-rendered 3D shapes (24-frame mask strips in
+// /assets/img/sp-mask/, painted in the theme's colors) floating over the home page. The big
 // ones hang off the sides and slide out as they scroll through view; the
 // small ones drift with the page scroll. All motion is CSS (global.css,
 // "shapes"), so this is static markup and costs nothing per frame in JS.
