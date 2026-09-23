@@ -433,6 +433,13 @@ a:hover {
     .ox-panes {
         grid-template-columns: 1fr;
     }
+    .ox-ref-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+    .ox-ref-row p {
+        overflow-wrap: anywhere;
+    }
 }
 
 /* ---------- editor (textarea with a syntax-highlighted <pre> sitting
@@ -511,6 +518,9 @@ a:hover {
 .tok-call {
     color: var(--rust-100);
 }
+.tok-type {
+    color: var(--rust-200);
+}
 .tok-ident {
     color: var(--text);
 }
@@ -587,7 +597,7 @@ a:hover {
 
 .ox-ref-row {
     display: grid;
-    grid-template-columns: minmax(160px, 220px) 1fr;
+    grid-template-columns: minmax(200px, 320px) 1fr;
     gap: 16px;
     padding: 12px 0;
     border-bottom: 1px solid var(--seam);
@@ -660,4 +670,19 @@ a:hover {
         animation: none !important;
         transform: none !important;
     }
+}
+
+/* ---------- CLI ---------- */
+
+.ox-cli {
+    margin: 0;
+    background: var(--bg-deep);
+    border: 1px solid var(--seam);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--rust-100);
 }

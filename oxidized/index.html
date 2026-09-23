@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Oxidized — a language that corrodes</title>
+    <title>Oxidized — a toy language that compiles to Rust</title>
     <meta
       name="description"
-      content="Oxidized: a toy programming language with a rust-and-corrosion aesthetic. Run real examples — Fibonacci, FizzBuzz, loops — right in the browser."
+      content="Oxidized: a small toy language that transpiles to Rust. Structs, enums, pattern matching, closures and more, runnable right in the browser."
     />
     <link
       rel="icon"
@@ -28,9 +28,9 @@
         <span class="ox-eyebrow">a language that rusts on contact</span>
         <h1 class="ox-title">Oxidized<span class="rust-o">.</span></h1>
         <p class="ox-tagline">
-          A small, honest toy language. Ownership-flavored syntax, a real interpreter running in your browser, and
-          nothing that hasn't corroded a little by the time it reaches you. Try it below — <code>let</code>,
-          <code>fn</code>, <code>for i in 0..10</code>, all of it actually runs.
+          A small toy language that transpiles its own <code>.ox</code> syntax into Rust and builds it with
+          <code>rustc</code>. Dynamic by default, statically typed when you ask, with structs, enums, pattern
+          matching and closures. Everything below actually runs, right here in your browser.
         </p>
       </div>
     </header>
@@ -42,23 +42,23 @@
         <div class="ox-features">
           <div class="ox-feature">
             <span class="rivet"></span>
-            <h3>Rust-shaped syntax</h3>
-            <p><code>let</code> bindings, <code>fn</code> declarations, and range loops like <code>0..10</code> — familiar if you've written Rust, learnable if you haven't.</p>
+            <h3>Compiles to Rust</h3>
+            <p>A hand-rolled lexer, recursive-descent parser and checker turn <code>.ox</code> into Rust source, and <code>rustc</code> does the rest. Add <code>--wasm</code> and it targets WebAssembly instead.</p>
           </div>
           <div class="ox-feature">
             <span class="rivet"></span>
-            <h3>Runs where you're standing</h3>
-            <p>The whole interpreter — lexer, parser, evaluator — is a few hundred lines of JavaScript. No server, no build step, no install.</p>
+            <h3>Dynamic until you pin it</h3>
+            <p>Values are dynamic by default. Annotate a variable, parameter or return as <code>i32</code>, <code>Int</code>, <code>Float</code> or <code>String</code> and it becomes a real Rust type, converted at the boundary.</p>
           </div>
           <div class="ox-feature">
             <span class="rivet"></span>
-            <h3>Fails loudly</h3>
-            <p>Divide by zero, call an undefined function, or loop forever — Oxidized surfaces the error instead of silently rusting through.</p>
+            <h3>Structs, enums, match</h3>
+            <p>Structs with <code>impl</code> methods, enums with payloads, and <code>match</code> as an expression, checked for exhaustiveness. Errors come back as a built-in <code>Result</code>.</p>
           </div>
           <div class="ox-feature">
             <span class="rivet"></span>
-            <h3>Deliberately small</h3>
-            <p>Numbers, strings, booleans, functions with closures, <code>if</code>/<code>while</code>/<code>for</code>. That's the whole language.</p>
+            <h3>Closures that remember</h3>
+            <p><code>fn(x) { ... }</code> lambdas capture by value and keep their own state across calls, so a counter factory works the way you'd hope.</p>
           </div>
         </div>
       </div>
@@ -67,7 +67,7 @@
     <section class="ox-section">
       <div class="wrap">
         <h2>Playground</h2>
-        <p class="ox-lede">Pick an example or write your own, then run it. <kbd>Ctrl/Cmd + Enter</kbd> also runs.</p>
+        <p class="ox-lede">Pick an example or write your own, then run it. <kbd>Ctrl/Cmd + Enter</kbd> also runs. The real compiler builds Rust; here a JavaScript port of its runtime runs the same programs, so type errors the checker would catch up front show up when that line runs.</p>
 
         <div class="ox-playground">
           <div class="ox-playground-bar">
@@ -75,7 +75,7 @@
             <button id="ox-run" class="ox-btn ox-btn-primary" type="button">&#9654; Run</button>
             <button id="ox-clear" class="ox-btn" type="button">Clear output</button>
             <span class="spacer"></span>
-            <span style="color: var(--text-dim); font-size: 0.8rem">oxidized.js — runs entirely client-side</span>
+            <span style="color: var(--text-dim); font-size: 0.8rem">oxidized.js: runs entirely client-side</span>
           </div>
           <div class="ox-panes">
             <div class="ox-editor">
@@ -100,46 +100,84 @@
     <section class="ox-section">
       <div class="wrap">
         <h2>Language reference</h2>
-        <p class="ox-lede">Everything Oxidized currently understands.</p>
+        <p class="ox-lede">The short version. Semicolons are optional, and code lives inside <code>fn main()</code>.</p>
         <div class="ox-ref-grid">
           <div class="ox-ref-row">
-            <code>let x = 5;</code>
-            <p>Declares a variable. Reassign later with <code>x = x + 1;</code></p>
+            <code>let x = 5<br />let y: i32 = 5</code>
+            <p>Dynamic by default, or pinned with a type: <code>i32</code>, <code>i64</code>/<code>Int</code>, <code>f64</code>/<code>Float</code>, <code>bool</code>, <code>String</code>, <code>List</code>. Using <code>let</code> again on a name reassigns it, and so does <code>x = 10</code>.</p>
           </div>
           <div class="ox-ref-row">
-            <code>print(expr);</code>
-            <p>Writes a value to the output pane. Numbers, strings, and booleans all format sensibly.</p>
+            <code>fn add(a: i32, b: i32) -&gt; i32 { ... }</code>
+            <p>Functions, typed or untyped, and nestable. A typed function must return on every path. Untyped ones can be passed around as values.</p>
           </div>
           <div class="ox-ref-row">
-            <code>if (cond) { ... } else if (cond) { ... } else { ... }</code>
-            <p>Standard branching. <code>else if</code> chains as far as you like.</p>
+            <code>if x &gt; 0 { } else { }<br />while x &gt; 0 { }<br />for i in range(0, 10) { }</code>
+            <p>No parentheses around conditions. <code>for</code> walks a <code>List</code>, <code>range(a, b)</code> makes one, and <code>break</code>/<code>continue</code> work in loops.</p>
           </div>
           <div class="ox-ref-row">
-            <code>while (cond) { ... }</code>
-            <p>Loops while the condition is truthy. Guarded against infinite loops by an execution-step limit.</p>
+            <code>struct Point { x: Int, y: Int }<br />Point(x: 3, y: 4)</code>
+            <p>Built with parentheses and named fields. <code>p.x = 5</code> updates a variable's field, and structs are copied when passed.</p>
           </div>
           <div class="ox-ref-row">
-            <code>for i in 0..10 { ... }</code>
-            <p>Iterates <code>i</code> over the range, inclusive of the start and exclusive of the end — same convention as Rust.</p>
+            <code>impl Point { fn dist(self) { ... } }</code>
+            <p>Methods take <code>self</code> first. Assigning to <code>self</code>'s fields updates the caller's variable.</p>
           </div>
           <div class="ox-ref-row">
-            <code>fn name(a, b) { return a + b; }</code>
-            <p>Functions, with proper closures — a function can be called before or after other declarations, as long as it exists by the time it's called.</p>
+            <code>enum Shape { Circle(Int), Point }<br />match s { Circle(r) =&gt; r, _ =&gt; 0 }</code>
+            <p>Variants are built as <code>Shape::Circle(5)</code>, always with parentheses. <code>match</code> is an expression over variants, literals, a catch-all name or <code>_</code>, and must cover every variant.</p>
           </div>
           <div class="ox-ref-row">
-            <code>+ - * / %   == != &lt; &gt; &lt;= &gt;=   &amp;&amp; || !</code>
-            <p>Arithmetic, comparison, and logical operators. <code>+</code> also concatenates when either side is a string.</p>
+            <code>let add = fn(a, b) { return a + b }</code>
+            <p>Lambdas capture the variables they use by value when they're created, and keep their own changes across calls.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>3.7 as Int<br />"42" as Int</code>
+            <p>Casts between <code>Int</code>, <code>Float</code>, <code>String</code> and <code>bool</code>. Int and Float don't mix in arithmetic without one.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>fn identity&lt;T&gt;(x: T) -&gt; T</code>
+            <p>Generic functions and structs, checked for consistency within a call.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>len push slice range<br />map_new map_set map_get map_has</code>
+            <p>Lists, strings and maps are values: <code>push</code> and <code>map_set</code> return a new one, so write <code>xs = push(xs, 4)</code>. Also <code>map_remove</code>, <code>map_keys</code>, <code>map_values</code>.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>abs min max sqrt pow floor ceil round<br />upper lower trim split join contains replace</code>
+            <p>Math and string builtins, plus <code>starts_with</code> and <code>ends_with</code>. <code>print</code> takes any number of values and <code>assert(cond, msg)</code> panics when false.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>parse_int checked_div map_try_get<br />unwrap unwrap_or is_ok is_err</code>
+            <p>Functions that can fail return <code>Result::Ok(v)</code> or <code>Result::Err(msg)</code>. Everything else that goes wrong panics, including integer overflow and division by zero.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code>import "math.ox"<br />import "shapes.ox" as shapes</code>
+            <p>Pulls in another file's declarations, optionally under a namespace (<code>shapes::area(c)</code>). Needs real files, so it only works with the CLI.</p>
+          </div>
+          <div class="ox-ref-row">
+            <code># comment<br />// comment</code>
+            <p>Both start a line comment.</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="ox-section">
+      <div class="wrap">
+        <h2>Run it for real</h2>
+        <p class="ox-lede">Build the compiler with <code>cargo build --release</code>, then:</p>
+        <pre class="ox-cli"><code>oxidized run hello.ox           # compile with rustc and run
+oxidized build hello.ox         # write the generated hello.rs
+oxidized check hello.ox         # typecheck only
+oxidized run hello.ox --wasm    # build for wasm32-wasip1, run under Node</code></pre>
       </div>
     </section>
 
     <footer class="ox-footer">
       <div class="wrap">
         <p>
-          Oxidized is a toy language and playground, part of
-          <a href="/">suspiciousMans.github.io</a>. Source lives alongside the rest of the site on
-          <a href="https://github.com/suspiciousMans/suspiciousMans.github.io" target="_blank" rel="noopener noreferrer">GitHub</a>.
+          Oxidized is a toy language, part of <a href="/">suspiciousMans.github.io</a>. The compiler lives at
+          <a href="https://github.com/suspiciousMans/oxidized" target="_blank" rel="noopener noreferrer">github.com/suspiciousMans/oxidized</a>.
         </p>
       </div>
     </footer>
