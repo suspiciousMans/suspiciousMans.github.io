@@ -39,7 +39,7 @@ function preload(pathname) {
 
 // key={pathname} forces each route's content to remount on navigation, which
 // is what lets the route-transition animation replay per page — everything
-// *outside* this Routes tree (nav, background, music player) stays mounted
+// *outside* this Routes tree (nav, background) stays mounted
 // the whole time, which is the actual "seamless" part.
 //
 // Route changes render through `displayLocation`, one tick behind the real
