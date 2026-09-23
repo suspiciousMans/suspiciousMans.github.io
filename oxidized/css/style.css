@@ -1,38 +1,35 @@
-/* Oxidized — deliberately its own design system, sharing nothing with the
-   main site's "Oxide" green palette. Rust, corroded metal, warm decay. */
+/* Oxidized — built in the main site's visual language (sharp 0px edges,
+   condensed uppercase display type, mono labels, a moving pixel-dot field,
+   scroll-linked wipes) but in its own set colors: a near-black ground with
+   molten rust as the ink. Every color comes from the tokens below. */
 
 :root {
-    /* true-black-leaning base, same move the main site makes with its
-       near-black "ink" — everything warm lives in the accents, not the base */
-    --bg-deep: #050302;
     --bg: #0a0705;
-    --bg-2: #0f0a07;
-    --plate: #120c08;
-    --plate-2: #18110a;
-    --seam: rgba(255, 106, 26, 0.16);
-    --seam-strong: rgba(255, 106, 26, 0.4);
+    --bg-deep: #050302;
+    --bg-raised: #120c08;
+    --fg: #ff6a1a; /* ink: accents, borders, the dot field */
+    --fg-rgb: 255, 106, 26;
+    --fg-dim: #bfb4a9; /* body text */
+    --head: #ece8e3; /* headings */
+    --line: rgba(var(--fg-rgb), 0.18);
+    --line-strong: rgba(var(--fg-rgb), 0.45);
 
-    /* a hotter, more saturated orange than the first pass — "molten metal"
-       rather than "old paint" */
-    --rust-100: #ffdcae;
-    --rust-200: #ffb15c;
-    --rust-300: #ff9142;
-    --rust-400: #ff6a1a;
-    --rust-500: #e2500f;
-    --rust-600: #a83a0d;
-    --rust-700: #6b280c;
+    /* syntax: different metals corrode differently */
+    --syn-keyword: #ff9142;
+    --syn-type: #ffb15c;
+    --syn-call: #ffdcae;
+    --syn-string: #7fbf8f;
+    --syn-number: #ffcf6b;
+    --syn-comment: #7d766c;
+    --syn-ident: #ece8e3;
+    --syn-op: #948d85;
 
-    /* secondary accents for syntax highlighting — different metals corrode
-       different colors: iron rusts orange, copper turns verdigris green */
-    --gold: #ffcf6b;
-    --verdigris: #7fbf8f;
-    --ash: #7d766c;
-
-    --text: #ece8e3;
-    --text-dim: #948d85;
-    --font-display: "Oswald", "IBM Plex Mono", sans-serif;
-    --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    --radius: 6px;
+    --font-display: "Big Shoulders Display", Impact, "Arial Narrow", sans-serif;
+    --font-body: "Inter", system-ui, -apple-system, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+    --font-pixel: "Silkscreen", "JetBrains Mono", monospace;
+    --gutter: clamp(20px, 4vw, 48px);
+    --nav-h: 64px;
 }
 
 * {
@@ -41,382 +38,481 @@
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--nav-h) + 16px);
+    background: var(--bg);
 }
 
 body {
     margin: 0;
     min-height: 100vh;
-    color: var(--text);
-    font-family: var(--font-mono);
-    line-height: 1.65;
-    background-color: var(--bg);
-    background-image:
-        radial-gradient(circle at 15% 0%, rgba(255, 106, 26, 0.09), transparent 55%),
-        radial-gradient(circle at 90% 20%, rgba(226, 80, 15, 0.12), transparent 45%),
-        repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0px, rgba(0, 0, 0, 0.3) 1px, transparent 1px, transparent 3px),
-        linear-gradient(160deg, var(--bg-deep) 0%, var(--bg) 45%, var(--bg-2) 100%);
+    background: transparent;
+    color: var(--fg-dim);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    font-synthesis: none;
 }
 
-:focus-visible {
-    outline: 2px solid var(--rust-300);
-    outline-offset: 2px;
+::selection {
+    background: var(--fg);
+    color: var(--bg);
 }
 
 a {
-    color: var(--rust-200);
+    color: inherit;
+    text-decoration: none;
+    transition: filter 0.2s steps(3), box-shadow 0.2s steps(3), color 0.2s ease;
 }
 
-a:hover {
-    color: var(--rust-100);
+code,
+kbd {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    color: var(--syn-call);
+}
+
+:focus-visible {
+    outline: 1px solid var(--fg);
+    outline-offset: 3px;
+}
+
+h1,
+h2,
+h3,
+p {
+    margin: 0;
 }
 
 .wrap {
-    max-width: 980px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 var(--gutter);
 }
 
-/* ---------- corner tag / way back ---------- */
+/* ---------- type ---------- */
 
-.back-tag {
+.label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+}
+
+.display,
+.ox-row-name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.005em;
+    color: var(--head);
+}
+
+.display {
+    font-size: clamp(4rem, 8.5vw, 8.75rem);
+    line-height: 0.88;
+    text-wrap: balance;
+}
+
+.display em {
+    font-style: normal;
+    color: var(--fg);
+}
+
+.display-md {
+    font-size: clamp(2.75rem, 6.6vw, 6rem);
+    line-height: 0.9;
+}
+
+.lede {
+    max-width: 560px;
+    font-size: 18px;
+    color: var(--fg-dim);
+}
+
+/* ---------- pixel-dot field (juice.js), behind everything ---------- */
+
+.ox-field {
     position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 20;
-    font-size: 0.75rem;
-    padding: 8px 12px;
-    border: 1px solid var(--seam-strong);
-    border-radius: var(--radius);
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(4px);
-    text-decoration: none;
-    color: var(--text-dim);
-    letter-spacing: 0.02em;
+    inset: 0;
+    z-index: -1;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0.4;
+    image-rendering: pixelated;
+    pointer-events: none;
 }
 
-.back-tag:hover {
-    color: var(--rust-100);
-    border-color: var(--rust-300);
+/* ---------- buttons ---------- */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 56px;
+    padding: 0 28px;
+    border: 1px solid var(--fg);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
 }
 
-/* ---------- header ---------- */
+.btn:active {
+    transform: translateY(1px);
+}
 
-.ox-header {
+.btn-primary {
+    background: var(--fg);
+    color: var(--bg);
+}
+
+.btn-primary:hover {
+    filter: brightness(1.15);
+}
+
+.btn-outline {
+    background: var(--bg);
+    color: var(--fg);
+}
+
+.btn-outline:hover {
+    box-shadow: inset 0 0 0 1px var(--fg);
+}
+
+.ox-actions {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* ---------- nav: solid, hides on scroll down ---------- */
+
+.ox-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--nav-h);
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ox-nav.is-hidden {
+    transform: translateY(-100%);
+}
+
+.ox-nav .wrap {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.ox-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 24px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--head);
+}
+
+.ox-brand-mark {
+    width: 14px;
+    height: 14px;
+    background: var(--fg);
+    box-shadow: 4px 4px 0 rgba(var(--fg-rgb), 0.35);
+}
+
+.ox-links {
+    display: flex;
+    align-items: stretch;
+}
+
+.ox-links a {
     position: relative;
-    overflow: hidden;
-    padding: 96px 0 48px;
-    text-align: center;
-    border-bottom: 1px solid var(--seam);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
 }
 
-/* radial glow that follows the cursor, set via --glow-x/--glow-y in juice.js */
-.ox-header::after {
+.ox-links a::after {
     content: "";
     position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: radial-gradient(circle at var(--glow-x, 50%) var(--glow-y, 15%), rgba(255, 106, 26, 0.16), transparent 45%);
-    pointer-events: none;
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+    height: 3px;
+    background: var(--fg);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s steps(3);
 }
 
-.ox-header > .wrap {
+.ox-links a:hover {
+    color: var(--fg);
+}
+
+.ox-links a:hover::after {
+    transform: scaleX(1);
+}
+
+.ox-links .ox-links-cta {
+    margin-left: 12px;
+    padding: 0 20px;
+    background: var(--fg);
+    color: var(--bg);
+}
+
+.ox-links .ox-links-cta:hover {
+    color: var(--bg);
+    filter: brightness(1.15);
+}
+
+.ox-links .ox-links-cta::after {
+    display: none;
+}
+
+/* ---------- hero ---------- */
+
+.ox-hero {
+    padding: 96px 0 120px;
+}
+
+.ox-hero .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: center;
+    gap: 56px;
+}
+
+.ox-hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+}
+
+.ox-hero .lede {
+    font-size: 19px;
+}
+
+.ox-board {
     position: relative;
-    z-index: 1;
+    background: var(--bg-deep);
+    border: 1px solid var(--line-strong);
 }
 
-/* ---------- ambient ember particles (juice.js populates .ember-field) ---------- */
-
-.ember-field {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-}
-
-.ember {
-    position: absolute;
-    bottom: -10px;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--rust-100), var(--rust-400) 60%, transparent 100%);
-    box-shadow: 0 0 6px 1px rgba(255, 106, 26, 0.55);
-    opacity: 0;
-    animation: ember-rise linear infinite;
-}
-
-@keyframes ember-rise {
-    0% {
-        transform: translate(0, 0);
-        opacity: 0;
-    }
-    12% {
-        opacity: 0.9;
-    }
-    85% {
-        opacity: 0.35;
-    }
-    100% {
-        transform: translate(var(--drift, 20px), -260px);
-        opacity: 0;
-    }
-}
-
-.ox-eyebrow {
-    display: inline-block;
-    font-size: 0.75rem;
-    letter-spacing: 0.16em;
+.ox-board-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--rust-300);
-    border: 1px dashed var(--seam-strong);
-    padding: 4px 12px;
-    border-radius: 999px;
-    margin-bottom: 22px;
-    opacity: 0;
-    animation: ox-fade-up 0.6s ease 0.05s forwards;
+    color: var(--fg-dim);
 }
 
-.ox-title {
-    font-family: var(--font-display);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: clamp(3rem, 10vw, 6.5rem);
+.ox-board-code {
     margin: 0;
-    line-height: 1;
-    color: var(--rust-200);
-    text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 106, 26, 0.3);
-    letter-spacing: 0.04em;
+    padding: 20px 20px 96px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--syn-ident);
 }
 
-.ox-title .rust-o {
-    color: var(--rust-400);
+.pixel-window {
+    position: absolute;
+    left: -48px;
+    bottom: 32px;
+    width: 280px;
+    max-width: 80%;
+    background: var(--bg);
+    border: 2px solid var(--fg);
+    box-shadow: 6px 6px 0 rgba(var(--fg-rgb), 0.25);
+    font-family: var(--font-pixel);
+    font-size: 13px;
+    color: var(--head);
 }
 
-.ox-title-char {
-    display: inline-block;
-    opacity: 0;
-    transform: translateY(16px) rotate(-6deg);
-    filter: blur(2px);
-    animation: ox-title-rust-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+.pixel-window-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: var(--fg);
+    color: var(--bg);
 }
 
-@keyframes ox-title-rust-in {
-    to {
-        opacity: 1;
-        transform: none;
-        filter: blur(0);
-    }
+.pixel-window-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
 }
 
-@keyframes ox-fade-up {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: none;
-    }
+.pixel-window-out {
+    color: var(--fg);
 }
 
-.ox-tagline {
-    max-width: 560px;
-    margin: 18px auto 0;
-    color: var(--text-dim);
-    font-size: 1.05rem;
-    opacity: 0;
-    animation: ox-fade-up 0.6s ease 0.85s forwards;
-}
-
-.ox-tagline code {
-    color: var(--rust-200);
-}
-
-/* ---------- generic section ---------- */
+/* ---------- sections ---------- */
 
 .ox-section {
-    padding: 64px 0;
+    padding: 120px 0;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
 }
 
-.ox-section + .ox-section {
-    border-top: 1px solid var(--seam);
+.ox-section-open {
+    background: none;
 }
 
-.ox-section h2 {
-    font-family: var(--font-display);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--rust-200);
-    font-size: 1.7rem;
-    margin: 0 0 8px;
+.ox-section-head {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 64px;
 }
 
-.ox-section .ox-lede {
-    color: var(--text-dim);
-    max-width: 620px;
-    margin: 0 0 32px;
+.ox-section-head-split {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 48px;
 }
 
-/* ---------- scroll reveal (juice.js adds "revealed" via IntersectionObserver) ---------- */
-
-.reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+.ox-section-head-split > div {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-.reveal.revealed {
-    opacity: 1;
-    transform: none;
+.ox-section-head-split .lede {
+    font-size: 16px;
+    max-width: 440px;
 }
 
-/* ---------- feature grid ---------- */
+/* feature rows, like the main site's project rows */
 
-.ox-features {
+.ox-rows {
+    border-top: 1px solid var(--line-strong);
+}
+
+.ox-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: 80px minmax(0, 380px) minmax(0, 1fr);
+    align-items: center;
+    gap: 24px;
+    padding: 28px 24px;
+    border-bottom: 1px solid var(--line-strong);
+    transition: background 0.2s steps(3), color 0.2s steps(3);
 }
 
-.ox-feature {
-    padding: 20px;
-    background: linear-gradient(160deg, var(--plate-2), var(--plate));
-    border: 1px solid var(--seam);
-    border-radius: var(--radius);
-    position: relative;
-    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+.ox-row-num {
+    color: var(--fg);
 }
 
-.ox-feature:hover {
-    transform: translateY(-4px);
-    border-color: var(--seam-strong);
-    box-shadow: 0 18px 40px -20px rgba(255, 106, 26, 0.4);
+.ox-row-name {
+    font-size: 40px;
+    line-height: 1;
 }
 
-.ox-feature:hover .rivet {
-    animation: rivet-pulse 1.2s ease-in-out infinite;
+.ox-row p {
+    font-size: 15px;
+    line-height: 1.55;
 }
 
-@keyframes rivet-pulse {
-    0%,
-    100% {
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6), 0 0 0 rgba(255, 106, 26, 0);
-    }
-    50% {
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6), 0 0 8px 2px rgba(255, 106, 26, 0.6);
-    }
+.ox-row:hover {
+    background: var(--fg);
+    color: var(--bg);
 }
 
-.ox-feature::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius);
-    box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.35);
-    pointer-events: none;
-}
-
-.ox-feature h3 {
-    margin: 0 0 8px;
-    font-size: 1rem;
-    color: var(--rust-100);
-}
-
-.ox-feature p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--text-dim);
-}
-
-.ox-feature .rivet {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, var(--rust-200), var(--rust-600));
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+.ox-row:hover .ox-row-num,
+.ox-row:hover .ox-row-name,
+.ox-row:hover code {
+    color: var(--bg);
 }
 
 /* ---------- playground ---------- */
 
 .ox-playground {
-    border: 1px solid var(--seam-strong);
-    border-radius: var(--radius);
-    overflow: hidden;
-    background: var(--plate);
-    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.7);
+    background: var(--bg-deep);
+    border: 1px solid var(--fg);
+    box-shadow: 8px 8px 0 rgba(var(--fg-rgb), 0.2);
 }
 
 .ox-playground-bar {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: linear-gradient(180deg, var(--plate-2), var(--plate));
-    border-bottom: 1px solid var(--seam);
+    align-items: stretch;
     flex-wrap: wrap;
+    border-bottom: 1px solid var(--fg);
 }
 
 .ox-playground-bar select {
+    min-height: 48px;
+    padding: 0 16px;
     background: var(--bg);
-    color: var(--text);
-    border: 1px solid var(--seam-strong);
-    border-radius: var(--radius);
-    padding: 6px 10px;
+    color: var(--head);
+    border: 0;
+    border-right: 1px solid var(--line-strong);
+    border-radius: 0;
     font-family: var(--font-mono);
-    font-size: 0.85rem;
+    font-size: 13px;
 }
 
 .ox-btn {
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--seam-strong);
+    min-height: 48px;
+    padding: 0 22px;
     background: var(--bg);
-    color: var(--text);
-    padding: 6px 14px;
+    color: var(--fg);
+    border: 0;
+    border-right: 1px solid var(--line-strong);
+    border-radius: 0;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition: filter 0.2s steps(3), box-shadow 0.2s steps(3);
 }
 
 .ox-btn:hover {
-    border-color: var(--rust-300);
-    color: var(--rust-100);
-}
-
-.ox-btn:active {
-    transform: translateY(1px);
+    box-shadow: inset 0 0 0 1px var(--fg);
 }
 
 .ox-btn-primary {
-    background: linear-gradient(160deg, var(--rust-400), var(--rust-500));
-    border-color: var(--rust-500);
-    color: #0a0603;
+    background: var(--fg);
+    color: var(--bg);
     font-weight: 600;
-    box-shadow: 0 0 0 rgba(255, 106, 26, 0);
 }
 
 .ox-btn-primary:hover {
-    color: #0a0603;
-    filter: brightness(1.08);
-    box-shadow: 0 0 22px 2px rgba(255, 106, 26, 0.45);
+    box-shadow: none;
+    filter: brightness(1.15);
 }
 
 .ox-btn-primary.ox-ignite {
-    animation: ignite-pulse 0.5s ease;
+    animation: ignite 0.4s steps(4);
 }
 
-@keyframes ignite-pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(255, 106, 26, 0.7);
-    }
-    60% {
-        box-shadow: 0 0 0 14px rgba(255, 106, 26, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(255, 106, 26, 0);
+@keyframes ignite {
+    50% {
+        filter: brightness(1.5);
     }
 }
 
@@ -424,36 +520,27 @@ a:hover {
     flex: 1;
 }
 
+.ox-playground-note {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+}
+
 .ox-panes {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
-@media (max-width: 720px) {
-    .ox-panes {
-        grid-template-columns: 1fr;
-    }
-    .ox-ref-row {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 8px;
-    }
-    .ox-ref-row p {
-        overflow-wrap: anywhere;
-    }
-}
-
-/* ---------- editor (textarea with a syntax-highlighted <pre> sitting
-   underneath it — the textarea's own text is painted transparent so the
-   highlighted layer shows through, matching the caret/selection exactly) ---------- */
+/* editor: a textarea over a syntax-highlighted <pre>; the textarea's own
+   text is transparent so the highlighted layer shows through exactly */
 
 .ox-editor {
     position: relative;
-    min-height: 320px;
-    max-height: 480px;
-    resize: vertical;
+    min-height: 420px;
+    max-height: 560px;
     overflow: hidden;
     background: var(--bg-deep);
-    border-right: 1px solid var(--seam);
+    border-right: 1px solid var(--line-strong);
 }
 
 .ox-editor pre.ox-highlight,
@@ -461,11 +548,11 @@ a:hover {
     position: absolute;
     inset: 0;
     margin: 0;
-    padding: 16px;
+    padding: 20px;
     border: none;
     font-family: var(--font-mono);
-    font-size: 0.9rem;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.65;
     tab-size: 4;
     white-space: pre-wrap;
     word-break: break-word;
@@ -473,7 +560,7 @@ a:hover {
 }
 
 .ox-editor pre.ox-highlight {
-    color: var(--text);
+    color: var(--syn-ident);
     pointer-events: none;
     overflow: hidden;
     z-index: 1;
@@ -481,6 +568,7 @@ a:hover {
 
 .ox-editor pre.ox-highlight code {
     font: inherit;
+    color: inherit;
 }
 
 .ox-editor textarea {
@@ -488,201 +576,347 @@ a:hover {
     height: 100%;
     background: transparent;
     color: transparent;
-    caret-color: var(--rust-200);
+    caret-color: var(--fg);
     outline: none;
     resize: none;
     overflow: auto;
     z-index: 2;
 }
 
-/* token colors — different "metals" corrode differently: keywords run hot
-   rust-orange, strings turn verdigris green, numbers read as brass/gold */
+.ox-editor textarea::selection {
+    background: rgba(var(--fg-rgb), 0.35);
+    color: transparent;
+}
+
 .tok-comment {
-    color: var(--ash);
+    color: var(--syn-comment);
     font-style: italic;
 }
 .tok-string {
-    color: var(--verdigris);
+    color: var(--syn-string);
 }
-.tok-number {
-    color: var(--gold);
-}
+.tok-number,
 .tok-bool {
-    color: var(--gold);
-    font-weight: 600;
+    color: var(--syn-number);
 }
 .tok-keyword {
-    color: var(--rust-300);
+    color: var(--syn-keyword);
     font-weight: 600;
 }
-.tok-call {
-    color: var(--rust-100);
-}
 .tok-type {
-    color: var(--rust-200);
+    color: var(--syn-type);
+}
+.tok-call {
+    color: var(--syn-call);
 }
 .tok-ident {
-    color: var(--text);
+    color: var(--syn-ident);
 }
 .tok-op {
-    color: var(--text-dim);
+    color: var(--syn-op);
 }
 
 .ox-output-pane {
-    background: #000000;
-    padding: 16px;
-    min-height: 320px;
-    max-height: 480px;
+    min-height: 420px;
+    max-height: 560px;
     overflow-y: auto;
-    font-size: 0.85rem;
-    transition: box-shadow 0.6s ease;
+    padding: 20px;
+    background: #000;
+    font-family: var(--font-mono);
+    font-size: 14px;
+}
+
+.ox-output-pane.ox-flash {
+    box-shadow: inset 0 0 0 2px var(--fg);
 }
 
 .ox-output-pane.ox-shake {
-    animation: ox-shake 0.4s ease;
+    animation: ox-shake 0.36s steps(6);
 }
 
 @keyframes ox-shake {
-    10%,
-    90% {
-        transform: translateX(-2px);
-    }
     20%,
-    80% {
-        transform: translateX(4px);
-    }
-    30%,
-    50%,
-    70% {
+    60% {
         transform: translateX(-6px);
     }
     40%,
-    60% {
+    80% {
         transform: translateX(6px);
     }
 }
 
-.ox-output-pane.ox-flash {
-    box-shadow: inset 0 0 0 1px var(--rust-400);
-}
-
 .ox-output-label {
-    color: var(--text-dim);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .ox-line {
     white-space: pre-wrap;
     word-break: break-word;
-    color: var(--rust-100);
+    color: var(--head);
 }
 
 .ox-line.ox-error {
-    color: #ff8a6b;
+    color: var(--bg);
+    background: var(--fg);
+    padding: 2px 6px;
+    margin-top: 6px;
 }
 
 .ox-line.ox-meta {
-    color: var(--text-dim);
+    color: var(--syn-op);
 }
 
 /* ---------- reference ---------- */
 
 .ox-ref-grid {
-    display: grid;
-    gap: 14px;
+    border-top: 1px solid var(--line-strong);
 }
 
 .ox-ref-row {
     display: grid;
-    grid-template-columns: minmax(200px, 320px) 1fr;
-    gap: 16px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--seam);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 32px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--line-strong);
     align-items: start;
 }
 
 .ox-ref-row > code {
     display: block;
+    padding: 12px 14px;
     background: var(--bg-deep);
-    padding: 8px 10px;
-    border-radius: var(--radius);
-    color: var(--rust-200);
-    font-size: 0.82rem;
+    border-left: 3px solid var(--fg);
+    color: var(--syn-call);
+    font-size: 13px;
+    line-height: 1.6;
     white-space: pre-wrap;
     word-break: break-word;
 }
 
 .ox-ref-row p {
-    margin: 4px 0 0;
-    color: var(--text-dim);
-    font-size: 0.9rem;
+    padding-top: 8px;
+    font-size: 15px;
 }
 
-/* inline code chips within body copy — never the block treatment above */
-.ox-ref-row p code,
-.ox-feature p code,
-.ox-tagline code {
-    background: rgba(0, 0, 0, 0.28);
-    padding: 1px 6px;
-    border-radius: 4px;
-    color: var(--rust-200);
-    font-size: 0.9em;
-    white-space: nowrap;
+/* ---------- closer / CLI ---------- */
+
+.ox-closer {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 56px;
+    background: var(--bg);
+    border: 1px solid var(--fg);
+}
+
+.ox-cli {
+    margin: 0;
+    padding: 20px 22px;
+    overflow-x: auto;
+    background: var(--bg-deep);
+    border-left: 3px solid var(--fg);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.ox-cli code {
+    color: var(--head);
+    font-size: inherit;
 }
 
 /* ---------- footer ---------- */
 
 .ox-footer {
-    padding: 48px 0 80px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 0.85rem;
+    padding: 32px 0;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
 }
 
-.ox-footer a {
-    color: var(--rust-300);
+.ox-footer .wrap {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
 }
 
-/* ---------- respect prefers-reduced-motion ---------- */
+.ox-footer a:hover {
+    color: var(--fg);
+}
+
+/* ---------- scroll-linked motion (progressive: static where unsupported) ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        .rv-wipe,
+        .rv-rise {
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+        }
+
+        .rv-wipe {
+            animation-name: rv-wipe;
+            animation-timing-function: steps(10, end);
+            animation-range: entry 0% entry 90%;
+        }
+
+        .rv-rise {
+            animation-name: rv-rise;
+            animation-range: entry 0% entry 100%;
+        }
+    }
+}
+
+/* Wide insets so the pixel window hanging outside the board isn't clipped. */
+@keyframes rv-wipe {
+    from {
+        clip-path: inset(0 -200px 100% -200px);
+    }
+    to {
+        clip-path: inset(0 -200px -200px -200px);
+    }
+}
+
+@keyframes rv-rise {
+    from {
+        transform: translateY(60px);
+        opacity: 0;
+    }
+    to {
+        transform: none;
+        opacity: 1;
+    }
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1000px) {
+    .ox-links a:not(.ox-links-cta):not([href="/"]) {
+        display: none;
+    }
+
+    .ox-hero .wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .ox-board {
+        max-width: 560px;
+        margin-left: 48px;
+    }
+
+    .ox-section-head-split {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ox-row {
+        grid-template-columns: 56px minmax(0, 1fr);
+    }
+
+    .ox-row p {
+        grid-column: 2;
+    }
+}
+
+@media (max-width: 720px) {
+    :root {
+        --nav-h: 56px;
+    }
+
+    .ox-brand {
+        font-size: 20px;
+    }
+
+    .ox-links a[href="/"] {
+        display: none;
+    }
+
+    .ox-hero {
+        padding: 56px 0 80px;
+    }
+
+    .ox-board {
+        margin-left: 0;
+    }
+
+    .pixel-window {
+        left: 12px;
+        bottom: 12px;
+    }
+
+    .ox-section {
+        padding: 80px 0;
+    }
+
+    .ox-section-head {
+        margin-bottom: 40px;
+    }
+
+    .ox-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        padding: 24px 0;
+    }
+
+    .ox-row p {
+        grid-column: auto;
+    }
+
+    .ox-row-name {
+        font-size: 32px;
+    }
+
+    .ox-panes {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ox-editor {
+        min-height: 360px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line-strong);
+    }
+
+    .ox-output-pane {
+        min-height: 200px;
+    }
+
+    .ox-playground-bar select {
+        flex: 1 1 100%;
+        border-right: 0;
+        border-bottom: 1px solid var(--line-strong);
+    }
+
+    .ox-playground-note {
+        display: none;
+    }
+
+    .ox-ref-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .ox-ref-row p {
+        padding-top: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .ox-closer {
+        padding: 28px 20px;
+    }
+
+    .btn {
+        height: 52px;
+        padding: 0 20px;
+    }
+}
 
 @media (prefers-reduced-motion: reduce) {
-    .ember,
-    .ox-title-char,
-    .ox-eyebrow,
-    .ox-tagline {
-        animation: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-        filter: none !important;
+    html {
+        scroll-behavior: auto;
     }
 
-    .reveal {
-        opacity: 1 !important;
-        transform: none !important;
-        transition: none !important;
+    .ox-nav {
+        transition: none;
     }
-
-    .ox-feature:hover,
-    .ox-feature:hover .rivet {
-        animation: none !important;
-        transform: none !important;
-    }
-}
-
-/* ---------- CLI ---------- */
-
-.ox-cli {
-    margin: 0;
-    background: var(--bg-deep);
-    border: 1px solid var(--seam);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    overflow-x: auto;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    line-height: 1.7;
-    color: var(--rust-100);
 }
