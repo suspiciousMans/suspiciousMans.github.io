@@ -824,6 +824,18 @@ section {
     outline-offset: 2px;
 }
 
+/* On phones, keep the tool row clear of the Controls toggle. */
+@media (max-width: 480px) {
+    .toy-tools {
+        max-width: calc(100% - 128px);
+        flex-wrap: wrap;
+    }
+
+    .toy-tool {
+        padding: 0 8px;
+    }
+}
+
 .toy-hint {
     position: absolute;
     left: 12px;
