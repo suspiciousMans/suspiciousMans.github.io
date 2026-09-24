@@ -26,7 +26,8 @@ function stored(key, fallback) {
 
 export default function Battle() {
     const [tab, setTab] = useState("battle");
-    const [format, setFormat] = useState(() => stored("pk-format", "gen9randombattle"));
+    const [startSignal, setStartSignal] = useState(0);
+    const [format, setFormat] = useState(() => stored("pk-format", stored("pk-team", "") ? "gen9ou" : "gen9randombattle"));
     const [text, setText] = useState(() => stored("pk-team", ""));
     const team = useMemo(() => {
         try {
@@ -66,10 +67,13 @@ export default function Battle() {
                     </div>
                     <div className="pk-shell">
                         <div hidden={tab !== "battle"}>
-                            <BattleTab team={team} format={format} setFormat={setFormat} />
+                            <BattleTab team={team} format={format} setFormat={setFormat} startSignal={startSignal} onEditTeam={() => setTab("team")} />
                         </div>
                         <Suspense fallback={<p className="label pk-loading">Loading…</p>}>
-                            {tab === "team" && <TeamTab text={text} setText={setText} format={format} setFormat={setFormat} onBattle={() => setTab("battle")} />}
+                            {tab === "team" && <TeamTab text={text} setText={setText} format={format} setFormat={setFormat} onBattle={() => {
+                                        setTab("battle");
+                                        setStartSignal((n) => n + 1);
+                                    }} />}
                             {tab === "dex" && <DexTab />}
                             {tab === "calc" && <CalcTab team={team} />}
                         </Suspense>

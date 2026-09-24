@@ -294,7 +294,7 @@ const EMPTY_SNAP = {
     p2: { name: "CPU", total: 6, active: null, team: [], conditions: [] },
 };
 
-export default function BattleTab({ team, format, setFormat }) {
+export default function BattleTab({ team, format, setFormat, startSignal, onEditTeam }) {
     const [snap, setSnap] = useState(EMPTY_SNAP);
     const [log, setLog] = useState([]);
     const [request, setRequest] = useState(null);
@@ -379,15 +379,23 @@ export default function BattleTab({ team, format, setFormat }) {
         } catch (e) {}
     }, [style]);
 
+    const mine = !format.includes("random");
+    const lastRandom = useRef("gen9randombattle");
+    const lastOwn = useRef("gen9ou");
+    if (mine) lastOwn.current = format;
+    else lastRandom.current = format;
+
+    // "Battle with this team" in the Team tab starts right away.
+    const startRef = useRef(null);
+    startRef.current = start;
+    useEffect(() => {
+        if (startSignal) startRef.current();
+    }, [startSignal]);
+
     function start() {
-        const needsTeam = !format.includes("random");
+        const needsTeam = mine;
         if (needsTeam && !team.length) {
-            setError("Build or paste a team in the Team tab first, or pick a Random Battle.");
-            return;
-        }
-        const moveless = needsTeam && team.find((s) => !s.moves || !s.moves.length);
-        if (moveless) {
-            setError(`${moveless.name || moveless.species} needs at least one move. Add one in the Team tab.`);
+            setError("You don't have a team yet. Build or paste one in the Team tab, or pick Random team.");
             return;
         }
         queue.current = [];
@@ -411,21 +419,20 @@ export default function BattleTab({ team, format, setFormat }) {
     return (
         <div className="pk-battle">
             <div className="pk-toolbar">
+                <div className="toy-buttons" role="group" aria-label="Team">
+                    <button type="button" className={"toy-tool" + (!mine ? " is-on" : "")} onClick={() => mine && setFormat(lastRandom.current)}>
+                        Random team
+                    </button>
+                    <button type="button" className={"toy-tool" + (mine ? " is-on" : "")} onClick={() => !mine && setFormat(lastOwn.current)}>
+                        My team{team.length ? ` (${team.length})` : ""}
+                    </button>
+                </div>
                 <select className="pk-select" value={format} onChange={(e) => setFormat(e.target.value)} aria-label="Format">
-                    <optgroup label="Random">
-                        {RANDOM_FORMATS.map((f) => (
-                            <option key={f.value} value={f.value}>
-                                {f.label}
-                            </option>
-                        ))}
-                    </optgroup>
-                    <optgroup label="Bring your own">
-                        {TEAM_FORMATS.map((f) => (
-                            <option key={f.value} value={f.value}>
-                                {f.label}
-                            </option>
-                        ))}
-                    </optgroup>
+                    {(mine ? TEAM_FORMATS : RANDOM_FORMATS).map((f) => (
+                        <option key={f.value} value={f.value}>
+                            {f.label.replace("Your team · ", "")}
+                        </option>
+                    ))}
                 </select>
                 <button type="button" className="btn btn-primary btn-sm" onClick={start}>
                     {started ? "New battle" : "Start battle"}
@@ -453,6 +460,18 @@ export default function BattleTab({ team, format, setFormat }) {
                 </div>
             </div>
 
+            {mine && (
+                <div className="pk-myteam">
+                    {team.length ? (
+                        team.map((s, i) => <span key={i} className="pk-icon" title={s.name || s.species} style={icon(s.species)} />)
+                    ) : (
+                        <span className="label">No team yet.</span>
+                    )}
+                    <button type="button" className="btn btn-outline btn-sm" onClick={onEditTeam}>
+                        {team.length ? "Edit team" : "Build a team"}
+                    </button>
+                </div>
+            )}
             <div className="pk-arena">
                 <div className="pk-stage">
                     <Field snap={snap} fx={fx} style={style} />
