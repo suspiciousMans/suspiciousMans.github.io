@@ -83,7 +83,7 @@ export default function Gooba() {
 
             <section className="section-flush">
                 <div className="wrap">
-                    <div className="tool-shell">
+                    <div className="tool-shell tool-shell-themed">
                         <iframe
                             ref={frameRef}
                             className="tool-frame"
