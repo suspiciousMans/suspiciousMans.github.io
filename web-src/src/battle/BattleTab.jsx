@@ -385,6 +385,11 @@ export default function BattleTab({ team, format, setFormat }) {
             setError("Build or paste a team in the Team tab first, or pick a Random Battle.");
             return;
         }
+        const moveless = needsTeam && team.find((s) => !s.moves || !s.moves.length);
+        if (moveless) {
+            setError(`${moveless.name || moveless.species} needs at least one move. Add one in the Team tab.`);
+            return;
+        }
         queue.current = [];
         setLog([]);
         setSnap(EMPTY_SNAP);

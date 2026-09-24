@@ -22,9 +22,6 @@ const ops = {
     random({ format }) {
         return randomPaste(format);
     },
-    parse({ text }) {
-        return importTeam(text);
-    },
     validate({ format, text }) {
         const sets = importTeam(text);
         if (!sets.length) return ["Paste a team first."];
