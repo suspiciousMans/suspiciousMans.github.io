@@ -14,6 +14,30 @@
 
 const features = [
     {
+        slug: "ox-life",
+        name: "Write Your Own Life",
+        blurb: "Cellular automata whose rules you write in Oxidized. Start from Conway's Life and change what makes a cell live or die.",
+        tags: ["Oxidized", "Automata", "Code"],
+        status: "live",
+        load: () => import("@/features/ox-life/index.jsx"),
+    },
+    {
+        slug: "ox-1d",
+        name: "1D Automata",
+        blurb: "Rule 30, Rule 110 and friends, written in Oxidized. Each row is born from the one above; edit the rule and watch it redraw.",
+        tags: ["Oxidized", "Automata", "Code"],
+        status: "live",
+        load: () => import("@/features/ox-1d/index.jsx"),
+    },
+    {
+        slug: "ox-shader",
+        name: "Draw With Math",
+        blurb: "A tiny shader in Oxidized: one function says how bright each cell is, frame by frame, and the site dithers the result.",
+        tags: ["Oxidized", "Pixels", "Code"],
+        status: "live",
+        load: () => import("@/features/ox-shader/index.jsx"),
+    },
+    {
         slug: "sequencer",
         name: "Sequencer",
         blurb: "A sixteen-step beat maker with a tiny synth. Tap in notes and drums, pick a scale, add swing and echo.",
