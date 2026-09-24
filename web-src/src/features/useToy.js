@@ -7,6 +7,8 @@ import { useEffect, useRef } from "react";
 //   resize(w, h)      canvas size in toy units (px, or cells when `cell` is set)
 //   frame(t, dt)      advance and draw; t and dt in seconds
 //   down(p) move(p) up(p)   pointer in toy units: { x, y, down, button, shift }
+//   running()         true while the toy is playing on its own; keeps the
+//                     loop going under reduced motion (toys start paused there)
 // env: { canvas, ctx, ink(), reduced, wake() }. ink() is the theme's --fg as
 // "r, g, b", read fresh so a theme switch shows up on the next frame.
 //
@@ -71,7 +73,7 @@ export default function useToy(create, { cell = 0 } = {}) {
             const dt = last ? Math.min(t - last, 1 / 20) : 1 / 60;
             last = t;
             if (sized) toy.frame?.(t, dt);
-            if (reduced && !pointer.down && ts > awakeUntil) {
+            if (reduced && !pointer.down && ts > awakeUntil && !toy.running?.()) {
                 raf = 0;
                 last = 0;
                 return;
