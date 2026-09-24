@@ -6,6 +6,11 @@ import Title from "../components/Title.jsx";
 // any rAF loops — the moment the element leaves the DOM, so there's no
 // leak risk in letting it mount/unmount with navigation like any other
 // route.
+// Bump whenever anything under /gooba/ changes. GitHub Pages lets browsers
+// reuse a file for 10 minutes and a hard refresh doesn't always reach into
+// the frame, so a new URL is what makes returning visitors load the update.
+const GOOBA_VERSION = "2";
+
 export default function Gooba() {
     const frameRef = useRef(null);
     const [ready, setReady] = useState(false);
@@ -87,7 +92,7 @@ export default function Gooba() {
                         <iframe
                             ref={frameRef}
                             className="tool-frame"
-                            src="/gooba/index.html"
+                            src={"/gooba/index.html?v=" + GOOBA_VERSION}
                             title="Gooba — retro image dithering studio"
                             style={{ opacity: ready ? 1 : 0, transition: "opacity 0.3s ease" }}
                         ></iframe>
