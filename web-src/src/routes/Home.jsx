@@ -43,7 +43,8 @@ export default function Home() {
     useThemeVersion();
     const img = artUrl;
     const rest = projects.filter((p) => !FEATURED_NAMES.has(p.name));
-    const lab = features[0];
+    // The home card needs art, so feature the newest experiment that has some.
+    const lab = features.find((f) => LAB_ART[f.slug]) || features[0];
 
     return (
         <div className="home">
