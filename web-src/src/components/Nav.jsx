@@ -9,6 +9,7 @@ const LINKS = [
     { to: "/hex-colony.html", label: "Hex Colony" },
     { to: "/autocode.html", label: "AutoCode" },
     { to: "/gooba.html", label: "Gooba" },
+    { to: "/battle.html", label: "Battle" },
     { to: "/about.html", label: "About" },
 ];
 
