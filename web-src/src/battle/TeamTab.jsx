@@ -5,6 +5,7 @@ import { icon, itemIcon, sprite } from "./look.js";
 import { TypeChip } from "./bits.jsx";
 import { RANDOM_FORMATS, TEAM_FORMATS } from "./BattleTab.jsx";
 import { SpeciesPicker, ItemPicker, MovePicker } from "./Picker.jsx";
+import { randomMoves } from "./movegen.js";
 import { dex, MOVES, TYPES, NATURES, STAT_IDS, STAT_NAMES, learnable, calcStat } from "./dexdata.js";
 
 const ZERO = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
@@ -49,6 +50,12 @@ function exportSets(sets) {
 function natureLabel(n) {
     if (!n.plus) return `${n.name} (neutral)`;
     return `${n.name} (+${STAT_NAMES[n.plus]}, −${STAT_NAMES[n.minus]})`;
+}
+
+// Four random moves this Pokémon can learn.
+async function rollMoves(species) {
+    const sp = dex.species.get(species);
+    return randomMoves(await learnable(sp.name), sp.types, sp.baseStats);
 }
 
 // Abilities nobody picks on purpose (or that most formats ban).
@@ -178,7 +185,12 @@ function SetEditor({ set, update, allowAll }) {
                 </div>
             </div>
 
-            <h4 className="label pk-editor-h">Moves</h4>
+            <div className="pk-editor-h pk-editor-hrow">
+                <h4 className="label">Moves</h4>
+                <button type="button" className="btn btn-outline btn-sm" onClick={async () => update({ moves: await rollMoves(sp.name) })}>
+                    Random moves
+                </button>
+            </div>
             <div className="pk-move-slots">
                 {moveSlots.map((m, i) => {
                     const mv = m ? dex.moves.get(m) : null;
@@ -283,10 +295,10 @@ function SetEditor({ set, update, allowAll }) {
                     allowPast={allowAll}
                     current={sp.id}
                     onClose={() => setPicking(null)}
-                    onPick={(s) => {
+                    onPick={async (s) => {
                         const keep = dex.species.get(set.species).baseSpecies === s.baseSpecies;
-                        update(keep ? { species: s.name } : { species: s.name, ...defaultsFor(s.name), moves: [], item: set.item });
                         setPicking(null);
+                        update(keep ? { species: s.name } : { species: s.name, ...defaultsFor(s.name), moves: await rollMoves(s.name), item: set.item });
                     }}
                 />
             )}
@@ -524,11 +536,11 @@ export default function TeamTab({ text, setText, format, setFormat, onBattle }) 
                 <SpeciesPicker
                     allowPast={allowAll}
                     onClose={() => setAdding(false)}
-                    onPick={(s) => {
-                        const next = [...sets, { name: "", species: s.name, item: "", moves: [], level: 100, ...defaultsFor(s.name) }].slice(0, 6);
+                    onPick={async (s) => {
+                        setAdding(false);
+                        const next = [...sets, { name: "", species: s.name, item: "", moves: await rollMoves(s.name), level: 100, ...defaultsFor(s.name) }].slice(0, 6);
                         commit(next);
                         setSel(next.length - 1);
-                        setAdding(false);
                     }}
                 />
             )}

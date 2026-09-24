@@ -398,11 +398,6 @@ export default function BattleTab({ team, format, setFormat, startSignal, onEdit
             setError("You don't have a team yet. Build or paste one in the Team tab, or pick Random team.");
             return;
         }
-        const moveless = needsTeam && team.find((s) => !s.moves || !s.moves.length);
-        if (moveless) {
-            setError(`${moveless.name || moveless.species} needs at least one move. Add one in the Team tab.`);
-            return;
-        }
         queue.current = [];
         setLog([]);
         setSnap(EMPTY_SNAP);

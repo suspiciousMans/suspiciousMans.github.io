@@ -10,6 +10,7 @@ import { Battle as ClientBattle } from "@pkmn/client";
 import { Protocol } from "@pkmn/protocol";
 import { LogFormatter } from "@pkmn/view";
 import { chooseFor } from "./ai.js";
+import { randomMoves } from "./movegen.js";
 
 Teams.setGeneratorFactory(TeamGenerators);
 // The sim's own Dex satisfies @pkmn/data, so the worker ships one copy of the data.
@@ -115,13 +116,20 @@ export function exportTeam(sets) {
     return Teams.export(sets);
 }
 
+export function movesFor(species, dex, format = "") {
+    const sp = dex.species.get(species);
+    const ids = [...dex.species.getMovePool(sp.id, format.includes("nationaldex"))];
+    return randomMoves(ids.map((id) => dex.moves.get(id)), sp.types, sp.baseStats);
+}
+
 export function createBattle({ format, team, emit }) {
     const simFormat = SimDex.formats.get(format);
     const random = !!simFormat.team;
     const gen = simFormat.gen || 9;
     const dex = SimDex.forGen(gen);
 
-    let p1Team = team;
+    // Anyone brought without moves gets four picked from its learnset.
+    let p1Team = team && team.map((set) => (set.moves && set.moves.some(Boolean) ? set : { ...set, moves: movesFor(set.species, dex, format) }));
     let p2Team;
     if (random) {
         p1Team = randomTeam(format);
