@@ -1,15 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Dex } from "@pkmn/dex";
+import { dex, SPECIES, MOVES, ITEMS, ABILITIES, TYPES, learnable } from "./dexdata.js";
 import { sprite, icon, itemIcon } from "./look.js";
 import { TypeChip, StatBars } from "./bits.jsx";
-
-const dex = Dex.forGen(9);
-const shown = (x) => x.exists && (!x.isNonstandard || x.isNonstandard === "Past");
-const SPECIES = dex.species.all().filter((s) => shown(s) && s.num > 0);
-const MOVES = dex.moves.all().filter((m) => shown(m) && !m.isMax && !m.isZ);
-const ITEMS = dex.items.all().filter(shown);
-const ABILITIES = dex.abilities.all().filter((a) => shown(a) && a.num > 0);
-const TYPES = dex.types.all().filter((t) => t.exists && t.name !== "Stellar").map((t) => t.name);
 
 const KINDS = [
     { id: "pokemon", label: "Pokémon" },
@@ -44,19 +36,7 @@ function SpeciesDetail({ s, onPick }) {
     useEffect(() => {
         let live = true;
         setMoves(null);
-        const load = async (sp) => {
-            const found = new Set();
-            // Formes inherit most moves from the base species and pre-evolutions.
-            for (let cur = sp; cur; cur = cur.prevo ? dex.species.get(cur.prevo) : null) {
-                for (const id of [cur.id, cur.changesFrom && dex.species.get(cur.changesFrom).id, dex.species.get(cur.baseSpecies).id]) {
-                    if (!id) continue;
-                    const ls = await dex.learnsets.get(id);
-                    Object.keys(ls?.learnset || {}).forEach((k) => found.add(k));
-                }
-            }
-            return [...found].map((id) => dex.moves.get(id)).filter(shown).sort((a, b) => a.name.localeCompare(b.name));
-        };
-        load(s).then((m) => live && setMoves(m));
+        learnable(s.name).then((m) => live && setMoves(m));
         return () => {
             live = false;
         };

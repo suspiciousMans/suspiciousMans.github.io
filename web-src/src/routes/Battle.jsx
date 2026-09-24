@@ -1,11 +1,11 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { Team } from "@pkmn/sets";
 import Title from "../components/Title.jsx";
 import BattleTab from "../battle/BattleTab.jsx";
-import TeamTab from "../battle/TeamTab.jsx";
-import { call } from "../battle/client.js";
 import "../battle/battle.css";
 
-// The Pokédex and calc carry their own data sets, so they load on first open.
+// The builder, Pokédex and calc carry their own data sets, so they load on first open.
+const TeamTab = lazy(() => import("../battle/TeamTab.jsx"));
 const DexTab = lazy(() => import("../battle/DexTab.jsx"));
 const CalcTab = lazy(() => import("../battle/CalcTab.jsx"));
 
@@ -28,7 +28,13 @@ export default function Battle() {
     const [tab, setTab] = useState("battle");
     const [format, setFormat] = useState(() => stored("pk-format", "gen9randombattle"));
     const [text, setText] = useState(() => stored("pk-team", ""));
-    const [team, setTeam] = useState([]);
+    const team = useMemo(() => {
+        try {
+            return (Team.import(text)?.team || []).filter((p) => p.species);
+        } catch (e) {
+            return [];
+        }
+    }, [text]);
 
     useEffect(() => {
         try {
@@ -36,20 +42,6 @@ export default function Battle() {
             localStorage.setItem("pk-format", format);
         } catch (e) {}
     }, [text, format]);
-
-    // Parse the paste in the engine worker (it has Showdown's importer).
-    useEffect(() => {
-        let live = true;
-        const t = setTimeout(() => {
-            call("parse", { text })
-                .then((sets) => live && setTeam(sets || []))
-                .catch(() => live && setTeam([]));
-        }, 250);
-        return () => {
-            live = false;
-            clearTimeout(t);
-        };
-    }, [text]);
 
     return (
         <>
@@ -76,8 +68,8 @@ export default function Battle() {
                         <div hidden={tab !== "battle"}>
                             <BattleTab team={team} format={format} setFormat={setFormat} />
                         </div>
-                        {tab === "team" && <TeamTab text={text} setText={setText} team={team} format={format} setFormat={setFormat} onBattle={() => setTab("battle")} />}
                         <Suspense fallback={<p className="label pk-loading">Loading…</p>}>
+                            {tab === "team" && <TeamTab text={text} setText={setText} format={format} setFormat={setFormat} onBattle={() => setTab("battle")} />}
                             {tab === "dex" && <DexTab />}
                             {tab === "calc" && <CalcTab team={team} />}
                         </Suspense>
