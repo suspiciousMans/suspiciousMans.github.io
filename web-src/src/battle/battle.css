@@ -1652,3 +1652,15 @@
         flex-basis: 100%;
     }
 }
+
+.pk-myteam {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    margin: -4px 0 12px;
+}
+
+.pk-myteam .btn {
+    margin-left: 10px;
+}
