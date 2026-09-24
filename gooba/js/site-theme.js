@@ -21,7 +21,7 @@
         "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Silkscreen&display=swap";
     const css = document.createElement("link");
     css.rel = "stylesheet";
-    css.href = "css/site.css";
+    css.href = "css/site.css?v=2";
     document.head.append(fonts, css);
 
     const TOKENS = ["bg", "bg-deep", "bg-deeper", "fg", "fg-rgb", "fg-dim", "fg-faint", "line", "line-strong", "head"];
