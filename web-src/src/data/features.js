@@ -14,6 +14,38 @@
 
 const features = [
     {
+        slug: "gravity",
+        name: "Gravity",
+        blurb: "An n-body sandbox. Launch planets into orbit, watch binaries dance and let bodies collide and merge.",
+        tags: ["Physics", "Sim", "In depth"],
+        status: "live",
+        load: () => import("@/features/gravity/index.jsx"),
+    },
+    {
+        slug: "fluid",
+        name: "Fluid",
+        blurb: "A real fluid solver you stir with your cursor, with dials for viscosity, swirl and how long the dye lasts.",
+        tags: ["Physics", "Sim", "In depth"],
+        status: "live",
+        load: () => import("@/features/fluid/index.jsx"),
+    },
+    {
+        slug: "reaction-diffusion",
+        name: "Reaction Diffusion",
+        blurb: "Two chemicals, two numbers. Tune feed and kill to grow coral, dividing cells, fingerprints or worms.",
+        tags: ["Pixels", "Sim", "In depth"],
+        status: "live",
+        load: () => import("@/features/reaction-diffusion/index.jsx"),
+    },
+    {
+        slug: "life-lab",
+        name: "Life Lab",
+        blurb: "Conway's Life and seven other rule sets, with gliders, guns and spaceships to stamp down and a step button.",
+        tags: ["Pixels", "Automata", "In depth"],
+        status: "live",
+        load: () => import("@/features/life-lab/index.jsx"),
+    },
+    {
         slug: "falling-sand",
         name: "Falling Sand",
         blurb: "Pour grains that pile up, slide down slopes and spill over the walls you draw.",
