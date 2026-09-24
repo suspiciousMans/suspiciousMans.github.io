@@ -12,6 +12,8 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
+  // The battle engine worker code-splits, which needs ES module workers.
+  worker: { format: "es" },
   build: {
     outDir: "dist",
     assetsDir: "app",

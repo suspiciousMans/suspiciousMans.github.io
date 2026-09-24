@@ -29,6 +29,7 @@ const About = lazyRoute("/about.html", () => import("./routes/About.jsx"));
 const AutoCode = lazyRoute("/autocode.html", () => import("./routes/AutoCode.jsx"));
 const Gooba = lazyRoute("/gooba.html", () => import("./routes/Gooba.jsx"));
 const Logistica = lazyRoute("/logistica.html", () => import("./routes/Logistica.jsx"));
+const Battle = lazyRoute("/battle.html", () => import("./routes/Battle.jsx"));
 const Lab = lazyRoute("/lab.html", () => import("./routes/Lab.jsx"));
 const LabFeature = lazyRoute("/lab/", () => import("./routes/LabFeature.jsx"));
 
@@ -176,6 +177,20 @@ export default function App() {
                   noindex
                 />
                 <Logistica />
+              </>
+            }
+          />
+          <Route
+            path="/battle.html"
+            element={
+              <>
+                <PageMeta
+                  title="Battle sim — suspiciousMans"
+                  description="Pokémon battles against the computer on Pokémon Showdown's own simulator, with a team builder, Pokédex and damage calculator."
+                  path="/battle.html"
+                  image="/assets/img/og-default.png"
+                />
+                <Battle />
               </>
             }
           />
