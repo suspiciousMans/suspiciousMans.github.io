@@ -17,11 +17,11 @@ const projects = [
         name: "Dreamscape",
         image: "dreamscape-preview.jpg",
         imageAlt: "Dreamscape screenshot of the Mycelium Grove dream",
-        tags: ["Rust", "SDL2", "OpenGL"],
+        tags: ["Rust", "WebAssembly", "OpenGL"],
         description:
-            "A PS2-style dream-escape roguelike on my own Rust engine. Sink through procedurally generated dreams, take an upgrade after each one, and collect lucidity shards to wake up.",
+            "A PS2-style dream-escape roguelike on my own Rust engine, playable in the browser via WebAssembly. Sink through procedurally generated dreams, take an upgrade after each one, and collect lucidity shards to wake up.",
         links: [
-            { label: "See it", href: "/dreamscape.html" },
+            { label: "Play in browser", href: "/dreamscape.html" },
             { label: "Source", href: "https://github.com/suspiciousMans/dreamscape", external: true },
         ],
     },

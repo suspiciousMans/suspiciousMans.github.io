@@ -187,7 +187,7 @@ export default function App() {
               <>
                 <PageMeta
                   title="Dreamscape — suspiciousMans"
-                  description="Dreamscape: a PS2-style dream-escape roguelike in Rust. Sink through procedurally generated dreams, pick upgrades, and try to wake up."
+                  description="Play Dreamscape, a PS2-style dream-escape roguelike in Rust, in your browser. Sink through procedurally generated dreams, pick upgrades, and try to wake up."
                   path="/dreamscape.html"
                   image="/assets/img/dreamscape-preview.jpg"
                 />
