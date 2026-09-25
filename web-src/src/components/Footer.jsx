@@ -6,6 +6,7 @@ const COLUMNS = [
         links: [
             { to: "/hex-colony.html", label: "Hex Colony" },
             { to: "/autocode.html", label: "AutoCode" },
+            { to: "/dreamscape.html", label: "Dreamscape" },
             { to: "/gooba.html", label: "Gooba" },
             { to: "/lab.html", label: "Lab" },
         ],
