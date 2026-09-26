@@ -7,7 +7,7 @@ const REPO = "https://github.com/suspiciousMans/dreamscape";
 // /dreamscape/ is the game's Emscripten (WebAssembly + WebGL2) build, copied
 // from the dreamscape repo's games/dreamscape/web output. Bump this whenever
 // those files change, or browsers keep the cached frame.
-const DREAMSCAPE_VERSION = "1";
+const DREAMSCAPE_VERSION = "2";
 
 // The gallery shots come from the repo's own
 // games/dreamscape/tools/screenshots.sh.
@@ -120,7 +120,7 @@ export default function Dreamscape() {
 
             <section className="section-tight">
                 <div className="wrap">
-                    <span className="label eyebrow">Fourteen dream types</span>
+                    <span className="label eyebrow">Some of the dreams</span>
                     <div className="dream-grid">
                         {DREAMS.map((d) => (
                             <figure key={d.slug} className="dream-shot reveal" data-reveal>
@@ -143,6 +143,7 @@ export default function Dreamscape() {
                             <li>No hand-built levels: every dream has its own layout rules, props, palette and music.</li>
                             <li>Three random upgrades after every dream, with rare abilities, curses and combos.</li>
                             <li>Special enemies from depth 3: stalkers, mimics, sentries, drifters and jesters.</li>
+                            <li>First-person dreams, and nightmare bosses that get harder the deeper you go.</li>
                             <li>Today's dream (one shared seed a day), ten ascension levels and a codex.</li>
                             <li>Every sound effect is synthesized in code.</li>
                         </ul>
