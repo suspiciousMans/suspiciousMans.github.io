@@ -8,6 +8,7 @@ const LINKS = [
     { to: "/lab.html", label: "Lab" },
     { to: "/hex-colony.html", label: "Hex Colony" },
     { to: "/autocode.html", label: "AutoCode" },
+    { to: "/dreamscape.html", label: "Dreamscape" },
     { to: "/gooba.html", label: "Gooba" },
     { to: "/battle.html", label: "Battle" },
     { to: "/about.html", label: "About" },

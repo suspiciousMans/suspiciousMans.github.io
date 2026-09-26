@@ -29,6 +29,7 @@ const About = lazyRoute("/about.html", () => import("./routes/About.jsx"));
 const AutoCode = lazyRoute("/autocode.html", () => import("./routes/AutoCode.jsx"));
 const Gooba = lazyRoute("/gooba.html", () => import("./routes/Gooba.jsx"));
 const Logistica = lazyRoute("/logistica.html", () => import("./routes/Logistica.jsx"));
+const Dreamscape = lazyRoute("/dreamscape.html", () => import("./routes/Dreamscape.jsx"));
 const Battle = lazyRoute("/battle.html", () => import("./routes/Battle.jsx"));
 const Lab = lazyRoute("/lab.html", () => import("./routes/Lab.jsx"));
 const LabFeature = lazyRoute("/lab/", () => import("./routes/LabFeature.jsx"));
@@ -177,6 +178,20 @@ export default function App() {
                   noindex
                 />
                 <Logistica />
+              </>
+            }
+          />
+          <Route
+            path="/dreamscape.html"
+            element={
+              <>
+                <PageMeta
+                  title="Dreamscape — suspiciousMans"
+                  description="Play Dreamscape, a PS2-style dream-escape roguelike in Rust, in your browser. Sink through procedurally generated dreams, pick upgrades, and try to wake up."
+                  path="/dreamscape.html"
+                  image="/assets/img/dreamscape-preview.jpg"
+                />
+                <Dreamscape />
               </>
             }
           />
