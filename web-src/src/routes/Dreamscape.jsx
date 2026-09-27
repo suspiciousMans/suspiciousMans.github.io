@@ -11,9 +11,25 @@ const DREAMSCAPE_VERSION = "2";
 
 // The gallery shots come from the repo's own
 // games/dreamscape/tools/screenshots.sh.
+const NEW_DREAMS = [
+    { slug: "melting-clockworks", name: "Melting Clockworks", note: "First person. Every few seconds the dream rewinds and the enemies go back to their posts." },
+    { slug: "watching-wallpaper", name: "The Watching Wallpaper", note: "First person. Eyes in the walls turn to look at the shard." },
+    { slug: "jellyfish-sky", name: "Jellyfish Sky", note: "Half gravity. Every jump floats." },
+    { slug: "synesthesia-hall", name: "Synesthesia Hall", note: "Floor tiles burn on the downbeat. Cross on the off-beat." },
+    { slug: "afterimage-fields", name: "Afterimage Fields", note: "Ghosts of you trail behind as you move." },
+    { slug: "white-dissolve", name: "White Dissolve", note: "The way behind you dissolves while you move and comes back when you stand still." },
+];
+
+// Every fifth dream is a nightmare; each tier's hunter adds an attack.
+const BOSSES = [
+    { slug: "nightmare-quake", name: "The Quake", note: "Slams out a shockwave ring. Jump it." },
+    { slug: "nightmare-swarm", name: "The Swarm Mother", note: "Adds wisps that drift after you. Outwalk them." },
+    { slug: "nightmare-eclipse", name: "The Eclipse", note: "Adds a blackout, and a fourth sigil to find. Wait out the dark." },
+];
+
 const DREAMS = [
     { slug: "mycelium-grove", name: "Mycelium Grove", note: "Root bridges over the void; glowing veins lead to the shard." },
-    { slug: "the-tunnel", name: "The Tunnel", note: "One long corridor toward a white light, gates opening in a wave." },
+    { slug: "the-tunnel", name: "The Tunnel", note: "First person. One corridor toward a white light, gates opening in a wave." },
     { slug: "fractal-cathedral", name: "Fractal Cathedral", note: "Square rooms nested inside each other." },
     { slug: "elfworks", name: "Elfworks", note: "A jewelled toy workshop full of jesters." },
     { slug: "liminal-office", name: "Liminal Office", note: "Endless yellow halls. Stalkers only move when you can't see them." },
@@ -28,12 +44,35 @@ const DREAMS = [
 
 const CONTROLS = [
     ["WASD", "move"],
+    ["Mouse / arrows", "look (first-person dreams)"],
     ["Space", "jump"],
     ["Shift / E", "ability slot 1 / 2"],
     ["1 / 2 / 3", "pick an upgrade"],
     ["Esc", "pause"],
     ["L / B", "Lucid Store / dream booklet"],
+    ["Controller", "supported, with button prompts on every screen"],
 ];
+
+function Gallery({ label, items }) {
+    return (
+        <section className="section-tight">
+            <div className="wrap">
+                <span className="label eyebrow">{label}</span>
+                <div className="dream-grid">
+                    {items.map((d) => (
+                        <figure key={d.slug} className="dream-shot reveal" data-reveal>
+                            <img src={`/assets/img/dreamscape/${d.slug}.jpg`} alt={`Dreamscape: ${d.name}`} loading="lazy" />
+                            <figcaption>
+                                <strong>{d.name}</strong>
+                                <span>{d.note}</span>
+                            </figcaption>
+                        </figure>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
 
 export default function Dreamscape() {
     const revealRef = useScrollReveal();
@@ -118,22 +157,9 @@ export default function Dreamscape() {
                 </div>
             </section>
 
-            <section className="section-tight">
-                <div className="wrap">
-                    <span className="label eyebrow">Some of the dreams</span>
-                    <div className="dream-grid">
-                        {DREAMS.map((d) => (
-                            <figure key={d.slug} className="dream-shot reveal" data-reveal>
-                                <img src={`/assets/img/dreamscape/${d.slug}.jpg`} alt={`Dreamscape: ${d.name}`} loading="lazy" />
-                                <figcaption>
-                                    <strong>{d.name}</strong>
-                                    <span>{d.note}</span>
-                                </figcaption>
-                            </figure>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            <Gallery label="New: six trip dreams" items={NEW_DREAMS} />
+            <Gallery label="Nightmare bosses" items={BOSSES} />
+            <Gallery label="More dreams" items={DREAMS} />
 
             <section className="section-tight">
                 <div className="wrap dream-info">
@@ -143,7 +169,9 @@ export default function Dreamscape() {
                             <li>No hand-built levels: every dream has its own layout rules, props, palette and music.</li>
                             <li>Three random upgrades after every dream, with rare abilities, curses and combos.</li>
                             <li>Special enemies from depth 3: stalkers, mimics, sentries, drifters and jesters.</li>
-                            <li>First-person dreams, and nightmare bosses that get harder the deeper you go.</li>
+                            <li>First-person dreams you see through your own eyes, with mouse look.</li>
+                            <li>Nightmare bosses every fifth dream, with a new attack each tier.</li>
+                            <li>Detailed maps: skirting, posts, inlays, ceilings and vistas in every dream.</li>
                             <li>Today's dream (one shared seed a day), ten ascension levels and a codex.</li>
                             <li>Every sound effect is synthesized in code.</li>
                         </ul>
