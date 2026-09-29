@@ -7,7 +7,7 @@ const REPO = "https://github.com/suspiciousMans/dreamscape";
 // /dreamscape/ is the game's Emscripten (WebAssembly + WebGL2) build, copied
 // from the dreamscape repo's games/dreamscape/web output. Bump this whenever
 // those files change, or browsers keep the cached frame.
-const DREAMSCAPE_VERSION = "2";
+const DREAMSCAPE_VERSION = "3";
 
 // The gallery shots come from the repo's own
 // games/dreamscape/tools/screenshots.sh.
@@ -114,7 +114,9 @@ export default function Dreamscape() {
                     <p className="lede">
                         A PS2-style dream-escape roguelike built on my own Rust engine. You fall asleep and sink through
                         an endless run of procedurally generated dreams, picking up an upgrade after each one. Collect
-                        lucidity shards to wake up, or refuse the wake door and go deeper.
+                        lucidity shards to wake up, or refuse the wake door and go deeper. The dreams you remember
+                        become trading cards. Build a loadout from them before each run, merge them into stronger cards,
+                        and find the notes other dreamers left behind.
                     </p>
                 </div>
             </section>
@@ -167,13 +169,18 @@ export default function Dreamscape() {
                         <span className="label eyebrow">What's in it</span>
                         <ul>
                             <li>No hand-built levels: every dream has its own layout rules, props, palette and music.</li>
-                            <li>Three random upgrades after every dream, with rare abilities, curses and combos.</li>
+                            <li>A guided prologue: three dreams that teach the basics and end in your first wake.</li>
+                            <li>Three random upgrades after every dream, with curses and combos.</li>
+                            <li>Dream cards with powers. Your loadout decides your abilities, and cards merge into Fused and Resonant ones.</li>
+                            <li>A story: procedural dreamers, notes hidden in dreams, companions with a boon and a burden, and an ending.</li>
                             <li>Special enemies from depth 3: stalkers, mimics, sentries, drifters and jesters.</li>
                             <li>First-person dreams you see through your own eyes, with mouse look.</li>
                             <li>Nightmare bosses every fifth dream, with a new attack each tier.</li>
                             <li>Detailed maps: skirting, posts, inlays, ceilings and vistas in every dream.</li>
                             <li>Today's dream (one shared seed a day), ten ascension levels and a codex.</li>
-                            <li>Every sound effect is synthesized in code.</li>
+                            <li>29 achievements.</li>
+                            <li>Every sound effect and every dream's music is generated in code.</li>
+                            <li>Co-op for up to five dreamers (native builds only).</li>
                         </ul>
                     </div>
                     <div className="reveal" data-reveal>
