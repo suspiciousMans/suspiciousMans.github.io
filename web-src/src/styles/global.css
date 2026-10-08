@@ -2956,6 +2956,10 @@ a {
     gap: 48px;
 }
 
+.dream-info > * {
+    min-width: 0;
+}
+
 .dream-info ul {
     margin: 16px 0 0;
     padding-left: 18px;
