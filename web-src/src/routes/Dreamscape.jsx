@@ -7,7 +7,7 @@ const REPO = "https://github.com/suspiciousMans/dreamscape";
 // /dreamscape/ is the game's Emscripten (WebAssembly + WebGL2) build, copied
 // from the dreamscape repo's games/dreamscape/web output. Bump this whenever
 // those files change, or browsers keep the cached frame.
-const DREAMSCAPE_VERSION = "3";
+const DREAMSCAPE_VERSION = "4";
 
 // The gallery shots come from the repo's own
 // games/dreamscape/tools/screenshots.sh.
