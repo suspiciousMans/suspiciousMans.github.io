@@ -6,7 +6,7 @@
     <title>Oxidized — a toy language that compiles to Rust</title>
     <meta
       name="description"
-      content="Oxidized: a small toy language that transpiles to Rust. Structs, enums, pattern matching, closures and more, runnable right in the browser."
+      content="Oxidized: a small toy language that transpiles to Rust. Structs, enums, traits, nested pattern matching, closures, a Result type with ?, a small standard library and a formatter, with most of it runnable right in the browser."
     />
     <meta name="theme-color" content="#0a0705" />
     <link
@@ -48,7 +48,8 @@
             <p class="lede">
               A small toy language that transpiles its own <code>.ox</code> syntax into Rust and builds it with
               <code>rustc</code>. Dynamic by default, statically typed when you ask, with structs, enums, pattern
-              matching and closures.
+              matching and closures, plus traits, operator overloading, tuples, <code>?</code> error propagation and a
+              standard library for files, JSON and text.
             </p>
             <div class="ox-actions">
               <a class="btn btn-primary" href="#playground">Try it here <span aria-hidden="true">&#8595;</span></a>
@@ -71,7 +72,7 @@ fn main() {
     let c = Counter(n: 0)
     c.inc()
     c.inc()
-    print("rusted", c.n, "times")
+    print("rusted {c.n} times")
 }</pre>
             <div class="pixel-window" aria-hidden="true">
               <div class="pixel-window-bar"><span>oxidized run</span><span>x</span></div>
@@ -94,22 +95,32 @@ fn main() {
             <div class="ox-row rv-rise">
               <span class="label ox-row-num">#01</span>
               <h3 class="ox-row-name">Compiles to Rust</h3>
-              <p>A hand-rolled lexer, recursive-descent parser and checker turn <code>.ox</code> into Rust source, and <code>rustc</code> does the rest. Add <code>--wasm</code> and it targets WebAssembly instead.</p>
+              <p>A hand-rolled lexer, recursive-descent parser and checker turn <code>.ox</code> into Rust source, and <code>rustc</code> does the rest. Add <code>--wasm</code> and it targets WebAssembly instead. The generated Rust compiles warning-free for every example.</p>
             </div>
             <div class="ox-row rv-rise">
               <span class="label ox-row-num">#02</span>
               <h3 class="ox-row-name">Dynamic until you pin it</h3>
-              <p>Values are dynamic by default. Annotate a variable, parameter or return as <code>i32</code>, <code>Int</code>, <code>Float</code> or <code>String</code> and it becomes a real Rust type, converted at the boundary.</p>
+              <p>Values are dynamic by default. Annotate a variable, parameter or return as <code>i32</code>, <code>Int</code>, <code>Float</code> or <code>String</code> and it becomes a real Rust type, converted at the boundary. The checker now catches far more mistakes before <code>rustc</code> runs.</p>
             </div>
             <div class="ox-row rv-rise">
               <span class="label ox-row-num">#03</span>
-              <h3 class="ox-row-name">Structs, enums, match</h3>
-              <p>Structs with <code>impl</code> methods, enums with payloads, and <code>match</code> as an expression, checked for exhaustiveness. Errors come back as a built-in <code>Result</code>.</p>
+              <h3 class="ox-row-name">Patterns that go deep</h3>
+              <p>Nested patterns, struct-style enum variants, tuple patterns and <code>if</code> guards, with exhaustiveness checked all the way down. <code>if</code> is an expression too.</p>
             </div>
             <div class="ox-row rv-rise">
               <span class="label ox-row-num">#04</span>
-              <h3 class="ox-row-name">Closures that remember</h3>
-              <p><code>fn(x) { ... }</code> lambdas capture by value and keep their own state across calls, so a counter factory works the way you'd hope.</p>
+              <h3 class="ox-row-name">Traits and operators</h3>
+              <p>Traits with default methods and bounds, generic impls, and overloadable <code>+ - * /</code>, <code>==</code> and <code>&lt;</code> for your own structs.</p>
+            </div>
+            <div class="ox-row rv-rise">
+              <span class="label ox-row-num">#05</span>
+              <h3 class="ox-row-name">Errors with <code>?</code></h3>
+              <p>A built-in <code>Result</code>, a postfix <code>?</code> that returns the error early, and fallible versions of the panicking builtins. An <code>Err</code> that escapes <code>main</code> exits with status 1.</p>
+            </div>
+            <div class="ox-row rv-rise">
+              <span class="label ox-row-num">#06</span>
+              <h3 class="ox-row-name">Batteries included</h3>
+              <p>Hash-indexed maps with O(1) lookups, files, JSON, time, text helpers and a tiny HTTP client, all in plain Rust with no external crates. <code>oxidized fmt</code> formats your code.</p>
             </div>
           </div>
         </div>
@@ -125,7 +136,8 @@ fn main() {
             <p class="lede">
               Pick an example or write your own. <kbd>Ctrl/Cmd + Enter</kbd> runs it. The real compiler builds Rust;
               here a JavaScript port of its runtime runs the same programs, so type errors the checker would catch up
-              front show up when that line runs.
+              front show up when that line runs. Files are an in-memory folder, and <code>import</code>, <code>fn native</code>
+              and <code>http_get</code> need the real CLI.
             </p>
           </div>
 
@@ -168,56 +180,76 @@ fn main() {
           </div>
           <div class="ox-ref-grid">
             <div class="ox-ref-row rv-rise">
-              <code>let x = 5<br />let y: i32 = 5</code>
-              <p>Dynamic by default, or pinned with a type: <code>i32</code>, <code>i64</code>/<code>Int</code>, <code>f64</code>/<code>Float</code>, <code>bool</code>, <code>String</code>, <code>List</code>. Using <code>let</code> again on a name reassigns it, and so does <code>x = 10</code>.</p>
+              <code>let x = 5<br />let y: i32 = 5<br />x += 1</code>
+              <p>Dynamic by default, or pinned with a type: <code>i32</code>, <code>i64</code>/<code>Int</code>, <code>f64</code>/<code>Float</code>, <code>bool</code>, <code>String</code>, <code>List</code>. Using <code>let</code> again on a name reassigns it, and so do <code>x = 10</code> and <code>+= -= *= /= %=</code>.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>fn add(a: i32, b: i32) -&gt; i32 { ... }</code>
-              <p>Functions, typed or untyped, and nestable. A typed function must return on every path. Untyped ones can be passed around as values.</p>
+              <code>fn add(a: i32, b: i32) -&gt; i32 { ... }<br />const fn square(n: Int) -&gt; Int { ... }</code>
+              <p>Functions, typed or untyped, and nestable. A typed function must return on every path. Calls to a <code>const fn</code> with literal arguments are folded at compile time.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>if x &gt; 0 { } else { }<br />while x &gt; 0 { }<br />for i in range(0, 10) { }</code>
-              <p>No parentheses around conditions. <code>for</code> walks a <code>List</code>, <code>range(a, b)</code> makes one, and <code>break</code>/<code>continue</code> work in loops.</p>
+              <code>if x &gt; 0 { } else { }<br />let s = if ok { "y" } else { "n" }<br />for i in 0..10 { }</code>
+              <p>No parentheses around conditions. <code>if</code> works as an expression when it has an <code>else</code>. <code>for</code> walks a <code>List</code>, <code>a..b</code> is a range, and <code>break</code>/<code>continue</code> work in loops.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>struct Point { x: Int, y: Int }<br />Point(x: 3, y: 4)</code>
-              <p>Built with parentheses and named fields. <code>p.x = 5</code> updates a variable's field, and structs are copied when passed.</p>
+              <code>"{name} is {age + 1}"<br />"{{literal}} braces"</code>
+              <p>String interpolation: any expression in <code>{ }</code> is turned into a string. Double the braces for literal ones.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>impl Point { fn dist(self) { ... } }</code>
-              <p>Methods take <code>self</code> first. Assigning to <code>self</code>'s fields updates the caller's variable.</p>
+              <code>struct Point { x: Int, y: Int }<br />Point(x: 3, y: 4)<br />xs[i].x = 5</code>
+              <p>Built with parentheses and named fields. Assignment reaches through any path rooted at a variable: <code>o.p.x = 1</code>, <code>grid[r][c] += 1</code>. Structs are copied when passed. <code>Box&lt;T&gt;</code> lets a struct refer to itself.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>enum Shape { Circle(Int), Point }<br />match s { Circle(r) =&gt; r, _ =&gt; 0 }</code>
-              <p>Variants are built as <code>Shape::Circle(5)</code>, always with parentheses. <code>match</code> is an expression over variants, literals, a catch-all name or <code>_</code>, and must cover every variant.</p>
+              <code>impl Point { fn dist(self) { ... } }<br />impl Cell&lt;T&gt; { ... }</code>
+              <p>Methods take <code>self</code> first. Assigning to <code>self</code>'s fields updates the caller's variable. Impl blocks can be generic.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>let add = fn(a, b) { return a + b }</code>
-              <p>Lambdas capture the variables they use by value when they're created, and keep their own changes across calls.</p>
+              <code>trait Shape {<br />&nbsp;&nbsp;fn area(self) -&gt; Float<br />&nbsp;&nbsp;fn name(self) { ... }<br />}<br />impl Shape for Rect { ... }</code>
+              <p>Traits list required methods and can give defaults. <code>fn f&lt;T: Shape + Scalable&gt;</code> bounds a type parameter. Calls dispatch on the value's struct at runtime, so a list of mixed shapes just works.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>enum Ev { Click { x: Int, y: Int }, Quit }<br />Ev::Click(x: 1, y: 2)</code>
+              <p>Variants carry positional or named payloads and are built with parentheses, even <code>Ev::Quit()</code>.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>match e {<br />&nbsp;&nbsp;Ev::Click { x, y: 0 } =&gt; x,<br />&nbsp;&nbsp;n if n &lt; 0 =&gt; 0,<br />&nbsp;&nbsp;_ =&gt; { ... }<br />}</code>
+              <p><code>match</code> is an expression over variants, structs, tuples, literals and names, nested to any depth, with <code>if</code> guards and block arms. Coverage is checked when the type is known.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>let (q, r) = divmod(17, 5)<br />t.0<br />fn f() -&gt; (Int, String)</code>
+              <p>Tuples are fixed-size groups. Destructure them in a <code>let</code> or a <code>match</code>, index with <code>t.0</code>, and use them as types.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>let add = fn(a, b) { return a + b }<br />(fn(x) { x })(5)</code>
+              <p>Lambdas capture the variables they use by value when they're created, and keep their own changes across calls. They can be called immediately.</p>
             </div>
             <div class="ox-ref-row rv-rise">
               <code>3.7 as Int<br />"42" as Int</code>
               <p>Casts between <code>Int</code>, <code>Float</code>, <code>String</code> and <code>bool</code>. Int and Float don't mix in arithmetic without one.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>fn identity&lt;T&gt;(x: T) -&gt; T</code>
-              <p>Generic functions and structs, checked for consistency within a call.</p>
+              <code>impl Vec2 { fn __add__(self, o: Vec2) { ... } }</code>
+              <p>Define <code>__add__ __sub__ __mul__ __div__ __neg__</code> for arithmetic, <code>__eq__</code> for <code>==</code>, and <code>__lt__</code> for every ordering comparison, including <code>sort</code>.</p>
             </div>
             <div class="ox-ref-row rv-rise">
               <code>len push slice range<br />map_new map_set map_get map_has</code>
-              <p>Lists, strings and maps are values: <code>push</code> and <code>map_set</code> return a new one, so write <code>xs = push(xs, 4)</code>. Also <code>map_remove</code>, <code>map_keys</code>, <code>map_values</code>.</p>
+              <p>Lists, strings and maps are values: <code>push</code> and <code>map_set</code> return a new one, so write <code>xs = push(xs, 4)</code>. Maps are hash-indexed and keep insertion order, and also take index syntax: <code>m[k]</code>, <code>m[k] = v</code>, <code>m[k] += 1</code>.</p>
             </div>
             <div class="ox-ref-row rv-rise">
               <code>abs min max sqrt pow floor ceil round<br />upper lower trim split join contains replace</code>
-              <p>Math and string builtins, plus <code>starts_with</code> and <code>ends_with</code>. <code>print</code> takes any number of values and <code>assert(cond, msg)</code> panics when false.</p>
+              <p>Math and string builtins, plus <code>starts_with</code>, <code>ends_with</code>, <code>chars</code>, <code>ord</code>/<code>chr</code>, <code>index_of</code>, <code>sort</code>, <code>sort_by</code>, <code>reverse</code>, <code>sum</code> and the bit operations <code>bit_and bit_or bit_xor bit_not shl shr</code>.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>parse_int checked_div map_try_get<br />unwrap unwrap_or is_ok is_err</code>
-              <p>Functions that can fail return <code>Result::Ok(v)</code> or <code>Result::Err(msg)</code>. Everything else that goes wrong panics, including integer overflow and division by zero.</p>
+              <code>parse_int(s)?<br />checked_add try_index unwrap_or</code>
+              <p>Functions that can fail return <code>Result::Ok(v)</code> or <code>Result::Err(msg)</code>, and a postfix <code>?</code> returns the <code>Err</code> from the enclosing function. Also <code>try_slice</code>, <code>checked_sub</code>/<code>checked_mul</code>, <code>map_err</code>, <code>ok_or</code>, <code>unwrap_or_else</code>. Other failures panic, including overflow and division by zero.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>import "math.ox"<br />import "shapes.ox" as shapes</code>
-              <p>Pulls in another file's declarations, optionally under a namespace (<code>shapes::area(c)</code>). Needs real files, so it only works with the CLI.</p>
+              <code>read_file write_file list_dir env exit<br />json_parse json_pretty<br />pad_left format_float http_get</code>
+              <p>The standard library: files, environment, time (<code>now_ms</code>, <code>sleep_ms</code>), JSON to and from Maps and Lists, text helpers like <code>split_lines</code> and <code>repeat</code>, and a plain-HTTP client. All of them return a <code>Result</code> rather than panicking.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>import "math.ox"<br />import "shapes.ox" as shapes<br />fn native seed() -&gt; Int;</code>
+              <p>Imports pull in another file, optionally under a namespace (<code>shapes::area(c)</code>). <code>fn native</code> declares a function your Rust host provides. Both need the CLI.</p>
             </div>
             <div class="ox-ref-row rv-rise">
               <code># comment<br />// comment</code>
@@ -236,6 +268,7 @@ fn main() {
             <pre class="ox-cli"><code>oxidized run hello.ox           # compile with rustc and run
 oxidized build hello.ox         # write the generated hello.rs
 oxidized check hello.ox         # typecheck only
+oxidized fmt --write hello.ox   # format in place (--check for CI)
 oxidized run hello.ox --wasm    # build for wasm32-wasip1, run under Node</code></pre>
             <div class="ox-actions">
               <a class="btn btn-primary" href="https://github.com/suspiciousMans/oxidized" target="_blank" rel="noopener noreferrer">View on GitHub &#8599;</a>

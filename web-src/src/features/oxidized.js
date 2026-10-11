@@ -6,7 +6,7 @@
 // a few seconds instead of freezing the page. The toys wrap the person's
 // functions in a generated `fn main()` that calls them and prints each
 // answer on a line starting with "@", and read those lines back.
-const OX_VERSION = "1";
+const OX_VERSION = "2";
 const langUrl = () => `${location.origin}/oxidized/js/lang.js?v=${OX_VERSION}`;
 
 let loading = null;
