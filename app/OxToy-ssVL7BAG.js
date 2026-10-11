@@ -1,4 +1,4 @@
-import{r as u,j as a}from"./index-D27FkM_H.js";const g="1",h=()=>`${location.origin}/oxidized/js/lang.js?v=${g}`;let m=null;function k(){return window.Oxidized?Promise.resolve(window.Oxidized):(m||(m=new Promise((e,t)=>{const n=document.createElement("script");n.src=h(),n.onload=()=>e(window.Oxidized),n.onerror=()=>{m=null,t(new Error("couldn't load the Oxidized runtime"))},document.head.appendChild(n)})),m)}let p=null;function O(){if(!p){const e=`importScripts(${JSON.stringify(h())});
+import{r as u,j as a}from"./index-D27FkM_H.js";const g="2",h=()=>`${location.origin}/oxidized/js/lang.js?v=${g}`;let m=null;function k(){return window.Oxidized?Promise.resolve(window.Oxidized):(m||(m=new Promise((e,t)=>{const n=document.createElement("script");n.src=h(),n.onload=()=>e(window.Oxidized),n.onerror=()=>{m=null,t(new Error("couldn't load the Oxidized runtime"))},document.head.appendChild(n)})),m)}let p=null;function O(){if(!p){const e=`importScripts(${JSON.stringify(h())});
 onmessage = function (e) {
     var out = [];
     try {
