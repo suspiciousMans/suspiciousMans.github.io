@@ -6,7 +6,7 @@
     <title>Oxidized — a toy language that compiles to Rust</title>
     <meta
       name="description"
-      content="Oxidized: a small toy language that transpiles to Rust. Structs, enums, traits, nested pattern matching, closures, a Result type with ?, a small standard library and a formatter, with most of it runnable right in the browser."
+      content="Oxidized: a small toy language that transpiles to Rust. Structs, enums, traits, generics, nested pattern matching, closures, Result and Option with ?, a standard library with an HTTP server, SQLite and crypto, plus a test runner, REPL and language server, with most of it runnable right in the browser."
     />
     <meta name="theme-color" content="#0a0705" />
     <link
@@ -32,6 +32,7 @@
         <nav class="ox-links" aria-label="Page">
           <a href="#playground">Playground</a>
           <a href="#reference">Reference</a>
+          <a href="#web">Web</a>
           <a href="#cli">CLI</a>
           <a href="/">Main site</a>
           <a class="ox-links-cta" href="https://github.com/suspiciousMans/oxidized" target="_blank" rel="noopener noreferrer">GitHub &#8599;</a>
@@ -48,8 +49,9 @@
             <p class="lede">
               A small toy language that transpiles its own <code>.ox</code> syntax into Rust and builds it with
               <code>rustc</code>. Dynamic by default, statically typed when you ask, with structs, enums, pattern
-              matching and closures, plus traits, operator overloading, tuples, <code>?</code> error propagation and a
-              standard library for files, JSON and text.
+              matching and closures, plus traits, generics, <code>Result</code> and <code>Option</code> with
+              <code>?</code>, and a standard library that can serve HTTP, talk to SQLite and sign cookies. It ships its
+              own test runner, REPL and language server.
             </p>
             <div class="ox-actions">
               <a class="btn btn-primary" href="#playground">Try it here <span aria-hidden="true">&#8595;</span></a>
@@ -100,7 +102,7 @@ fn main() {
             <div class="ox-row rv-rise">
               <span class="label ox-row-num">#02</span>
               <h3 class="ox-row-name">Dynamic until you pin it</h3>
-              <p>Values are dynamic by default. Annotate a variable, parameter or return as <code>i32</code>, <code>Int</code>, <code>Float</code> or <code>String</code> and it becomes a real Rust type, converted at the boundary. The checker now catches far more mistakes before <code>rustc</code> runs.</p>
+              <p>Values are dynamic by default. Annotate a variable, parameter or return as <code>i32</code>, <code>Int</code>, <code>Float</code> or <code>String</code> and it becomes a real Rust type, converted at the boundary. A structural type pass checks generics like <code>Pair&lt;Int, String&gt;</code>, typed <code>Result</code>/<code>Option</code> and <code>?</code>, and never rejects code it can't prove wrong.</p>
             </div>
             <div class="ox-row rv-rise">
               <span class="label ox-row-num">#03</span>
@@ -115,12 +117,17 @@ fn main() {
             <div class="ox-row rv-rise">
               <span class="label ox-row-num">#05</span>
               <h3 class="ox-row-name">Errors with <code>?</code></h3>
-              <p>A built-in <code>Result</code>, a postfix <code>?</code> that returns the error early, and fallible versions of the panicking builtins. An <code>Err</code> that escapes <code>main</code> exits with status 1.</p>
+              <p>Built-in <code>Result</code> and <code>Option</code> with <code>Ok(x)</code>, <code>Err(e)</code> and <code>Some(x)</code> shorthand, a postfix <code>?</code> that returns the error early, and fallible versions of the panicking builtins. An <code>Err</code> that escapes <code>main</code> exits with status 1.</p>
             </div>
             <div class="ox-row rv-rise">
               <span class="label ox-row-num">#06</span>
               <h3 class="ox-row-name">Batteries included</h3>
-              <p>Hash-indexed maps with O(1) lookups, files, JSON, time, text helpers and a tiny HTTP client, all in plain Rust with no external crates. <code>oxidized fmt</code> formats your code.</p>
+              <p>Map literals over hash-indexed maps, files and bytes, JSON, UTC time, an HTTP client and a multi-threaded HTTP server, SQLite, SHA-256 and HMAC, all in plain Rust with no external crates.</p>
+            </div>
+            <div class="ox-row rv-rise">
+              <span class="label ox-row-num">#07</span>
+              <h3 class="ox-row-name">Tooling that's real</h3>
+              <p><code>oxidized test</code> runs your <code>fn test_*()</code> with mocks for host functions, and there's a formatter, a REPL, doc generation from <code>///</code> comments, JSON diagnostics and a language server for your editor.</p>
             </div>
           </div>
         </div>
@@ -136,8 +143,8 @@ fn main() {
             <p class="lede">
               Pick an example or write your own. <kbd>Ctrl/Cmd + Enter</kbd> runs it. The real compiler builds Rust;
               here a JavaScript port of its runtime runs the same programs, so type errors the checker would catch up
-              front show up when that line runs. Files are an in-memory folder, and <code>import</code>, <code>fn native</code>
-              and <code>http_get</code> need the real CLI.
+              front show up when that line runs. Files are an in-memory folder, and <code>import</code>, <code>fn native</code>,
+              the HTTP client and server, and SQLite need the real CLI.
             </p>
           </div>
 
@@ -200,8 +207,8 @@ fn main() {
               <p>Built with parentheses and named fields. Assignment reaches through any path rooted at a variable: <code>o.p.x = 1</code>, <code>grid[r][c] += 1</code>. Structs are copied when passed. <code>Box&lt;T&gt;</code> lets a struct refer to itself.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>impl Point { fn dist(self) { ... } }<br />impl Cell&lt;T&gt; { ... }</code>
-              <p>Methods take <code>self</code> first. Assigning to <code>self</code>'s fields updates the caller's variable. Impl blocks can be generic.</p>
+              <code>impl Point { fn dist(self) { ... } }<br />struct Pair&lt;A, B&gt; { ... }<br />let p: Pair&lt;Int, String&gt; = ...</code>
+              <p>Methods take <code>self</code> first. Assigning to <code>self</code>'s fields updates the caller's variable. Structs, impls and functions can be generic, and annotations name the instance, checked with substitution.</p>
             </div>
             <div class="ox-ref-row rv-rise">
               <code>trait Shape {<br />&nbsp;&nbsp;fn area(self) -&gt; Float<br />&nbsp;&nbsp;fn name(self) { ... }<br />}<br />impl Shape for Rect { ... }</code>
@@ -236,24 +243,62 @@ fn main() {
               <p>Lists, strings and maps are values: <code>push</code> and <code>map_set</code> return a new one, so write <code>xs = push(xs, 4)</code>. Maps are hash-indexed and keep insertion order, and also take index syntax: <code>m[k]</code>, <code>m[k] = v</code>, <code>m[k] += 1</code>.</p>
             </div>
             <div class="ox-ref-row rv-rise">
+              <code>let m = {"a": 1, "b": [2, 3]}<br />m.a<br />ops[i](x)</code>
+              <p>Map literals, with <code>{}</code> for an empty one. <code>m.key</code> reads <code>m["key"]</code>. A function stored in a list, map or tuple can be called straight from it.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
               <code>abs min max sqrt pow floor ceil round<br />upper lower trim split join contains replace</code>
               <p>Math and string builtins, plus <code>starts_with</code>, <code>ends_with</code>, <code>chars</code>, <code>ord</code>/<code>chr</code>, <code>index_of</code>, <code>sort</code>, <code>sort_by</code>, <code>reverse</code>, <code>sum</code> and the bit operations <code>bit_and bit_or bit_xor bit_not shl shr</code>.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>parse_int(s)?<br />checked_add try_index unwrap_or</code>
-              <p>Functions that can fail return <code>Result::Ok(v)</code> or <code>Result::Err(msg)</code>, and a postfix <code>?</code> returns the <code>Err</code> from the enclosing function. Also <code>try_slice</code>, <code>checked_sub</code>/<code>checked_mul</code>, <code>map_err</code>, <code>ok_or</code>, <code>unwrap_or_else</code>. Other failures panic, including overflow and division by zero.</p>
+              <code>parse_int(s)?<br />Ok(v) =&gt; ..., Err(e) =&gt; ...<br />Some(x)  is_some  unwrap_err</code>
+              <p>Functions that can fail return <code>Ok(v)</code> or <code>Err(e)</code> (short for <code>Result::Ok</code>/<code>Result::Err</code>, in patterns too), and a postfix <code>?</code> returns the <code>Err</code> from the enclosing function. Your own <code>Err</code> can carry any value. <code>Some(x)</code> and <code>None</code> make an <code>Option</code>, and <code>unwrap</code>, <code>unwrap_or</code> and <code>unwrap_or_else</code> take either. Also <code>try_index</code>, <code>checked_add</code>, <code>map_err</code>, <code>ok_or</code>. Other failures panic, including overflow and division by zero.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>read_file write_file list_dir env exit<br />json_parse json_pretty<br />pad_left format_float http_get</code>
-              <p>The standard library: files, environment, time (<code>now_ms</code>, <code>sleep_ms</code>), JSON to and from Maps and Lists, text helpers like <code>split_lines</code> and <code>repeat</code>, and a plain-HTTP client. All of them return a <code>Result</code> rather than panicking.</p>
+              <code>read_file write_file list_dir env exit<br />read_bytes hex_encode base64_decode<br />json_parse time_format sort_by_key</code>
+              <p>The standard library: files (written atomically), raw bytes with hex and base64, environment, JSON to and from Maps and Lists, UTC time (<code>time_parts</code>, <code>time_format</code>, <code>time_parse_iso</code>), text helpers like <code>split_lines</code> and <code>pad_left</code>, and <code>sort_by_key</code>. The fallible ones return a <code>Result</code> rather than panicking.</p>
             </div>
             <div class="ox-ref-row rv-rise">
               <code>import "math.ox"<br />import "shapes.ox" as shapes<br />fn native seed() -&gt; Int;</code>
               <p>Imports pull in another file, optionally under a namespace (<code>shapes::area(c)</code>). <code>fn native</code> declares a function your Rust host provides. Both need the CLI.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code># comment<br />// comment</code>
-              <p>Both start a line comment.</p>
+              <code># comment<br />// comment<br />/// doc comment</code>
+              <p>Both start a line comment. <code>///</code> above a declaration is picked up by <code>oxidized doc</code>.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ox-section" id="web">
+        <div class="wrap">
+          <div class="ox-section-head ox-section-head-split">
+            <div>
+              <span class="label">#4 · Web and data</span>
+              <h2 class="display display-md rv-rise">Serve it<br />from rust.</h2>
+            </div>
+            <p class="lede">Everything a small web app needs is built in, still with no external crates. Put a reverse proxy in front for TLS.</p>
+          </div>
+          <div class="ox-ref-grid">
+            <div class="ox-ref-row rv-rise">
+              <code>http_serve(8080, handle)<br />fn handle(req: Request) -&gt; Response</code>
+              <p>An HTTP/1.1 server with keep-alive, request limits (408, 413, 431, 503) and a panic turned into a 500. Type the handler with the built-in <code>Request</code> and <code>Response</code> and <code>req.metod</code> is caught at check time.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>http_serve_pool(8080, 8, handle)<br />shared_update("hits", fn(n) { ... })<br />with_lock("db", fn() { ... })</code>
+              <p>Runs handlers on up to 64 worker threads in parallel (8 sleeping requests: 4 s down to 0.5 s). Workers share state through named <code>shared_*</code> cells with atomic updates, or lock a section by name.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>route_match("/users/:id", path)<br />query_parse(q)  cookie_parse(h)</code>
+              <p>Routing with <code>:params</code> and a trailing <code>*</code>, plus decoding for query strings and cookies.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>db_open("app.db")<br />db_query(db, "SELECT * FROM t WHERE id = ?", [id])</code>
+              <p>SQLite through the system library, loaded at run time. Values are always bound parameters, rows come back as Maps.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>sha256  hmac_sha256  const_time_eq<br />random_hex  password_hash  pbkdf2_sha256</code>
+              <p>Hashing, signed cookies and tokens, constant-time comparison, OS-seeded randomness and password hashing.</p>
             </div>
           </div>
         </div>
@@ -262,13 +307,18 @@ fn main() {
       <section class="ox-section ox-section-open" id="cli">
         <div class="wrap">
           <div class="ox-closer">
-            <span class="label">#4 · Run it for real</span>
+            <span class="label">#5 · Run it for real</span>
             <h2 class="display display-md rv-rise">Build it.<br />Run it. Watch it rust.</h2>
             <p class="lede">Build the compiler with <code>cargo build --release</code>, then:</p>
-            <pre class="ox-cli"><code>oxidized run hello.ox           # compile with rustc and run
+            <pre class="ox-cli"><code>oxidized run hello.ox a b       # compile with rustc and run (args reach args())
 oxidized build hello.ox         # write the generated hello.rs
-oxidized check hello.ox         # typecheck only
+oxidized check hello.ox --json  # typecheck only, optionally as JSON diagnostics
+oxidized test tests/            # run every fn test_*(), mocks included
 oxidized fmt --write hello.ox   # format in place (--check for CI)
+oxidized repl                   # read-eval-print loop
+oxidized doc hello.ox           # markdown docs from /// comments
+oxidized init --name app        # new project with ox.toml
+oxidized lsp                    # language server for your editor
 oxidized run hello.ox --wasm    # build for wasm32-wasip1, run under Node</code></pre>
             <div class="ox-actions">
               <a class="btn btn-primary" href="https://github.com/suspiciousMans/oxidized" target="_blank" rel="noopener noreferrer">View on GitHub &#8599;</a>

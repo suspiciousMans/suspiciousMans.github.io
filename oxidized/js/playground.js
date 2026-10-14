@@ -156,14 +156,21 @@ fn main() {
 `,
         },
         results: {
-            label: "Errors and ?",
+            label: "Errors, ? and Option",
             code: `fn parse_all(text) {
     let total = 0
     for part in split(text, ",") {
         let n = parse_int(trim(part))?      # Ok(v) -> v, Err(e) -> return Err(e)
         total = checked_add(total, n)?
     }
-    return Result::Ok(total)
+    return Ok(total)
+}
+
+fn find(xs, want) {
+    for x in xs {
+        if x == want { return Some(x) }
+    }
+    return None
 }
 
 fn main() {
@@ -171,6 +178,12 @@ fn main() {
     print(parse_all("1, x, 3"))
     print(unwrap_or(parse_int("nope"), -1))
     print(try_index([1, 2, 3], 7))
+
+    match parse_all("10,20") {
+        Ok(v) => print("sum is {v}"),
+        Err(e) => print("bad input: {e}")
+    }
+    print(find([3, 5, 8], 5), is_none(find([3], 9)), unwrap_or(find([], 1), 0))
 
     let n = parse_all("4,5")?        # \`?\` in main: an Err ends the program
     print("got", n)
@@ -209,7 +222,7 @@ fn main() {
             label: "Maps and JSON",
             code: `fn main() {
     let words = split("rust never sleeps rust never rests", " ")
-    let counts = map_new()
+    let counts = {}
     for w in words {
         if map_has(counts, w) {
             counts[w] += 1
@@ -218,12 +231,59 @@ fn main() {
         }
     }
     print(counts)
-    print(map_keys(counts))
+    print(sort_by_key(map_keys(counts), fn(w) { return -counts[w] }))
+
+    let user = {"name": "ferris", "langs": ["rust", "ox"]}
+    print(user.name, len(user.langs))
 
     let doc = unwrap(json_parse("{{\\"name\\": \\"ox\\", \\"tags\\": [1, 2.5, null]}}"))
     print(doc["name"], doc["tags"])
     doc["tags"][0] = 99
     print(unwrap(json_stringify(doc)))
+}
+`,
+        },
+        web: {
+            label: "Web toolkit",
+            code: `fn show_user(params) {
+    return "user #{params["id"]}"
+}
+
+fn show_file(params) {
+    return "file {params["*"]}"
+}
+
+fn main() {
+    # A tiny router: try each route, call the first handler that matches.
+    let routes = [("/users/:id", show_user), ("/files/*", show_file)]
+    for path in ["/users/42", "/files/img/logo.png", "/nope"] {
+        let answer = "404"
+        for i in 0..len(routes) {
+            match route_match(routes[i].0, path) {
+                Ok(params) => {
+                    answer = routes[i].1(params)
+                    break
+                },
+                Err(_) => {}
+            }
+        }
+        print(path, "->", answer)
+    }
+
+    let handlers = [fn(x) { return x * 2 }, fn(x) { return x + 1 }]
+    print(handlers[0](21), handlers[1](41))
+
+    print(query_parse("q=rust+lang&page=2"))
+    print(cookie_parse("session=abc123; theme=dark"))
+
+    # Sign a cookie value and check it without leaking timing.
+    let sig = hmac_sha256("server-secret", "abc123")
+    print(slice(sig, 0, 16), const_time_eq(sig, hmac_sha256("server-secret", "abc123")))
+    print(sha256("oxidized"))
+    print(base64_encode([111, 120, 33]), unwrap(base64_decode("b3gh")))
+
+    let t = unwrap(time_parse_iso("2026-10-14T17:30:00Z"))
+    print(time_format(t, "%A %d %B %Y, %H:%M"), time_parts(t).yearday)
 }
 `,
         },
@@ -304,6 +364,15 @@ fn identity<T>(x: T) -> T {
     return x
 }
 
+struct Pair<A, B> {
+    first: A,
+    second: B
+}
+
+fn swap<A, B>(p: Pair<A, B>) -> Pair<B, A> {
+    return Pair(first: p.second, second: p.first)
+}
+
 const fn factorial(n: Int) -> Int {
     let acc = 1
     let i = 1
@@ -323,6 +392,8 @@ fn main() {
     print(f as Int, 5 as Float, "42" as Int + 1, 7 as String)
 
     print(identity("hi"), identity(99))
+    let p: Pair<Int, String> = Pair(first: 1, second: "one")
+    print(swap(p).first, swap(p).second)
     print(sqrt(2), pow(2, 10), round(2.5))
     print(factorial(10))  # folded to 3628800 at compile time
 }

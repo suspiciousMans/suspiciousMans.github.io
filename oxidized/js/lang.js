@@ -4,11 +4,13 @@
 // The real compiler transpiles .ox to Rust and builds it with rustc; this is
 // a JavaScript port of the same grammar and of the generated runtime's
 // behavior (DynamicValue, the builtins, closures, structs, enums, traits,
-// tuples, pattern matching, `?`), so programs print what `oxidized run`
-// prints. Checks the real checker does before rustc runs are done here as the
-// program runs instead. `import` and `fn native` aren't available (there are
-// no files to import and no Rust host), files live in an in-memory folder
-// that starts empty on every run, and `http_get` can't reach the network.
+// tuples, pattern matching, `?`, Option, map literals, the web/crypto/time
+// helpers), so programs print what `oxidized run` prints. Checks the real
+// checker does before rustc runs are done here as the program runs instead.
+// `import` and `fn native` aren't available (there are no files to import
+// and no Rust host), files live in an in-memory folder that starts empty on
+// every run, and `http_get`, `http_serve` and the `db_*` SQLite builtins
+// need the real CLI.
 (function (global) {
     "use strict";
 
@@ -309,8 +311,11 @@
         }
 
         // A type annotation: a name (`Int`, `Point`, `alias::Shape`), a
-        // tuple type `(Int, String)`, or `Box<T>`.
-        parseType() {
+        // tuple type `(Int, String)`, `Box<T>`, or a generic instance
+        // (`Pair<Int, String>`, `List<Int>`, `Result<Int, String>`) whose
+        // arguments the real type pass checks and the playground ignores.
+        // A cast (`x as Int < y`) takes a bare name, so `<` stays a comparison.
+        parseType(generic = true) {
             if (this.at("(")) {
                 this.bump();
                 return { tuple: this.list(")", () => this.parseType()) };
@@ -321,10 +326,15 @@
                 name += "::" + this.ident("a type name after `::`");
             }
             if (name === "Box") {
-                this.expect("<");
+                if (!this.at("<")) this.fail("`Box` needs a type argument: `Box<T>`");
+                this.bump();
                 const inner = this.parseType();
                 this.expect(">");
                 return inner;
+            }
+            if (generic && this.at("<")) {
+                this.bump();
+                this.list(">", () => this.parseType());
             }
             return name;
         }
@@ -622,12 +632,12 @@
                     this.bump();
                     const index = this.parseExpr();
                     this.expect("]");
-                    expr = { kind: "Index", target: expr, index, line };
+                    expr = this.callIndexed({ kind: "Index", target: expr, index, line });
                 } else if (this.at(".")) {
                     this.bump();
                     if (this.at("Int")) {
                         // `t.0` — positional tuple access, the same as `t[0]`.
-                        expr = { kind: "Index", target: expr, index: { kind: "Lit", value: this.bump().value }, line };
+                        expr = this.callIndexed({ kind: "Index", target: expr, index: { kind: "Lit", value: this.bump().value }, line });
                         continue;
                     }
                     const field = this.ident("field name after `.`");
@@ -644,11 +654,21 @@
                     expr = { kind: "Try", expr, line };
                 } else if (this.at("as")) {
                     this.bump();
-                    expr = { kind: "Cast", value: expr, ty: this.parseType(), line };
+                    expr = { kind: "Cast", value: expr, ty: this.parseType(false), line };
                 } else {
                     return expr;
                 }
             }
+        }
+
+        // `ops[i](x)`, `routes[i].1(params)` — call a function value read
+        // from a list, map or tuple.
+        callIndexed(expr) {
+            while (this.at("(")) {
+                this.bump();
+                expr = { kind: "Call", callee: expr, args: this.callArgs(), line: expr.line };
+            }
+            return expr;
         }
 
         callArgs() {
@@ -679,6 +699,7 @@
                 }
                 case "true": return { kind: "Literal", value: true };
                 case "false": return { kind: "Literal", value: false };
+                case "None": return { kind: "Literal", value: null };
                 case "-": {
                     const num = this.bump();
                     if (num.type !== "Int" && num.type !== "Float") this.fail("expected a number after '-' in pattern", num);
@@ -693,7 +714,8 @@
                     if (this.at("::")) {
                         this.bump();
                         enumName = name;
-                        name = this.ident("variant name after `::` in pattern");
+                        // `Option::None()`: `None` is a keyword but also a variant name.
+                        name = this.at("None") ? this.bump().type : this.ident("variant name after `::` in pattern");
                     }
                     if (this.at("(")) {
                         this.bump();
@@ -844,7 +866,7 @@
                     const name = t.value;
                     if (this.at("::")) {
                         this.bump();
-                        const member = this.ident("a name after `::`");
+                        const member = this.at("None") ? this.bump().type : this.ident("a name after `::`");
                         if (!this.at("(")) {
                             this.fail(`\`${name}::${member}\` must be followed by \`(\` — enum variants are always constructed with parentheses, even with no payload (\`${name}::${member}()\`)`);
                         }
@@ -855,7 +877,14 @@
                     if (this.at("(")) {
                         this.bump();
                         if (this.isFieldList()) return { kind: "StructInit", name, fields: this.fieldInits(), line };
-                        return { kind: "Call", name, args: this.callArgs(), line };
+                        const args = this.callArgs();
+                        // `Ok(x)`/`Err(e)` are `Result::Ok(x)`/`Result::Err(e)`, `Some(x)` is `Option::Some(x)`.
+                        const shorthand = { Ok: "Result", Err: "Result", Some: "Option" }[name];
+                        if (shorthand) {
+                            if (args.length !== 1) this.fail(`\`${name}\` takes exactly one value, got ${args.length}`, t);
+                            return { kind: "EnumInit", enumName: shorthand, variant: name, args, line };
+                        }
+                        return { kind: "Call", name, args, line };
                     }
                     return { kind: "Var", name, line };
                 }
@@ -883,6 +912,17 @@
                 }
                 case "[":
                     return { kind: "List", items: this.list("]", () => this.parseExpr()) };
+                case "{": {
+                    // Map literal `{k: v, ...}`: the same `map_set(map_new(), k, v)`
+                    // chain the compiler desugars it to. `{}` is an empty map.
+                    let acc = { kind: "Call", name: "map_new", args: [], line };
+                    this.list("}", () => {
+                        const key = this.parseExpr();
+                        this.expect(":");
+                        acc = { kind: "Call", name: "map_set", args: [acc, key, this.parseExpr()], line };
+                    });
+                    return acc;
+                }
                 default:
                     return this.fail(`unexpected ${this.describe(t)} in expression`, t);
             }
@@ -1367,7 +1407,11 @@
             this.onPrint = onPrint;
             this.fns = new Map();
             this.structs = new Map();
-            this.enums = new Map([["Result", { name: "Result", variants: [{ name: "Ok", payload: [null] }, { name: "Err", payload: ["String"] }] }]]);
+            this.enums = new Map([
+                ["Result", { name: "Result", variants: [{ name: "Ok", payload: [null] }, { name: "Err", payload: [null] }] }],
+                ["Option", { name: "Option", variants: [{ name: "Some", payload: [null] }, { name: "None", payload: [] }] }],
+            ]);
+            this.shared = new Map(); // shared_get/shared_set cells
             this.traits = new Map();
             this.impls = [];
             this.methods = new Map();
@@ -1617,6 +1661,12 @@
         }
 
         field(target, name) {
+            // `m.key` on a Map reads `m["key"]` (typed http_serve requests use this).
+            if (target instanceof OxMap) {
+                const hit = target.lookup(name);
+                if (!hit) throw new OxPanic(`no key \`${name}\` in map`);
+                return hit[1];
+            }
             if (!(target instanceof OxStruct)) throw new OxPanic(`type error: cannot access field \`${name}\` on ${debug(target)}`);
             return target.get(name);
         }
@@ -1801,6 +1851,11 @@
         }
 
         enumInit(e, scope) {
+            // `Option::None()` is the same value as the `None` literal.
+            if (e.enumName === "Option" && e.variant === "None") {
+                if (e.args.length) throw new OxError(`\`Option::None\` takes no values (line ${e.line})`);
+                return null;
+            }
             const en = this.enums.get(e.enumName);
             if (!en) throw new OxError(`unknown enum \`${e.enumName}\` in \`${e.enumName}::${e.variant}(...)\` — if that's an imported module, imports aren't available in the playground (line ${e.line})`);
             const variant = en.variants.find((v) => v.name === e.variant);
@@ -1859,7 +1914,8 @@
                         }
                         return this.matchFields(p, def.fields.map((f) => f.name), (f) => v.get(f), binds);
                     }
-                    if (v === null) return false; // None matches no variant
+                    // None matches no variant except `Option::None()`.
+                    if (v === null) return p.kind === "Variant" && p.name === "None" && !p.subs.length && (!p.enumName || p.enumName === "Option");
                     if (!(v instanceof OxEnum)) throw new OxPanic(`type error: expected an enum value, got ${debug(v)}`);
                     if (p.enumName && p.enumName !== v.type && this.enums.has(p.enumName)) return false;
                     if (v.variant !== p.name) return false;
@@ -2056,6 +2112,14 @@
         if (!(r instanceof OxEnum) || r.type !== "Result") throw new OxPanic(`type error: ${fn}() expects a Result, got ${debug(r)}`);
         return r;
     };
+    // Result or Option (`None` included), for the unwrap family.
+    const asWrapped = (r, fn) => {
+        if (r !== null && !(r instanceof OxEnum && (r.type === "Result" || r.type === "Option"))) {
+            throw new OxPanic(`type error: ${fn}() expects a Result or Option, got ${debug(r)}`);
+        }
+        return r;
+    };
+    const present = (r) => r instanceof OxEnum && (r.variant === "Ok" || r.variant === "Some");
     const asFn = (f, fn) => {
         if (!(f instanceof OxFunc)) throw new OxPanic(`type error: ${fn}() expects a function, got ${debug(f)}`);
         return f;
@@ -2079,6 +2143,7 @@
         return String.fromCodePoint(Number(n));
     };
     const checked = (v, op) => (v > I64_MAX || v < I64_MIN ? err(`integer overflow in ${op}`) : ok(v));
+    const cliOnly = (fn) => `${fn} isn't available in the browser playground — run it with the real \`oxidized\` CLI`;
     const NO_NET = "http_get isn't available in the browser playground — run it with the real `oxidized` CLI";
 
     // Strict JSON (RFC 8259): objects become Maps, integers Ints, other
@@ -2419,12 +2484,18 @@
         }],
         is_ok: [1, (r) => asResult(r, "is_ok").variant === "Ok"],
         is_err: [1, (r) => asResult(r, "is_err").variant === "Err"],
+        is_some: [1, (r) => present(asWrapped(r, "is_some"))],
+        is_none: [1, (r) => !present(asWrapped(r, "is_none"))],
         unwrap: [1, (r) => {
-            asResult(r, "unwrap");
-            if (r.variant === "Ok") return r.payload[0];
-            throw new OxPanic(`called unwrap() on an Err: ${show(r.payload[0])}`);
+            if (present(asWrapped(r, "unwrap"))) return r.payload[0];
+            if (r instanceof OxEnum && r.type === "Result") throw new OxPanic(`called unwrap() on an Err: ${show(r.payload[0])}`);
+            throw new OxPanic("called unwrap() on a None");
         }],
-        unwrap_or: [2, (r, d) => (asResult(r, "unwrap_or").variant === "Ok" ? r.payload[0] : d)],
+        unwrap_or: [2, (r, d) => (present(asWrapped(r, "unwrap_or")) ? r.payload[0] : d)],
+        unwrap_err: [1, (r) => {
+            if (asResult(r, "unwrap_err").variant === "Err") return r.payload[0];
+            throw new OxPanic(`called unwrap_err() on an Ok: ${show(r.payload[0])}`);
+        }],
         map_err: [2, function (r, f) {
             asResult(r, "map_err");
             asFn(f, "map_err");
@@ -2434,14 +2505,81 @@
         }],
         ok_or: [2, (v, msg) => (v === null ? err(show(msg)) : ok(v))],
         unwrap_or_else: [2, function (r, f) {
-            asResult(r, "unwrap_or_else");
-            if (r.variant === "Ok") return r.payload[0];
-            return this.callFunction(asFn(f, "unwrap_or_else"), [r.payload[0]], "<lambda>");
+            if (present(asWrapped(r, "unwrap_or_else"))) return r.payload[0];
+            return this.callFunction(asFn(f, "unwrap_or_else"), [r instanceof OxEnum && r.payload.length ? r.payload[0] : null], "<lambda>");
         }],
         // Files live in an in-memory folder that starts empty on each run.
         read_file: [1, function (p) {
             p = strArg(p, "read_file");
-            return this.files.has(p) ? ok(this.files.get(p)) : err(`${p}: No such file or directory (os error 2)`);
+            if (!this.files.has(p)) return err(`${p}: No such file or directory (os error 2)`);
+            const f = this.files.get(p);
+            if (typeof f === "string") return ok(f);
+            try {
+                return ok(new TextDecoder("utf-8", { fatal: true }).decode(f));
+            } catch (e) {
+                return err("stream did not contain valid UTF-8");
+            }
+        }],
+        read_bytes: [1, function (p) {
+            p = strArg(p, "read_bytes");
+            if (!this.files.has(p)) return err(`read_bytes: cannot read '${p}': No such file or directory (os error 2)`);
+            const f = this.files.get(p);
+            return ok(Array.from(typeof f === "string" ? new TextEncoder().encode(f) : f, (b) => BigInt(b)));
+        }],
+        write_bytes: [2, function (p, bytes) {
+            p = strArg(p, "write_bytes");
+            if (!Array.isArray(bytes)) return err("write_bytes: bytes must be a List");
+            const out = byteList(bytes);
+            if (!out) return err("write_bytes: list must contain integers in 0..=255");
+            this.files.set(p, out);
+            return ok(null);
+        }],
+        hex_encode: [1, (bytes) => {
+            if (!Array.isArray(bytes)) return "hex_encode: input must be a List";
+            const b = byteList(bytes);
+            return b ? Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("") : "hex_encode: list must contain integers in 0..=255";
+        }],
+        hex_decode: [1, (h) => {
+            h = strArg(h, "hex_decode");
+            const raw = new TextEncoder().encode(h);
+            if (raw.length % 2) return err("hex_decode: input length must be even");
+            const out = [];
+            for (let i = 0; i < raw.length; i += 2) {
+                const pair = String.fromCharCode(raw[i], raw[i + 1]);
+                if (!/^[0-9a-fA-F]{2}$/.test(pair)) return err(`hex_decode: invalid hex at position ${i}`);
+                out.push(BigInt(parseInt(pair, 16)));
+            }
+            return ok(out);
+        }],
+        base64_encode: [1, (bytes) => {
+            if (!Array.isArray(bytes)) return "base64_encode: input must be a List";
+            const b = byteList(bytes);
+            if (!b) return "base64_encode: list must contain integers in 0..=255";
+            let bin = "";
+            for (const x of b) bin += String.fromCharCode(x);
+            return btoa(bin);
+        }],
+        base64_decode: [1, (s) => {
+            s = strArg(s, "base64_decode");
+            const raw = new TextEncoder().encode(s);
+            if (raw.length % 4) return err("base64_decode: input length must be multiple of 4");
+            const out = [];
+            for (let i = 0; i < raw.length; i += 4) {
+                const c = [];
+                for (let k = 0; k < 4; k++) {
+                    const ch = raw[i + k];
+                    if (ch === 61) c.push(0);
+                    else {
+                        const pos = B64.indexOf(String.fromCharCode(ch));
+                        if (pos < 0 || ch > 127) return err("base64_decode: invalid character");
+                        c.push(pos);
+                    }
+                }
+                out.push(BigInt((c[0] << 2) | (c[1] >> 4)));
+                if (raw[i + 2] !== 61) out.push(BigInt(((c[1] & 15) << 4) | (c[2] >> 2)));
+                if (raw[i + 3] !== 61) out.push(BigInt(((c[2] & 3) << 6) | c[3]));
+            }
+            return ok(out);
         }],
         write_file: [2, function (p, t) {
             this.files.set(strArg(p, "write_file"), strArg(t, "write_file"));
@@ -2508,7 +2646,287 @@
             strArg(url, "http_get");
             return err(NO_NET);
         }],
+        // Servers and databases need sockets and SQLite: the real CLI only.
+        http_serve: [2, () => err(cliOnly("http_serve"))],
+        http_serve_pool: [3, () => err(cliOnly("http_serve_pool"))],
+        db_open: [1, () => err(cliOnly("db_open"))],
+        db_exec: [3, () => err(cliOnly("db_exec"))],
+        db_query: [3, () => err(cliOnly("db_query"))],
+        db_last_insert_id: [1, () => err(cliOnly("db_last_insert_id"))],
+        db_close: [1, () => err(cliOnly("db_close"))],
+        route_match: [2, (pattern, path) => {
+            const ps = strArg(pattern, "route_match").split("/").filter(Boolean);
+            const ts = strArg(path, "route_match").split("/").filter(Boolean);
+            let m = new OxMap();
+            for (let i = 0; i < ps.length; i++) {
+                if (ps[i] === "*" && i === ps.length - 1) return ok(m.set("*", pctDecode(ts.slice(i).join("/"), false)));
+                if (i >= ts.length) return err("no match");
+                if (ps[i].startsWith(":")) m = m.set(ps[i].slice(1), pctDecode(ts[i], false));
+                else if (ps[i] !== ts[i]) return err("no match");
+            }
+            return ts.length === ps.length ? ok(m) : err("no match");
+        }],
+        query_parse: [1, (q) => {
+            let m = new OxMap();
+            for (const part of strArg(q, "query_parse").split("&")) {
+                if (!part) continue;
+                const i = part.indexOf("=");
+                m = i < 0 ? m.set(pctDecode(part, true), "") : m.set(pctDecode(part.slice(0, i), true), pctDecode(part.slice(i + 1), true));
+            }
+            return m;
+        }],
+        cookie_parse: [1, (h) => {
+            let m = new OxMap();
+            for (let part of strArg(h, "cookie_parse").split(";")) {
+                part = part.trim();
+                const i = part.indexOf("=");
+                if (i < 0) continue;
+                const k = part.slice(0, i).trim();
+                if (!k || m.lookup(k)) continue;
+                m = m.set(k, pctDecode(part.slice(i + 1).trim(), false));
+            }
+            return m;
+        }],
+        sha256: [1, (s) => toHex(sha256(utf8(strArg(s, "sha256"))))],
+        hmac_sha256: [2, (k, msg) => toHex(hmacSha256(utf8(strArg(k, "hmac_sha256")), utf8(strArg(msg, "hmac_sha256"))))],
+        const_time_eq: [2, (a, b) => strArg(a, "const_time_eq") === strArg(b, "const_time_eq")],
+        random_hex: [1, (n) => {
+            n = asInt(n);
+            if (n < 0n || n > 4096n) throw new OxPanic(`random_hex(): n must be in 0..=4096, got ${n}`);
+            const bytes = new Uint8Array(Number(n));
+            globalThis.crypto.getRandomValues(bytes);
+            return toHex(bytes);
+        }],
+        sort_by_key: [2, function (list, f) {
+            const items = asList(list, "sort_by_key");
+            if (!items.length) return [];
+            asFn(f, "sort_by_key");
+            const keyed = items.map((v) => [this.callFunction(f, [v], "<lambda>"), v]);
+            const kind = (k) => (isInt(k) || isFloat(k) ? "num" : typeof k === "string" ? "str" : typeof k === "boolean" ? "bool" : null);
+            const first = kind(keyed[0][0]);
+            if (!first) throw new OxPanic(`type error: sort_by_key() keys must be Int, Float, String or Bool, got ${debug(keyed[0][0])}`);
+            for (const [k] of keyed) if (kind(k) !== first) throw new OxPanic(`type error: sort_by_key() found mixed key types: ${debug(k)}`);
+            const order = first === "num" ? (a, b) => Math.sign(Number(a) - Number(b)) : (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+            return stableSort(keyed, (a, b) => order(a[0], b[0])).map(([, v]) => v);
+        }],
+        time_parts: [1, (ms) => {
+            const [y, mo, d, h, mi, sec, msec, wd, yd] = timeSplit(timeArg(ms, "time_parts"));
+            const names = ["year", "month", "day", "hour", "minute", "second", "ms", "weekday", "yearday"];
+            return new OxMap([y, mo, d, h, mi, sec, msec, wd, yd].map((v, i) => [names[i], BigInt(v)]));
+        }],
+        time_format: [2, (ms, fmt) => {
+            const [y, mo, d, h, mi, sec, msec, wd, yd] = timeSplit(timeArg(ms, "time_format"));
+            if (typeof fmt !== "string") throw new OxPanic(`type error: time_format() expects a String format, got ${debug(fmt)}`);
+            const p2 = (n) => String(n).padStart(2, "0");
+            const cs = Array.from(fmt);
+            let out = "";
+            for (let i = 0; i < cs.length; ) {
+                if (cs[i] !== "%" || i + 1 >= cs.length) {
+                    out += cs[i++];
+                    continue;
+                }
+                const c = cs[i + 1];
+                if (c === "3" && cs[i + 2] === "f") {
+                    out += String(msec).padStart(3, "0");
+                    i += 3;
+                    continue;
+                }
+                const parts = {
+                    Y: (y < 0 ? "-" + String(-y).padStart(3, "0") : String(y).padStart(4, "0")), y: p2(((y % 100) + 100) % 100), m: p2(mo), d: p2(d), e: String(d).padStart(2, " "),
+                    H: p2(h), M: p2(mi), S: p2(sec), j: String(yd).padStart(3, "0"), a: WEEKDAYS[wd].slice(0, 3), A: WEEKDAYS[wd],
+                    b: MONTHS[mo - 1].slice(0, 3), B: MONTHS[mo - 1], "%": "%",
+                };
+                out += c in parts ? parts[c] : "%" + c;
+                i += 2;
+            }
+            return out;
+        }],
+        time_parse_iso: [1, (s) => {
+            if (typeof s !== "string") throw new OxPanic(`type error: time_parse_iso() expects a String, got ${debug(s)}`);
+            const fail = (why) => err(`time_parse_iso: ${why} in ${JSON.stringify(s)}`);
+            const digits = (from, n) => (/^\d+$/.test(s.slice(from, from + n)) && s.slice(from, from + n).length === n ? Number(s.slice(from, from + n)) : null);
+            if (s.length < 10 || s[4] !== "-" || s[7] !== "-") return fail("expected YYYY-MM-DD");
+            const [y, mo, d] = [digits(0, 4), digits(5, 2), digits(8, 2)];
+            if (y === null || mo === null || d === null) return fail("non-digit in the date");
+            if (mo < 1 || mo > 12) return fail("month out of range");
+            if (d < 1 || d > daysInMonth(y, mo)) return fail("day out of range");
+            let [h, mi, sec, msec] = [0, 0, 0, 0];
+            if (s.length > 10) {
+                if (s[10] !== "T" || s.length < 20 || s[13] !== ":" || s[16] !== ":") return fail("expected THH:MM:SS");
+                [h, mi, sec] = [digits(11, 2), digits(14, 2), digits(17, 2)];
+                if (h === null || mi === null || sec === null) return fail("non-digit in the time");
+                if (h > 23 || mi > 59 || sec > 59) return fail("time out of range");
+                let p = 19;
+                if (s[p] === ".") {
+                    const start = ++p;
+                    while (p < s.length && /\d/.test(s[p])) p++;
+                    if (p === start) return fail("empty fraction");
+                    msec = Number((s.slice(start, Math.min(p, start + 3)) + "00").slice(0, 3));
+                }
+                if (p + 1 !== s.length || s[p] !== "Z") return fail("expected a trailing Z");
+            }
+            return ok(BigInt(daysFromCivil(y, mo, d)) * 86400000n + BigInt(h * 3600000 + mi * 60000 + sec * 1000 + msec));
+        }],
+        // One thread here, so locks never wait and shared cells are plain values.
+        shared_get: [1, function (name) {
+            const k = strArg(name, "shared_get");
+            return this.shared.has(k) ? this.shared.get(k) : null;
+        }],
+        shared_set: [2, function (name, v) {
+            this.shared.set(strArg(name, "shared_set"), v);
+            return null;
+        }],
+        shared_update: [2, function (name, f) {
+            const k = strArg(name, "shared_update");
+            if (!(f instanceof OxFunc)) throw new OxPanic(`type error: shared_update() expects a function, got ${debug(f)}`);
+            const next = this.callFunction(f, [this.shared.has(k) ? this.shared.get(k) : null], "<lambda>");
+            this.shared.set(k, next);
+            return next;
+        }],
+        with_lock: [2, function (name, f) {
+            strArg(name, "with_lock");
+            if (!(f instanceof OxFunc)) throw new OxPanic(`type error: with_lock() expects a function, got ${debug(f)}`);
+            return this.callFunction(f, [], "<lambda>");
+        }],
+        assert_eq: [2, (a, b) => {
+            if (!eq(a, b)) {
+                const [l, r] = [show(a), show(b)];
+                throw new OxPanic(l === r ? `assert_eq failed: left=${l} (${debug(a)}), right=${r} (${debug(b)})` : `assert_eq failed: left=${l}, right=${r}`);
+            }
+            return null;
+        }],
+        assert_ne: [2, (a, b) => {
+            if (eq(a, b)) throw new OxPanic(`assert_ne failed: both sides are ${show(a)}`);
+            return null;
+        }],
     };
+
+    // ---------- helpers for the web, crypto, time and bytes builtins ----------
+
+    const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const utf8 = (s) => new TextEncoder().encode(s);
+    const toHex = (bytes) => Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+
+    // A List of Ints in 0..=255 as bytes, or null.
+    function byteList(items) {
+        const out = new Uint8Array(items.length);
+        for (let i = 0; i < items.length; i++) {
+            if (!isInt(items[i]) || items[i] < 0n || items[i] > 255n) return null;
+            out[i] = Number(items[i]);
+        }
+        return out;
+    }
+
+    // Percent-decoding as the runtime does it: bad escapes stay literal,
+    // `+` is a space only in query strings, invalid UTF-8 becomes U+FFFD.
+    function pctDecode(s, plus) {
+        const b = utf8(s);
+        const out = [];
+        for (let i = 0; i < b.length; i++) {
+            if (b[i] === 37 && i + 2 < b.length) {
+                const h = String.fromCharCode(b[i + 1], b[i + 2]);
+                if (/^[0-9a-fA-F]{2}$/.test(h)) {
+                    out.push(parseInt(h, 16));
+                    i += 2;
+                    continue;
+                }
+            }
+            out.push(b[i] === 43 && plus ? 32 : b[i]);
+        }
+        return new TextDecoder().decode(new Uint8Array(out));
+    }
+
+    const SHA_K = new Uint32Array([
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+        0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+        0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+        0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+    ]);
+
+    function sha256(data) {
+        const h = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
+        const padded = new Uint8Array(Math.ceil((data.length + 9) / 64) * 64);
+        padded.set(data);
+        padded[data.length] = 0x80;
+        const view = new DataView(padded.buffer);
+        view.setUint32(padded.length - 8, Math.floor((data.length * 8) / 2 ** 32));
+        view.setUint32(padded.length - 4, (data.length * 8) >>> 0);
+        const w = new Uint32Array(64);
+        const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+        for (let off = 0; off < padded.length; off += 64) {
+            for (let i = 0; i < 16; i++) w[i] = view.getUint32(off + i * 4);
+            for (let i = 16; i < 64; i++) {
+                const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+                const s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+                w[i] = w[i - 16] + s0 + w[i - 7] + s1;
+            }
+            let [a, b, c, d, e, f, g, hh] = h;
+            for (let i = 0; i < 64; i++) {
+                const t1 = (hh + (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) + ((e & f) ^ (~e & g)) + SHA_K[i] + w[i]) >>> 0;
+                const t2 = ((rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
+                [hh, g, f, e, d, c, b, a] = [g, f, e, (d + t1) >>> 0, c, b, a, (t1 + t2) >>> 0];
+            }
+            [a, b, c, d, e, f, g, hh].forEach((x, i) => (h[i] = h[i] + x));
+        }
+        const out = new Uint8Array(32);
+        const ov = new DataView(out.buffer);
+        h.forEach((x, i) => ov.setUint32(i * 4, x));
+        return out;
+    }
+
+    function hmacSha256(key, msg) {
+        if (key.length > 64) key = sha256(key);
+        const k = new Uint8Array(64);
+        k.set(key);
+        const inner = new Uint8Array(64 + msg.length);
+        const outer = new Uint8Array(96);
+        for (let i = 0; i < 64; i++) {
+            inner[i] = k[i] ^ 0x36;
+            outer[i] = k[i] ^ 0x5c;
+        }
+        inner.set(msg, 64);
+        outer.set(sha256(inner), 64);
+        return sha256(outer);
+    }
+
+    // UTC civil dates (Howard Hinnant's algorithms), valid before 1970 too.
+    const divFloor = (a, b) => Math.floor(a / b);
+    const modFloor = (a, b) => ((a % b) + b) % b;
+    function daysFromCivil(y, m, d) {
+        y = m <= 2 ? y - 1 : y;
+        const era = divFloor(y, 400);
+        const yoe = modFloor(y, 400);
+        const doy = Math.floor((153 * (m > 2 ? m - 3 : m + 9) + 2) / 5) + d - 1;
+        return era * 146097 + yoe * 365 + Math.floor(yoe / 4) - Math.floor(yoe / 100) + doy - 719468;
+    }
+    function civilFromDays(z) {
+        z += 719468;
+        const era = divFloor(z, 146097);
+        const doe = modFloor(z, 146097);
+        const yoe = Math.floor((doe - Math.floor(doe / 1460) + Math.floor(doe / 36524) - Math.floor(doe / 146096)) / 365);
+        const doy = doe - (365 * yoe + Math.floor(yoe / 4) - Math.floor(yoe / 100));
+        const mp = Math.floor((5 * doy + 2) / 153);
+        const d = doy - Math.floor((153 * mp + 2) / 5) + 1;
+        const m = mp < 10 ? mp + 3 : mp - 9;
+        return [yoe + era * 400 + (m <= 2 ? 1 : 0), m, d];
+    }
+    const daysInMonth = (y, m) => ([1, 3, 5, 7, 8, 10, 12].includes(m) ? 31 : [4, 6, 9, 11].includes(m) ? 30 : (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 29 : 28);
+    function timeArg(ms, fn) {
+        if (!isInt(ms)) throw new OxPanic(`type error: ${fn}() expects an Int (milliseconds since the Unix epoch), got ${debug(ms)}`);
+        if (ms > 8000000000000000n || ms < -8000000000000000n) throw new OxPanic(`${fn}(): ${ms} ms is out of the supported range`);
+        return ms;
+    }
+    // [year, month, day, hour, minute, second, ms, weekday (0 = Sunday), yearday]
+    function timeSplit(ms) {
+        const days = Number(ms >= 0n ? ms / 86400000n : -((-ms + 86399999n) / 86400000n));
+        const mid = Number(ms - BigInt(days) * 86400000n);
+        const [y, mo, d] = civilFromDays(days);
+        return [y, mo, d, Math.floor(mid / 3600000), Math.floor(mid / 60000) % 60, Math.floor(mid / 1000) % 60, mid % 1000, modFloor(days + 4, 7), days - daysFromCivil(y, 1, 1) + 1];
+    }
 
     function pad(s, width, padStr, left) {
         const who = left ? "pad_left" : "pad_right";
