@@ -129,6 +129,11 @@ fn main() {
               <h3 class="ox-row-name">Tooling that's real</h3>
               <p><code>oxidized test</code> runs your <code>fn test_*()</code> with mocks for host functions, and there's a formatter, a REPL, doc generation from <code>///</code> comments, JSON diagnostics and a language server for your editor.</p>
             </div>
+            <div class="ox-row rv-rise">
+              <span class="label ox-row-num">#08</span>
+              <h3 class="ox-row-name">Hunted for bugs</h3>
+              <p>Over 400 hand-written adversarial probe programs and a mutation soak test check the compiler, the checker and <code>--wasm</code> against each other. The latest rounds fixed dozens of bugs, from cross-kind comparisons to the language server's UTF-16 positions.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -204,7 +209,7 @@ fn main() {
             </div>
             <div class="ox-ref-row rv-rise">
               <code>struct Point { x: Int, y: Int }<br />Point(x: 3, y: 4)<br />xs[i].x = 5</code>
-              <p>Built with parentheses and named fields. Assignment reaches through any path rooted at a variable: <code>o.p.x = 1</code>, <code>grid[r][c] += 1</code>. Structs are copied when passed. <code>Box&lt;T&gt;</code> lets a struct refer to itself.</p>
+              <p>Built with parentheses and named fields. Assignment reaches through any path rooted at a variable: <code>o.p.x = 1</code>, <code>grid[r][c] += 1</code>. Structs are copied when passed. <code>Box&lt;T&gt;</code> in a field's type lets a struct or enum refer to itself; it's only an annotation, so you never write <code>Box(...)</code>.</p>
             </div>
             <div class="ox-ref-row rv-rise">
               <code>impl Point { fn dist(self) { ... } }<br />struct Pair&lt;A, B&gt; { ... }<br />let p: Pair&lt;Int, String&gt; = ...</code>
@@ -227,12 +232,16 @@ fn main() {
               <p>Tuples are fixed-size groups. Destructure them in a <code>let</code> or a <code>match</code>, index with <code>t.0</code>, and use them as types.</p>
             </div>
             <div class="ox-ref-row rv-rise">
-              <code>let add = fn(a, b) { return a + b }<br />(fn(x) { x })(5)</code>
-              <p>Lambdas capture the variables they use by value when they're created, and keep their own changes across calls. They can be called immediately.</p>
+              <code>let add = fn(a, b) { return a + b }<br />make(10)(1)  s.adder()(2)  (f)(3)</code>
+              <p>Lambdas capture the variables they use by value when they're created, and keep their own changes across calls. Anything that yields a function value can be called directly, as long as the <code>(</code> is on the same line.</p>
             </div>
             <div class="ox-ref-row rv-rise">
               <code>3.7 as Int<br />"42" as Int</code>
-              <p>Casts between <code>Int</code>, <code>Float</code>, <code>String</code> and <code>bool</code>. Int and Float don't mix in arithmetic without one.</p>
+              <p>Casts between <code>Int</code>, <code>Float</code>, <code>String</code> and <code>bool</code>. Int and Float don't mix in arithmetic without one, but an Int widens wherever a Float is declared: <code>let f: Float = 3</code>.</p>
+            </div>
+            <div class="ox-ref-row rv-rise">
+              <code>Level::Low() &lt; Level::High()<br />sort([(2, "a"), (1, "z")])</code>
+              <p>Only values of one kind have an order (Int and Float count as one), so <code>1 &lt; "x"</code> is a type error. Lists and tuples compare element by element, structs field by field, and an enum's values in declaration order. <code>==</code> works across kinds, and maps are equal whatever order their keys went in.</p>
             </div>
             <div class="ox-ref-row rv-rise">
               <code>impl Vec2 { fn __add__(self, o: Vec2) { ... } }</code>

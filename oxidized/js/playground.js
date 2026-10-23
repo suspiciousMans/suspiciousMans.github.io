@@ -399,6 +399,40 @@ fn main() {
 }
 `,
         },
+        ordering: {
+            label: "Ordering and calls",
+            code: `enum Level { Low, Mid, High }
+
+struct Task {
+    level: Level,
+    name: String
+}
+
+fn make_adder(n) {
+    return fn(x) { return x + n }
+}
+
+fn main() {
+    # one enum's values order as declared
+    print(Level::Low() < Level::High(), sort([Level::High(), Level::Low(), Level::Mid()]))
+
+    # structs of one type, lists and tuples compare field by field
+    let tasks = [Task(level: Level::High(), name: "ship"), Task(level: Level::Low(), name: "nap")]
+    print(sort(tasks)[0].name, [1, 2] < [1, 3], (2, "a") > (1, "z"))
+
+    # maps are equal whatever order their keys went in
+    print({"x": 1, "y": 2} == {"y": 2, "x": 1})
+
+    # anything that yields a function can be called
+    print(make_adder(10)(1))
+    let ops = [fn(x) { return x * 2 }, make_adder(100)]
+    print(ops[0](21), ops[1](1))
+
+    print(sum([1, 2.5, 3]), 1 == "1")
+    print(match Level::Mid() { Level::Low() => "low", _ => "not low" })
+}
+`,
+        },
     };
 
     const codeEl = document.getElementById("ox-code");
