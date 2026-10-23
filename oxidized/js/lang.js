@@ -32,8 +32,8 @@
         let line = 1;
         const n = src.length;
         const isDigit = (c) => c >= "0" && c <= "9";
-        const isIdentStart = (c) => /[A-Za-z_]/.test(c);
-        const isIdent = (c) => /[A-Za-z0-9_]/.test(c);
+        const isIdentStart = (c) => /[\p{L}_]/u.test(c);
+        const isIdent = (c) => /[\p{L}\p{N}_]/u.test(c);
         const push = (type, value) => tokens.push({ type, value, line });
         // A dot glued to the end of an identifier, `)` or `]` is a field or
         // tuple-position dot (`t.0`), never the start of a float.
@@ -508,6 +508,11 @@
         parseEnum() {
             this.bump();
             const name = this.ident("enum name after `enum`");
+            // `enum Tree<T> { ... }`: type parameters are only annotations here.
+            if (this.at("<")) {
+                this.bump();
+                this.list(">", () => this.ident("a type parameter"));
+            }
             this.expect("{");
             const variants = this.list("}", () => {
                 const vname = this.ident("variant name");
@@ -655,6 +660,11 @@
                 } else if (this.at("as")) {
                     this.bump();
                     expr = { kind: "Cast", value: expr, ty: this.parseType(false), line };
+                } else if (this.sameLineParen()) {
+                    // `make(10)(1)`, `s.adder()(2)`, `(f)(3)`: anything that
+                    // yields a function value can be called.
+                    this.bump();
+                    expr = { kind: "Call", callee: expr, args: this.callArgs(), line: expr.line };
                 } else {
                     return expr;
                 }
@@ -664,11 +674,17 @@
         // `ops[i](x)`, `routes[i].1(params)` — call a function value read
         // from a list, map or tuple.
         callIndexed(expr) {
-            while (this.at("(")) {
+            while (this.sameLineParen()) {
                 this.bump();
                 expr = { kind: "Call", callee: expr, args: this.callArgs(), line: expr.line };
             }
             return expr;
+        }
+
+        // Statements need no separator, so a `(` that starts a new line
+        // starts a new statement rather than calling what came before.
+        sameLineParen() {
+            return this.at("(") && this.pos > 0 && this.peek().line === this.tokens[this.pos - 1].line;
         }
 
         callArgs() {
@@ -699,7 +715,13 @@
                 }
                 case "true": return { kind: "Literal", value: true };
                 case "false": return { kind: "Literal", value: false };
-                case "None": return { kind: "Literal", value: null };
+                case "None":
+                    // `None()` is the same pattern as `None`.
+                    if (this.at("(") && this.peek(1).type === ")") {
+                        this.bump();
+                        this.bump();
+                    }
+                    return { kind: "Literal", value: null };
                 case "-": {
                     const num = this.bump();
                     if (num.type !== "Int" && num.type !== "Float") this.fail("expected a number after '-' in pattern", num);
@@ -1145,26 +1167,20 @@
             return a.type === b.type && a.variant === b.variant && eq(a.payload, b.payload);
         }
         if (a instanceof OxMap && b instanceof OxMap) {
-            return a.entries.length === b.entries.length && a.entries.every(([k, x], i) => eq(k, b.entries[i][0]) && eq(x, b.entries[i][1]));
+            // Same keys bound to equal values, whatever the insertion order.
+            return a.entries.length === b.entries.length && a.entries.every(([k, x]) => {
+                const other = b.lookup(k);
+                return other !== undefined && eq(x, other[1]);
+            });
         }
         return false;
     }
 
-    // Derived PartialOrd: same kind compares contents, different kinds
-    // compare by declaration order. null when unordered (NaN, functions).
-    const RANK = ["Int", "Float", "Str", "Bool", "List", "Tuple", "Struct", "Enum", "Map", "Function", "None"];
-    function rank(v) {
-        if (v === null) return 10;
-        if (isInt(v)) return 0;
-        if (isFloat(v)) return 1;
-        if (typeof v === "string") return 2;
-        if (typeof v === "boolean") return 3;
-        if (Array.isArray(v)) return 4;
-        if (v instanceof OxTuple) return 5;
-        if (v instanceof OxStruct) return 6;
-        if (v instanceof OxEnum) return 7;
-        if (v instanceof OxMap) return 8;
-        return 9;
+    // Derived PartialOrd. Only values of one kind have an order (Int and
+    // Float count as one); anything else, including two different structs
+    // or enums, is a type error. null when unordered (NaN).
+    function unordered(a, b) {
+        throw new OxPanic(`type error: cannot order ${typeName(a)} and ${typeName(b)} with < > <= >=`);
     }
     function cmpPrim(a, b) {
         if (Number.isNaN(a) || Number.isNaN(b)) return null;
@@ -1177,32 +1193,42 @@
         }
         return cmpPrim(a.length, b.length);
     }
+    function variantIndex(v) {
+        const en = INTERP && INTERP.enums.get(v.type);
+        const i = en ? en.variants.findIndex((x) => x.name === v.variant) : -1;
+        return i < 0 ? null : i;
+    }
     function cmp(a, b) {
+        const num = (v) => isInt(v) || isFloat(v);
         // Int and Float compare by value, as `==` does.
-        if ((isInt(a) && isFloat(b)) || (isFloat(a) && isInt(b))) return cmpPrim(Number(a), Number(b));
-        const ra = rank(a);
-        const rb = rank(b);
-        if (ra !== rb) return cmpPrim(ra, rb);
-        switch (RANK[ra]) {
-            case "Int": case "Float": case "Str": return cmpPrim(a, b);
-            case "Bool": return cmpPrim(Number(a), Number(b));
-            case "List": return cmpSeq(a, b, cmp);
-            case "Tuple": return cmpSeq(a.items, b.items, cmp);
-            case "Struct": {
-                if (a.name === b.name && INTERP) {
-                    const less = INTERP.dispatchOp("__lt__", a, [b]);
-                    if (less !== undefined) {
-                        if (truthy(less)) return -1;
-                        return truthy(INTERP.dispatchOp("__lt__", b, [a])) ? 1 : 0;
-                    }
+        if (num(a) && num(b)) return isInt(a) && isInt(b) ? cmpPrim(a, b) : cmpPrim(Number(a), Number(b));
+        if (typeof a === "string" && typeof b === "string") return cmpPrim(a, b);
+        if (typeof a === "boolean" && typeof b === "boolean") return cmpPrim(Number(a), Number(b));
+        if (Array.isArray(a) && Array.isArray(b)) return cmpSeq(a, b, cmp);
+        if (a instanceof OxTuple && b instanceof OxTuple) return cmpSeq(a.items, b.items, cmp);
+        if (a instanceof OxStruct && b instanceof OxStruct) {
+            if (a.name !== b.name) unordered(a, b);
+            if (INTERP) {
+                const less = INTERP.dispatchOp("__lt__", a, [b]);
+                if (less !== undefined) {
+                    if (truthy(less)) return -1;
+                    return truthy(INTERP.dispatchOp("__lt__", b, [a])) ? 1 : 0;
                 }
-                return cmpPrim(a.name, b.name) || cmpSeq(a.fields, b.fields, (x, y) => cmpPrim(x[0], y[0]) || cmp(x[1], y[1]));
             }
-            case "Enum": return cmpPrim(a.type, b.type) || cmpPrim(a.variant, b.variant) || cmpSeq(a.payload, b.payload, cmp);
-            case "Map": return cmpSeq(a.entries, b.entries, (x, y) => cmp(x[0], y[0]) || cmp(x[1], y[1]));
-            case "None": return 0;
-            default: return null;
+            return cmpSeq(a.fields, b.fields, (x, y) => cmp(x[1], y[1]));
         }
+        if (a instanceof OxEnum && b instanceof OxEnum) {
+            if (a.type !== b.type) unordered(a, b);
+            // Variants order as declared (`Red < Green < Blue`), then by payload.
+            const ai = variantIndex(a);
+            const bi = variantIndex(b);
+            const head = ai !== null && bi !== null ? cmpPrim(ai, bi) : cmpPrim(a.variant, b.variant);
+            return head || cmpSeq(a.payload, b.payload, cmp);
+        }
+        if (a instanceof OxMap && b instanceof OxMap) return cmpSeq(a.entries, b.entries, (x, y) => cmp(x[0], y[0]) || cmp(x[1], y[1]));
+        if (a === null && b === null) return 0;
+        if (a instanceof OxFunc && b instanceof OxFunc) return null;
+        unordered(a, b);
     }
 
     const truthy = (v) => (typeof v === "boolean" ? v : v !== null);
@@ -1523,9 +1549,8 @@
             switch (s.kind) {
                 case "Let": {
                     let value = FLOAT_TYPES.has(s.ty) ? this.evalFloat(s.value, scope) : this.eval(s.value, scope);
-                    if (isInt(value) && primitive(s.ty) === "f64" && s.value.kind === "Lit") {
-                        throw new OxError(`type mismatch: \`${s.name}\` is annotated ${s.ty} but assigned an Int — write a float literal or use \`as ${s.ty}\``);
-                    }
+                    // An Int widens to Float where a Float is declared: `let f: Float = 3`.
+                    if (isInt(value) && primitive(s.ty) === "f64") value = Number(value);
                     this.bind(scope, s.name, value, s.ty);
                     return undefined;
                 }
@@ -1916,7 +1941,8 @@
                     }
                     // None matches no variant except `Option::None()`.
                     if (v === null) return p.kind === "Variant" && p.name === "None" && !p.subs.length && (!p.enumName || p.enumName === "Option");
-                    if (!(v instanceof OxEnum)) throw new OxPanic(`type error: expected an enum value, got ${debug(v)}`);
+                    // A variant pattern never matches a value that isn't an enum.
+                    if (!(v instanceof OxEnum)) return false;
                     if (p.enumName && p.enumName !== v.type && this.enums.has(p.enumName)) return false;
                     if (v.variant !== p.name) return false;
                     const def = this.variantDef(v.type, v.variant);
@@ -1965,6 +1991,8 @@
             const arms = e.arms.filter((a) => !a.guard);
             if (arms.some((a) => a.pattern.kind === "Wildcard" || a.pattern.kind === "Binding")) return;
             const covered = new Set(arms.filter((a) => a.pattern.kind === "Variant" || a.pattern.kind === "Fields").map((a) => a.pattern.name));
+            // A `None` (or `None()`) arm covers `Option::None`.
+            if (arms.some((a) => a.pattern.kind === "Literal" && a.pattern.value === null)) covered.add("None");
             const missing = en.variants.map((x) => x.name).filter((n) => !covered.has(n));
             if (missing.length) {
                 throw new OxError(`non-exhaustive match on \`${en.name}\`: not covered: ${missing.map((m) => en.name + "::" + m).join(", ")} — add those arms or a \`_\` arm (line ${e.line})`);
@@ -2377,13 +2405,17 @@
         }],
         starts_with: [2, (s, p) => asStr(s).startsWith(asStr(p))],
         ends_with: [2, (s, p) => asStr(s).endsWith(asStr(p))],
-        replace: [3, (s, a, b) => asStr(s).split(asStr(a)).join(asStr(b))],
+        replace: [3, (s, a, b) => {
+            // As Rust's `str::replace`, an empty pattern matches around every character.
+            if (asStr(a) === "") return asStr(b) + Array.from(asStr(s)).join(b) + b;
+            return asStr(s).split(a).join(asStr(b));
+        }],
         sort: [1, (list) => {
             const order = (a, b) => {
                 const nums = (isInt(a) || isFloat(a)) && (isInt(b) || isFloat(b));
-                const same = typeName(a) === typeName(b) && ["String", "Bool"].includes(typeName(a));
-                const structs = a instanceof OxStruct && b instanceof OxStruct && a.name === b.name;
-                if (!nums && !same && !structs) throw new OxPanic(`sort(): can't order ${debug(a)} against ${debug(b)}`);
+                const same = typeName(a) === typeName(b) && ["String", "Bool", "List", "Tuple"].includes(typeName(a));
+                const named = ((a instanceof OxStruct && b instanceof OxStruct) || (a instanceof OxEnum && b instanceof OxEnum)) && typeName(a) === typeName(b);
+                if (!nums && !same && !named) throw new OxPanic(`sort(): can't order ${debug(a)} against ${debug(b)}`);
                 return cmp(a, b) || 0;
             };
             return stableSort(asList(list, "sort"), order);
@@ -2403,7 +2435,10 @@
         sum: [1, (list) => {
             const items = asList(list, "sum");
             if (!items.length) return 0n;
-            return items.slice(1).reduce((acc, x) => arith("+", acc, x), items[0]);
+            // Mixing Ints and Floats gives a Float.
+            const mixed = items.some(isFloat) && items.some(isInt);
+            const xs = mixed ? items.map((x) => (isInt(x) ? Number(x) : x)) : items;
+            return xs.slice(1).reduce((acc, x) => arith("+", acc, x), xs[0]);
         }],
         chars: [1, (s) => Array.from(asStr(s))],
         ord: [1, (s) => {
