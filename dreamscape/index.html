@@ -23,8 +23,12 @@
   // SDL sizes a resizable window's canvas to the element's CSS size on
   // every window resize event, so forward element resizes (e.g. an iframe
   // growing, or fullscreen) as window resizes.
+  // The page passes ?v=N; add it to the game files too so a new build isn't
+  // mixed with cached old ones.
+  var v = (location.search.match(/[?&]v=([^&]*)/) || [])[1];
   var Module = {
     canvas: canvas,
+    locateFile: function (path, dir) { return (dir || "") + path + (v ? "?v=" + v : ""); },
     arguments: [],
     preRun: [function () { if (/[?&]log=1/.test(location.search)) ENV.RUST_LOG = "info"; }],
     print: function (t) { console.log(t); },
@@ -42,6 +46,10 @@
   canvas.addEventListener("pointerdown", function () { canvas.focus(); });
   new ResizeObserver(function () { window.dispatchEvent(new Event("resize")); }).observe(canvas);
 </script>
-<script src="dreamscape.js"></script>
+<script>
+  var script = document.createElement("script");
+  script.src = "dreamscape.js" + (v ? "?v=" + v : "");
+  document.body.appendChild(script);
+</script>
 </body>
 </html>
