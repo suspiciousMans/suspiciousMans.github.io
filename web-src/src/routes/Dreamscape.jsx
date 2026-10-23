@@ -7,7 +7,17 @@ const REPO = "https://github.com/suspiciousMans/dreamscape";
 // /dreamscape/ is the game's Emscripten (WebAssembly + WebGL2) build, copied
 // from the dreamscape repo's games/dreamscape/web output. Bump this whenever
 // those files change, or browsers keep the cached frame.
-const DREAMSCAPE_VERSION = "4";
+const DREAMSCAPE_VERSION = "5";
+
+// Combat arrived with six new enemies, one more each depth from 3 to 8.
+const ENEMIES = [
+    { name: "Tooth", note: "Depth 3. A fast, short lunge from the dark. Dash through it, or strike while it recovers." },
+    { name: "Weeper", note: "Depth 4. Keeps its distance and spits slow tears. Close in with Blink or Dash." },
+    { name: "Lullaby", note: "Depth 5. A slow brute with an armoured front and a ground slam. Hit it from behind." },
+    { name: "Moths", note: "Depth 6. Groups of four that circle, then dive one at a time. One strike each." },
+    { name: "Mask", note: "Depth 7. A shield on its front and slow turns. Blink behind it or Gust the shield away." },
+    { name: "Leech", note: "Depth 8. Latches on and drains nerve until you jump three times or strike it." },
+];
 
 // The gallery shots come from the repo's own
 // games/dreamscape/tools/screenshots.sh.
@@ -47,10 +57,11 @@ const CONTROLS = [
     ["Mouse / arrows", "look (first-person dreams)"],
     ["Space", "jump"],
     ["Shift / E", "ability slot 1 / 2"],
-    ["1 / 2 / 3", "pick an upgrade"],
+    ["F", "strike"],
+    ["1 / 2 / 3", "pick an upgrade (R rerolls, X skips for dust)"],
     ["Esc", "pause"],
     ["L / B", "Lucid Store / dream booklet"],
-    ["Controller", "supported, with button prompts on every screen"],
+    ["Controller", "A jumps, B strikes, button prompts on every screen"],
 ];
 
 function Gallery({ label, items }) {
@@ -116,7 +127,8 @@ export default function Dreamscape() {
                         an endless run of procedurally generated dreams, picking up an upgrade after each one. Collect
                         lucidity shards to wake up, or refuse the wake door and go deeper. The dreams you remember
                         become trading cards. Build a loadout from them before each run, merge them into stronger cards,
-                        and find the notes other dreamers left behind.
+                        and find the notes other dreamers left behind. Now with combat: strike back at what hunts you,
+                        and keep your nerve.
                     </p>
                 </div>
             </section>
@@ -159,7 +171,37 @@ export default function Dreamscape() {
                 </div>
             </section>
 
-            <Gallery label="New: six trip dreams" items={NEW_DREAMS} />
+            <section className="section-tight">
+                <div className="wrap dream-info">
+                    <div className="reveal" data-reveal>
+                        <span className="label eyebrow">New: combat</span>
+                        <ul>
+                            <li>Press F (or B on a controller) to strike: a glowing fan swept across the space in front of you.</li>
+                            <li>Enemies have hit points, stagger when struck, and come undone into dust and calm motes.</li>
+                            <li>Nerve is your health: three hearts to start, five at most, one back per portal. A touch costs one; you are caught only at zero.</li>
+                            <li>Nightmares have a strength bar and can only be hurt while they rest. Killing is optional; the sigils still open the way.</li>
+                            <li>The dream after every nightmare is a sanctuary: no enemies, gates, hazards or clock, and your nerve refills.</li>
+                            <li>Every ability does something in a fight, from Dash cutting through enemies to Ward reflecting shots.</li>
+                            <li>Your equipped cards fan along the bottom of the screen and rise when used.</li>
+                        </ul>
+                    </div>
+                    <div className="reveal" data-reveal>
+                        <span className="label eyebrow">New enemies</span>
+                        <table className="dream-controls">
+                            <tbody>
+                                {ENEMIES.map((e) => (
+                                    <tr key={e.name}>
+                                        <td className="mono">{e.name}</td>
+                                        <td>{e.note}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <Gallery label="Six trip dreams" items={NEW_DREAMS} />
             <Gallery label="Nightmare bosses" items={BOSSES} />
             <Gallery label="More dreams" items={DREAMS} />
 
@@ -168,18 +210,25 @@ export default function Dreamscape() {
                     <div className="reveal" data-reveal>
                         <span className="label eyebrow">What's in it</span>
                         <ul>
-                            <li>No hand-built levels: every dream has its own layout rules, props, palette and music.</li>
+                            <li>No hand-built levels: twenty dream types, each with its own layout rules, props, palette and music. Open dreams now have pyramids and craters to climb.</li>
                             <li>A guided prologue: three dreams that teach the basics and end in your first wake.</li>
-                            <li>Three random upgrades after every dream, with curses and combos.</li>
-                            <li>Dream cards with powers. Your loadout decides your abilities, and cards merge into Fused and Resonant ones.</li>
+                            <li>Three random upgrades after every dream, with curses and combos, plus events between dreams that offer a trade.</li>
+                            <li>Dream cards with powers. Your loadout decides your abilities, and cards merge into Fused and Resonant ones. Five cards of one attribute grant its passive every run.</li>
+                            <li>Sixteen abilities, now including Leap, Slam, Anchor, Ward, Step, Hush and Gust.</li>
+                            <li>Pick a pack when you wake: tear one open for one to three of your dreams as cards.</li>
+                            <li>Six forms to play as: Crystal, Moth, Ember, Pearl, Lantern and Hare, each trading something for something.</li>
+                            <li>Secret rooms: break a cracked wall with Blink or Dash to find the moth's shelf of upgrades.</li>
                             <li>A story: procedural dreamers, notes hidden in dreams, companions with a boon and a burden, and an ending.</li>
                             <li>Special enemies from depth 3: stalkers, mimics, sentries, drifters and jesters.</li>
                             <li>First-person dreams you see through your own eyes, with mouse look.</li>
                             <li>Nightmare bosses every fifth dream, with a new attack each tier.</li>
-                            <li>Detailed maps: skirting, posts, inlays, ceilings and vistas in every dream.</li>
-                            <li>Today's dream (one shared seed a day), ten ascension levels and a codex.</li>
-                            <li>29 achievements.</li>
-                            <li>Every sound effect and every dream's music is generated in code.</li>
+                            <li>Twists like Flickering, Shrunk, Mirrored and Echoing on top of the old ones.</li>
+                            <li>Hard mode: the dream stirs and collapses if you linger, guarded and heavy shards, per-dream hazards, and pacts that trade a harder run for more dust.</li>
+                            <li>Today's dream (one shared seed a day), sixteen ascension levels and a codex.</li>
+                            <li>Dream codes: share a run as a short code so a friend can dream the same one.</li>
+                            <li>29 achievements, and dust for breaking your own records.</li>
+                            <li>Every sound effect and every dream's music is generated in code, with music that tenses as enemies get close.</li>
+                            <li>Colour-blind markers, reduced flashing and a gentle nerve setting.</li>
                             <li>Co-op for up to five dreamers (native builds only).</li>
                         </ul>
                     </div>
